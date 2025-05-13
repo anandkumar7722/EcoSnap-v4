@@ -44,9 +44,9 @@ const defaultUserProfile: UserProfile = {
   id: 'localUser',
   displayName: 'Anand',
   avatar: 'https://picsum.photos/seed/useravatar/100/100',
-  score: 230,
+  score: 330,
   targetScore: 250,
-  co2Managed: 248.4,
+  co2Managed: 258.4,
   totalEwaste: 0,
   totalPlastic: 0,
   totalBiowaste: 0,
@@ -309,3 +309,4 @@ export default function HomePage() {
 const getItemCountFromHistory = (history: ClassificationRecord[], category: WasteCategory): number => {
   return history.filter(item => item.category === category).length;
 };
+
