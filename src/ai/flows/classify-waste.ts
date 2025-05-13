@@ -22,9 +22,9 @@ export type ClassifyWasteInput = z.infer<typeof ClassifyWasteInputSchema>;
 
 const ClassifyWasteOutputSchema = z.object({
   category: z
-    .string()
-    .describe('The predicted category of the waste (e.g., Plastic, Organic, Metal, Paper).'),
-  confidence: z.number().describe('The confidence level of the prediction (0-1).'),
+    .enum(["recyclable", "compostable", "non-recyclable"])
+    .describe('The predicted category of the waste: recyclable, compostable, or non-recyclable.'),
+  confidence: z.number().min(0).max(1).describe('The confidence level of the prediction (0-1).'),
 });
 export type ClassifyWasteOutput = z.infer<typeof ClassifyWasteOutputSchema>;
 
@@ -36,15 +36,19 @@ const classifyWastePrompt = ai.definePrompt({
   name: 'classifyWastePrompt',
   input: {schema: ClassifyWasteInputSchema},
   output: {schema: ClassifyWasteOutputSchema},
-  prompt: `You are an expert in waste management and classification.
+  prompt: `You are an expert in waste management and sustainable practices.
 
-You will classify the waste in the provided photo into one of the following categories: Plastic, Organic, Metal, Paper, or Other.
+You will classify the waste item in the provided photo into one of the following three categories:
+1. recyclable: Items that can be processed and reused.
+2. compostable: Organic matter that can be broken down into compost.
+3. non-recyclable: Items that cannot be recycled or composted and typically go to landfill.
 
-Analyze the following image and provide the predicted waste category and your confidence level.
+Analyze the following image and determine the most appropriate category. Provide the predicted waste category and your confidence level (0-1).
 
 Photo: {{media url=photoDataUri}}
 
-Ensure the category field only contains the predicted waste category and the confidence field contains a number between 0 and 1.`,
+Ensure the 'category' field ONLY contains one of "recyclable", "compostable", or "non-recyclable".
+The 'confidence' field should be a number between 0 and 1.`,
 });
 
 const classifyWasteFlow = ai.defineFlow(
@@ -55,6 +59,18 @@ const classifyWasteFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await classifyWastePrompt(input);
+    // Ensure output conforms to the schema, especially the enum for category.
+    // The LLM might return a category with different casing.
+    if (output && output.category) {
+        const lowerCaseCategory = output.category.toLowerCase();
+        if (["recyclable", "compostable", "non-recyclable"].includes(lowerCaseCategory)) {
+            output.category = lowerCaseCategory as "recyclable" | "compostable" | "non-recyclable";
+        } else {
+            // Handle unexpected category, perhaps by defaulting or raising an error
+            // For now, we trust the LLM to follow the prompt with the enum constraint.
+            // If the LLM returns something not in enum, Zod parsing in definePrompt will fail.
+        }
+    }
     return output!;
   }
 );
