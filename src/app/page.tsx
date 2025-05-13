@@ -33,12 +33,12 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
 const CO2_SAVED_PER_POINT = 0.1; 
 
 const quickLogItems: QuickLogItem[] = [
-  { id: 'cardboard', name: 'Cardboard', imageUrl: 'https://picsum.photos/seed/cardboardbox/200/150', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard' },
-  { id: 'paper', name: 'Paper', imageUrl: 'https://picsum.photos/seed/papernotes/200/150', points: WASTE_POINTS.paper, dataAiHint: 'paper' },
-  { id: 'glass', name: 'Glass', imageUrl: 'https://picsum.photos/seed/glassjar/200/150', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
-  { id: 'plastic', name: 'Plastic', imageUrl: 'https://picsum.photos/seed/plasticbottle/200/150', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
-  { id: 'ewaste', name: 'E-Waste', imageUrl: 'https://picsum.photos/seed/ewasteitems/200/150', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
-  { id: 'biowaste', name: 'Bio-Waste', imageUrl: 'https://picsum.photos/seed/foodscraps/200/150', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core' },
+  { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.jpg', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box' },
+  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.jpg', points: WASTE_POINTS.paper, dataAiHint: 'stock paper' },
+  { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.jpg', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
+  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.jpg', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
+  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.jpg', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core' },
 ];
 
 const defaultUserProfile: UserProfile = {
@@ -200,7 +200,9 @@ export default function HomePage() {
               <DialogTrigger asChild>
                 <Card className="min-w-[110px] sm:min-w-[130px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="p-2 flex flex-col items-center text-center">
-                    <Image src={item.imageUrl} alt={item.name} width={70} height={45} className="rounded-md mb-1 object-cover h-[44px] sm:h-[50px] w-full" data-ai-hint={item.dataAiHint} />
+                    <div className="relative w-full h-[44px] sm:h-[50px] rounded-md mb-1 overflow-hidden">
+                      <Image src={item.imageUrl} alt={item.name} layout="fill" objectFit="cover" className="rounded-md" data-ai-hint={item.dataAiHint} />
+                    </div>
                     <p className="text-xs sm:text-sm font-medium leading-snug mt-1 line-clamp-1">{item.name}</p>
                     <p className="text-xs text-muted-foreground">{item.points} pts</p>
                   </CardContent>
@@ -251,7 +253,9 @@ export default function HomePage() {
           <div className="space-y-2 sm:space-y-3">
             {recentClassifications.map(item => (
               <Card key={item.id} className="p-2 sm:p-3 flex items-center gap-2 sm:gap-3">
-                <Image src={item.imageDataUri} alt={item.category} width={40} height={40} className="rounded-md aspect-square object-cover sm:w-12 sm:h-12" data-ai-hint={`${item.category} item`} />
+                <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden">
+                  <Image src={item.imageDataUri} alt={item.category} layout="fill" objectFit="cover" className="rounded-md aspect-square" data-ai-hint={`${item.category} item`} />
+                </div>
                 <div className="flex-grow">
                   <p className="font-medium capitalize text-sm sm:text-base">{item.category}</p>
                   <p className="text-xs sm:text-sm text-muted-foreground">{item.points || 0} points</p>
