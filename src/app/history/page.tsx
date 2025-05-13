@@ -8,7 +8,7 @@ import { getFromLocalStorage, saveToLocalStorage } from '@/lib/storage';
 import type { ClassificationRecord } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Trash2, Info, ArrowLeft } from 'lucide-react';
+import { Trash2, Info, ArrowLeft, PackageSearch } from 'lucide-react';
 
 const HISTORY_STORAGE_KEY = 'ecoSnapHistory';
 
@@ -28,21 +28,22 @@ export default function HistoryPage() {
   };
 
   if (!mounted) {
-    // Render nothing or a loading skeleton on the server/initial client render
-    // to avoid hydration mismatch with localStorage.
     return (
-      <div className="flex flex-col items-center">
-        <h1 className="text-3xl font-bold mb-8 text-primary">Classification History</h1>
-        <p>Loading history...</p>
+      <div className="flex flex-col items-center w-full pt-10">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-8 text-primary">Classification History</h1>
+        <div className="flex flex-col items-center justify-center text-muted-foreground">
+            <PackageSearch className="w-12 h-12 mb-4" />
+            <p>Loading history...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="w-full max-w-4xl">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <h1 className="text-3xl font-bold text-primary">Classification History</h1>
+      <div className="w-full max-w-5xl"> {/* Increased max-width slightly for larger screens */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-2 sm:gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary">Classification History</h1>
           {history.length > 0 && (
             <Button variant="destructive" onClick={clearHistory} size="sm">
               <Trash2 className="mr-2 h-4 w-4" /> Clear History
@@ -51,7 +52,7 @@ export default function HistoryPage() {
         </div>
 
         {history.length === 0 ? (
-          <Alert>
+          <Alert className="max-w-lg mx-auto">
             <Info className="h-4 w-4" />
             <AlertTitle>No History Yet!</AlertTitle>
             <AlertDescription>
@@ -59,13 +60,13 @@ export default function HistoryPage() {
             </AlertDescription>
           </Alert>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {history.map((record) => (
               <ClassificationResultCard key={record.id} {...record} />
             ))}
           </div>
         )}
-        <div className="mt-12 text-center">
+        <div className="mt-10 sm:mt-12 text-center">
             <Button variant="outline" asChild>
                 <Link href="/">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home

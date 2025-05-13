@@ -11,14 +11,14 @@ import { useToast } from "@/hooks/use-toast";
 import { classifyWaste, type ClassifyWasteOutput } from '@/ai/flows/classify-waste';
 import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
 import type { ClassificationRecord, UserProfile, QuickLogItem, WasteCategory } from '@/lib/types';
-import { ImageUpload } from '@/components/image-upload'; // This will be used in a Dialog
+import { ImageUpload } from '@/components/image-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Settings, Award, ImagePlus, ChevronRight, BarChart3, Recycle, Trash2, Droplets, ShoppingBag, BotIcon } from 'lucide-react';
+import { Settings, Award, ImagePlus, ChevronRight, BarChart3, Recycle, Trash2, Droplets, ShoppingBag, BotIcon, History, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 const HISTORY_STORAGE_KEY = 'ecoSnapHistory';
 const USER_DATA_KEY = 'ecoSnapUserData';
-const MAX_HISTORY_DISPLAY_ITEMS = 3; // Max recent items to display on dashboard
+const MAX_HISTORY_DISPLAY_ITEMS = 3; 
 
 const WASTE_POINTS: Record<WasteCategory, number> = {
   ewaste: 100,
@@ -30,7 +30,7 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
   other: 10,
 };
 
-const CO2_SAVED_PER_POINT = 0.1; // Example: 0.1 Kg CO2 saved per point earned
+const CO2_SAVED_PER_POINT = 0.1; 
 
 const quickLogItems: QuickLogItem[] = [
   { id: 'cardboard', name: 'Cardboard', imageUrl: 'https://picsum.photos/seed/cardboardbox/200/150', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box' },
@@ -46,7 +46,7 @@ const defaultUserProfile: UserProfile = {
   displayName: 'Anand',
   avatar: 'https://picsum.photos/seed/useravatar/100/100',
   score: 330,
-  targetScore: 1000, 
+  targetScore: 500, 
   co2Managed: 258.4,
   totalEwaste: 0,
   totalPlastic: 0,
@@ -71,19 +71,20 @@ export default function HomePage() {
     const storedUserData = getFromLocalStorage<UserProfile>(USER_DATA_KEY, defaultUserProfile);
     
     let targetScoreUpdated = false;
-    if (storedUserData.score >= (storedUserData.targetScore || 0)) {
-      storedUserData.targetScore = Math.floor(storedUserData.score / 500 + 1) * 500;
-      targetScoreUpdated = true;
+    let baseTarget = storedUserData.targetScore || defaultUserProfile.targetScore;
+    if (baseTarget <= storedUserData.score) {
+        baseTarget = Math.floor(storedUserData.score / 500 + 1) * 500;
+        targetScoreUpdated = true;
     }
-     if (storedUserData.targetScore < defaultUserProfile.targetScore && !targetScoreUpdated) {
-        storedUserData.targetScore = defaultUserProfile.targetScore;
+    if (baseTarget < defaultUserProfile.targetScore && !targetScoreUpdated) {
+        baseTarget = defaultUserProfile.targetScore;
     }
+    storedUserData.targetScore = baseTarget;
 
 
     setUserData(storedUserData);
 
     const history = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
-    // Get unique items by category, then take the latest 3
      const uniqueRecentItems = Object.values(
       history.reduce((acc, item) => {
         if (!acc[item.category] || acc[item.category].timestamp < item.timestamp) {
@@ -113,9 +114,8 @@ export default function HomePage() {
           points: pointsEarned,
         };
 
-        // Update history
         const currentHistory = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
-        const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); // Keep last 50 for general history
+        const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); 
         saveToLocalStorage(HISTORY_STORAGE_KEY, updatedHistory);
         
         const uniqueRecentItems = Object.values(
@@ -129,13 +129,10 @@ export default function HomePage() {
          .slice(0, MAX_HISTORY_DISPLAY_ITEMS);
         setRecentClassifications(uniqueRecentItems);
 
-
-        // Update user data
         setUserData(prevData => {
           const newScore = prevData.score + pointsEarned;
           const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
           const categoryKey = `total${result.category.charAt(0).toUpperCase() + result.category.slice(1)}` as keyof UserProfile;
-          
           const updatedCategoryCount = (typeof prevData[categoryKey] === 'number' ? (prevData[categoryKey] as number) : 0) + 1;
           
           let newTargetScore = prevData.targetScore || defaultUserProfile.targetScore;
@@ -143,11 +140,10 @@ export default function HomePage() {
             newTargetScore = Math.floor(newScore / 500 + 1) * 500;
           }
 
-
           const newUserData: UserProfile = {
             ...prevData,
             score: newScore,
-            co2Managed: parseFloat(newCo2Managed.toFixed(1)), // Keep one decimal place for CO2
+            co2Managed: parseFloat(newCo2Managed.toFixed(1)),
             itemsClassified: prevData.itemsClassified + 1,
             [categoryKey]: updatedCategoryCount,
             targetScore: newTargetScore,
@@ -160,7 +156,7 @@ export default function HomePage() {
           title: "Classification Successful!",
           description: `Item classified as ${result.category}. You earned ${pointsEarned} points!`,
         });
-        setIsUploadModalOpen(false); // Close modal on success
+        setIsUploadModalOpen(false);
         return result;
       } else {
         setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
@@ -189,8 +185,8 @@ export default function HomePage() {
   const scorePercentage = userData.targetScore ? Math.min((userData.score / userData.targetScore) * 100, 100) : 0;
 
   return (
-    <div className="flex flex-col gap-6 pb-24"> {/* Padding bottom for FAB */}
-      <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+    <div className="flex flex-col gap-4 sm:gap-6 pb-24">
+      <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
         <div>
           <p className="text-muted-foreground text-sm sm:text-base">Hi {userData.displayName}!</p>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Let's recycle</h1>
@@ -198,15 +194,15 @@ export default function HomePage() {
       </section>
 
       <section>
-        <div className="flex overflow-x-auto space-x-3 pb-2 no-scrollbar">
+        <div className="flex overflow-x-auto space-x-2 sm:space-x-3 pb-2 no-scrollbar">
           {quickLogItems.map(item => (
             <Dialog key={item.id} onOpenChange={ open => { if(open) { setClassificationError(null); } setIsUploadModalOpen(open); }}>
               <DialogTrigger asChild>
-                <Card className="min-w-[120px] sm:min-w-[140px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
-                  <CardContent className="p-2 sm:p-3 flex flex-col items-center text-center">
-                    <Image src={item.imageUrl} alt={item.name} width={80} height={60} className="rounded-md mb-2 object-cover h-[50px] sm:h-[60px]" data-ai-hint={item.dataAiHint} />
-                    <p className="text-xs sm:text-sm font-medium">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.points} points</p>
+                <Card className="min-w-[110px] sm:min-w-[130px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
+                  <CardContent className="p-2 flex flex-col items-center text-center">
+                    <Image src={item.imageUrl} alt={item.name} width={70} height={45} className="rounded-md mb-1 object-cover h-[44px] sm:h-[50px] w-full" data-ai-hint={item.dataAiHint} />
+                    <p className="text-xs sm:text-sm font-medium leading-snug mt-1 line-clamp-1">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">{item.points} pts</p>
                   </CardContent>
                 </Card>
               </DialogTrigger>
@@ -227,80 +223,106 @@ export default function HomePage() {
       </section>
       
       <section>
-        <h2 className="text-lg sm:text-xl font-semibold mb-2 text-foreground">Progress</h2>
-        <Card className="bg-primary text-primary-foreground p-4 sm:p-6 shadow-xl">
+        <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Progress</h2>
+        <Card className="bg-primary text-primary-foreground p-3 sm:p-6 shadow-xl">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-xs sm:text-sm opacity-90">Waste managed: {userData.co2Managed} Kg CO₂</p>
-              <p className="text-xl sm:text-2xl font-bold mt-1">{userData.score} / {userData.targetScore} points</p>
+              <p className="text-lg sm:text-2xl font-bold mt-1">{userData.score} / {userData.targetScore} points</p>
             </div>
-            <div className="bg-accent p-2 rounded-full">
-              <Award className="h-6 w-6 sm:h-8 sm:w-8 text-accent-foreground" />
+            <div className="bg-accent p-1.5 sm:p-2 rounded-full">
+              <Award className="h-5 w-5 sm:h-8 sm:w-8 text-accent-foreground" />
             </div>
           </div>
-          <Progress value={scorePercentage} className="mt-3 sm:mt-4 h-2 sm:h-3 [&>div]:bg-white/80 bg-white/30" />
+          <Progress value={scorePercentage} className="mt-2 sm:mt-4 h-1.5 sm:h-3 [&>div]:bg-white/80 bg-white/30" />
         </Card>
       </section>
 
       <section>
-        <h2 className="text-lg sm:text-xl font-semibold mb-2 text-foreground">Items</h2>
+        <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Recent Items</h2>
         {recentClassifications.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {recentClassifications.map(item => (
-              <Card key={item.id} className="p-3 flex items-center gap-3">
-                <Image src={item.imageDataUri} alt={item.category} width={48} height={48} className="rounded-md aspect-square object-cover" data-ai-hint={`${item.category} item`} />
+              <Card key={item.id} className="p-2 sm:p-3 flex items-center gap-2 sm:gap-3">
+                <Image src={item.imageDataUri} alt={item.category} width={40} height={40} className="rounded-md aspect-square object-cover sm:w-12 sm:h-12" data-ai-hint={`${item.category} item`} />
                 <div className="flex-grow">
                   <p className="font-medium capitalize text-sm sm:text-base">{item.category}</p>
                   <p className="text-xs sm:text-sm text-muted-foreground">{item.points || 0} points</p>
                 </div>
               </Card>
             ))}
-             <Button variant="link" asChild className="text-primary p-0 h-auto text-sm sm:text-base">
-                <Link href="/history">View all items <ChevronRight className="h-4 w-4 ml-1" /></Link>
+             <Button variant="link" asChild className="text-primary p-0 h-auto text-xs sm:text-base">
+                <Link href="/history">View all items <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" /></Link>
             </Button>
           </div>
         ) : (
-          <Card className="p-4 text-center text-muted-foreground text-sm sm:text-base">
-            <p>No items classified yet. Tap the button below to start!</p>
+          <Card className="p-3 sm:p-4 text-center text-muted-foreground text-sm">
+            <p>No items classified yet. Tap the <ImagePlus className="inline h-4 w-4 relative -top-px" /> button below to start!</p>
           </Card>
         )}
       </section>
 
-      <Separator className="my-4" />
+      <Separator className="my-2 sm:my-4" />
 
-      <section className="space-y-3">
-        <h2 className="text-lg sm:text-xl font-semibold text-foreground">Explore More</h2>
-        <Link href="/dashboard" className="block">
-          <Card className="p-3 sm:p-4 hover:bg-muted/50 transition-colors">
-            <div className="flex items-center gap-3">
-              <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              <div>
-                <h3 className="font-medium text-sm sm:text-base">Waste Dashboard</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Visualize your impact.</p>
-              </div>
-              <ChevronRight className="h-5 w-5 ml-auto text-muted-foreground" />
-            </div>
-          </Card>
-        </Link>
-         <Link href="/challenges" className="block">
-          <Card className="p-3 sm:p-4 hover:bg-muted/50 transition-colors">
-            <div className="flex items-center gap-3">
-              <Award className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              <div>
-                <h3 className="font-medium text-sm sm:text-base">Eco Challenges</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Earn points and badges.</p>
-              </div>
-              <ChevronRight className="h-5 w-5 ml-auto text-muted-foreground" />
-            </div>
-          </Card>
-        </Link>
+      <section className="space-y-2 sm:space-y-3">
+        <h2 className="text-base sm:text-xl font-semibold text-foreground">Explore More</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+            <Link href="/dashboard" className="block">
+              <Card className="p-3 sm:p-4 hover:bg-muted/50 transition-colors h-full">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-sm sm:text-base">Waste Dashboard</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Visualize your impact.</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 ml-auto text-muted-foreground flex-shrink-0" />
+                </div>
+              </Card>
+            </Link>
+            <Link href="/challenges" className="block">
+              <Card className="p-3 sm:p-4 hover:bg-muted/50 transition-colors h-full">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Award className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-sm sm:text-base">Eco Challenges</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Earn points and badges.</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 ml-auto text-muted-foreground flex-shrink-0" />
+                </div>
+              </Card>
+            </Link>
+             <Link href="/recycling-centers" className="block">
+              <Card className="p-3 sm:p-4 hover:bg-muted/50 transition-colors h-full">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-sm sm:text-base">Find Centers</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Locate recycling spots.</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 ml-auto text-muted-foreground flex-shrink-0" />
+                </div>
+              </Card>
+            </Link>
+             <Link href="/assistant" className="block">
+              <Card className="p-3 sm:p-4 hover:bg-muted/50 transition-colors h-full">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <BotIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-sm sm:text-base">AI Assistant</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Get eco advice.</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 ml-auto text-muted-foreground flex-shrink-0" />
+                </div>
+              </Card>
+            </Link>
+        </div>
       </section>
 
 
       <Dialog open={isUploadModalOpen} onOpenChange={open => { if(!open) setClassificationError(null); setIsUploadModalOpen(open);}}>
         <DialogTrigger asChild>
-           <Button className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-2xl text-2xl p-0">
-            <ImagePlus className="h-7 w-7 sm:h-8 sm:w-8" />
+           <Button className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl text-2xl p-0" aria-label="Upload image">
+            <ImagePlus className="h-6 w-6 sm:h-7 sm:w-7" />
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
@@ -317,9 +339,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-// Helper to get a specific category count from history
-// This could be expanded or moved to a service if complex
-const getItemCountFromHistory = (history: ClassificationRecord[], category: WasteCategory): number => {
-  return history.filter(item => item.category === category).length;
-};

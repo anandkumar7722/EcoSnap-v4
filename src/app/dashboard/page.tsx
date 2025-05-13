@@ -21,7 +21,9 @@ import {
   CartesianGrid, 
   BarChart as RechartsBarChart, // Aliased import for Recharts BarChart
   PieChart as RechartsPieChart,   // Aliased import for Recharts PieChart
-  ResponsiveContainer
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip, // Import RechartsTooltip
+  Legend as RechartsLegend // Import RechartsLegend
 } from "recharts";
 
 
@@ -33,14 +35,15 @@ const placeholderMonthlyData = [
 ];
 
 const placeholderCategoryDistribution = [
-  { name: 'E-Waste', value: 25, fill: 'var(--color-ewaste)' },
-  { name: 'Plastic', value: 180, fill: 'var(--color-plastic)' },
-  { name: 'Bio-Waste', value: 150, fill: 'var(--color-biowaste)' },
-  { name: 'Cardboard', value: 120, fill: 'var(--color-cardboard)' },
-  { name: 'Paper', value: 100, fill: 'var(--color-paper)' },
-  { name: 'Glass', value: 90, fill: 'var(--color-glass)' },
-  { name: 'Other', value: 30, fill: 'var(--color-other)' },
+  { name: 'E-Waste', value: 25, fill: 'hsl(var(--chart-1))' }, // E-Waste color
+  { name: 'Plastic', value: 180, fill: 'hsl(var(--chart-2))' }, // Plastic color
+  { name: 'Bio-Waste', value: 150, fill: 'hsl(var(--chart-3))' }, // Bio-Waste color
+  { name: 'Cardboard', value: 120, fill: 'hsl(var(--chart-4))' }, // Cardboard color
+  { name: 'Paper', value: 100, fill: 'hsl(var(--chart-5))' }, // Paper color
+  { name: 'Glass', value: 90, fill: 'hsl(var(--chart-1))' }, // Example: Reuse chart-1 for Glass
+  { name: 'Other', value: 30, fill: 'hsl(var(--muted))' }, // Other color
 ];
+
 
 const chartConfig = {
   items: { label: "Items" },
@@ -49,17 +52,17 @@ const chartConfig = {
   biowaste: { label: "Bio-Waste", color: "hsl(var(--chart-3))" },
   cardboard: { label: "Cardboard", color: "hsl(var(--chart-4))" },
   paper: { label: "Paper", color: "hsl(var(--chart-5))" },
-  glass: { label: "Glass", color: "hsl(var(--chart-1))" }, // Re-use colors for simplicity
+  glass: { label: "Glass", color: "hsl(var(--chart-1))" }, 
   other: { label: "Other", color: "hsl(var(--muted))" },
 } satisfies import("@/components/ui/chart").ChartConfig;
 
 
 export default function DetailedDashboardPage() {
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold text-primary">Detailed Waste Dashboard</h1>
-        <Button variant="outline" asChild>
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary">Detailed Waste Dashboard</h1>
+        <Button variant="outline" asChild size="sm">
             <Link href="/"><Edit className="mr-2 h-4 w-4" /> Back to Main Dashboard</Link>
         </Button>
       </div>
@@ -73,30 +76,41 @@ export default function DetailedDashboardPage() {
         </AlertDescription>
       </Alert>
 
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-1 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <PieChartIconLucide className="h-5 w-5 text-primary" />
               Waste Category Distribution
             </CardTitle>
-            <CardDescription>Overall breakdown of classified items by category.</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Overall breakdown of classified items by category.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px] sm:max-h-[350px]">
+            <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[280px] sm:max-h-[350px]">
               <RechartsPieChart>
-                <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
+                <RechartsTooltip content={<ChartTooltipContent nameKey="name" />} />
                 <Pie
                   data={placeholderCategoryDistribution}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  outerRadius={80} // Adjusted for smaller screens
+                  outerRadius={window.innerWidth < 640 ? 60 : 80} 
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent, x, y, midAngle }) => {
+                    // Basic label positioning, can be improved
+                     const RADIAN = Math.PI / 180;
+                     const radius = (window.innerWidth < 640 ? 60: 80) + 20; // Adjust label distance
+                     const lx = x + radius * Math.cos(-midAngle * RADIAN);
+                     const ly = y + radius * Math.sin(-midAngle * RADIAN);
+                     return (
+                        <text x={lx} y={ly} fill="currentColor" textAnchor={lx > x ? 'start' : 'end'} dominantBaseline="central" className="text-xs fill-foreground">
+                         {`${name} (${(percent * 100).toFixed(0)}%)`}
+                       </text>
+                     );
+                  }}
                 />
-                <ChartLegend content={<ChartLegendContent />} />
+                <RechartsLegend content={<ChartLegendContent />} />
               </RechartsPieChart>
             </ChartContainer>
           </CardContent>
@@ -104,27 +118,27 @@ export default function DetailedDashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <BarChartIcon className="h-5 w-5 text-primary" />
               Monthly Classification Volume
             </CardTitle>
-            <CardDescription>Number of items classified each month across categories.</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Number of items classified each month.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] sm:h-[350px] w-full">
-              <RechartsBarChart data={placeholderMonthlyData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+            <ChartContainer config={chartConfig} className="h-[280px] sm:h-[350px] w-full">
+              <RechartsBarChart data={placeholderMonthlyData} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}> {/* Adjusted margins */}
                   <CartesianGrid strokeDasharray="3 3" vertical={false}/>
-                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
-                  <YAxis tickLine={false} axisLine={false} tickMargin={8} />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dashed" />} />
-                  <ChartLegend content={<ChartLegendContent />} />
-                  <Bar dataKey="ewaste" stackId="a" fill="var(--color-ewaste)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="plastic" stackId="a" fill="var(--color-plastic)" />
-                  <Bar dataKey="biowaste" stackId="a" fill="var(--color-biowaste)" />
-                  <Bar dataKey="cardboard" stackId="a" fill="var(--color-cardboard)" />
-                  <Bar dataKey="paper" stackId="a" fill="var(--color-paper)" />
-                  <Bar dataKey="glass" stackId="a" fill="var(--color-glass)" />
-                  <Bar dataKey="other" stackId="a" fill="var(--color-other)" radius={[0,0,4,4]} />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize="0.75rem" />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize="0.75rem" />
+                  <RechartsTooltip cursor={false} content={<ChartTooltipContent indicator="dashed" />} />
+                  <RechartsLegend content={<ChartLegendContent nameKey="name" />} />
+                  <Bar dataKey="ewaste" stackId="a" fill={chartConfig.ewaste.color} radius={[4, 4, 0, 0]} name={chartConfig.ewaste.label as string} />
+                  <Bar dataKey="plastic" stackId="a" fill={chartConfig.plastic.color} name={chartConfig.plastic.label as string} />
+                  <Bar dataKey="biowaste" stackId="a" fill={chartConfig.biowaste.color} name={chartConfig.biowaste.label as string} />
+                  <Bar dataKey="cardboard" stackId="a" fill={chartConfig.cardboard.color} name={chartConfig.cardboard.label as string} />
+                  <Bar dataKey="paper" stackId="a" fill={chartConfig.paper.color} name={chartConfig.paper.label as string} />
+                  <Bar dataKey="glass" stackId="a" fill={chartConfig.glass.color} name={chartConfig.glass.label as string} />
+                  <Bar dataKey="other" stackId="a" fill={chartConfig.other.color} radius={[0,0,4,4]} name={chartConfig.other.label as string} />
               </RechartsBarChart>
             </ChartContainer>
           </CardContent>
@@ -133,27 +147,27 @@ export default function DetailedDashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <LineChartIcon className="h-5 w-5 text-primary" />
             Category Trends Over Time (Placeholder)
           </CardTitle>
-          <CardDescription>Track how your classification of specific waste types changes over time.</CardDescription>
+          <CardDescription className="text-xs sm:text-sm">Track how your classification of specific waste types changes over time.</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="h-72 w-full bg-muted/50 rounded-md flex items-center justify-center border border-dashed">
-            <p className="text-sm text-muted-foreground">Line chart for individual category trends will appear here.</p>
+            <div className="h-[250px] sm:h-72 w-full bg-muted/50 rounded-md flex items-center justify-center border border-dashed">
+            <p className="text-sm text-muted-foreground p-4 text-center">Line chart for individual category trends will appear here when data is available.</p>
             </div>
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total E-Waste</CardTitle>
                 <Atom className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">7 items</div>
+                <div className="text-xl sm:text-2xl font-bold">7 items</div>
                 <p className="text-xs text-muted-foreground">+2 from last month</p>
             </CardContent>
         </Card>
@@ -163,17 +177,17 @@ export default function DetailedDashboardPage() {
                 <Recycle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">62 items</div>
+                <div className="text-xl sm:text-2xl font-bold">62 items</div>
                 <p className="text-xs text-muted-foreground">-5 from last month</p>
             </CardContent>
         </Card>
          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Bio-Waste</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
+                <Package className="h-4 w-4 text-muted-foreground" /> {/* Consider Leaf icon for biowaste */}
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">41 items</div>
+                <div className="text-xl sm:text-2xl font-bold">41 items</div>
                 <p className="text-xs text-muted-foreground">+10 from last month</p>
             </CardContent>
         </Card>
