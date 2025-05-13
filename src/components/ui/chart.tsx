@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -280,9 +281,9 @@ const ChartLegendContent = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "flex items-center justify-center gap-4",
+          "flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:gap-x-4", // Adjusted gap for responsiveness
           verticalAlign === "top" ? "pb-3" : "pt-3",
-          className
+          className // Allow external classes to override/extend
         )}
       >
         {payload.map((item) => {
@@ -293,20 +294,20 @@ const ChartLegendContent = React.forwardRef<
             <div
               key={item.value}
               className={cn(
-                "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
+                "flex items-center gap-1 text-xs sm:text-sm [&>svg]:h-2.5 [&>svg]:w-2.5 sm:[&>svg]:h-3 sm:[&>svg]:w-3 [&>svg]:text-muted-foreground" // Responsive icon and text size
               )}
             >
               {itemConfig?.icon && !hideIcon ? (
                 <itemConfig.icon />
               ) : (
                 <div
-                  className="h-2 w-2 shrink-0 rounded-[2px]"
+                  className="h-2 w-2 shrink-0 rounded-[2px] sm:h-2.5 sm:w-2.5" // Responsive indicator size
                   style={{
                     backgroundColor: item.color,
                   }}
                 />
               )}
-              {itemConfig?.label}
+              {itemConfig?.label || item.value}
             </div>
           )
         })}
@@ -363,3 +364,4 @@ export {
   ChartLegendContent,
   ChartStyle,
 }
+

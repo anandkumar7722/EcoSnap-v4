@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { BarChart as BarChartIcon, LineChart as LineChartIcon, PieChart as PieChartIconLucide, Info, Recycle, Package, Atom, Edit } from 'lucide-react'; // Renamed PieChart to PieChartIconLucide to avoid conflict with Recharts one
+import { BarChart as BarChartIcon, LineChart as LineChartIcon, PieChart as PieChartIconLucide, Info, Recycle, Package, Atom, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,12 +19,13 @@ import {
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  BarChart as RechartsBarChart, // Aliased import for Recharts BarChart
-  PieChart as RechartsPieChart,   // Aliased import for Recharts PieChart
+  BarChart as RechartsBarChart,
+  PieChart as RechartsPieChart,
   ResponsiveContainer,
-  Tooltip as RechartsTooltip, // Import RechartsTooltip
-  Legend as RechartsLegend // Import RechartsLegend
+  Tooltip as RechartsTooltip,
+  Legend as RechartsLegend
 } from "recharts";
+import { useEffect, useState } from 'react';
 
 
 const placeholderMonthlyData = [
@@ -35,13 +36,13 @@ const placeholderMonthlyData = [
 ];
 
 const placeholderCategoryDistribution = [
-  { name: 'E-Waste', value: 25, fill: 'hsl(var(--chart-1))' }, // E-Waste color
-  { name: 'Plastic', value: 180, fill: 'hsl(var(--chart-2))' }, // Plastic color
-  { name: 'Bio-Waste', value: 150, fill: 'hsl(var(--chart-3))' }, // Bio-Waste color
-  { name: 'Cardboard', value: 120, fill: 'hsl(var(--chart-4))' }, // Cardboard color
-  { name: 'Paper', value: 100, fill: 'hsl(var(--chart-5))' }, // Paper color
-  { name: 'Glass', value: 90, fill: 'hsl(var(--chart-1))' }, // Example: Reuse chart-1 for Glass
-  { name: 'Other', value: 30, fill: 'hsl(var(--muted))' }, // Other color
+  { name: 'E-Waste', value: 25, fill: 'hsl(var(--chart-1))' },
+  { name: 'Plastic', value: 180, fill: 'hsl(var(--chart-2))' },
+  { name: 'Bio-Waste', value: 150, fill: 'hsl(var(--chart-3))' },
+  { name: 'Cardboard', value: 120, fill: 'hsl(var(--chart-4))' },
+  { name: 'Paper', value: 100, fill: 'hsl(var(--chart-5))' },
+  { name: 'Glass', value: 90, fill: 'hsl(var(--chart-1))' },
+  { name: 'Other', value: 30, fill: 'hsl(var(--muted))' },
 ];
 
 
@@ -58,6 +59,38 @@ const chartConfig = {
 
 
 export default function DetailedDashboardPage() {
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobileView(window.innerWidth < 768); // md breakpoint
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const pieOuterRadius = isMobileView ? 60 : 90;
+  const barChartLeftMargin = isMobileView ? -20 : -25;
+
+  const renderPieLabel = ({ name, percent, x, y, midAngle, outerRadius: currentOuterRadius }: any) => {
+    const labelRadiusOffset = isMobileView ? 10 : 15;
+    const RADIAN = Math.PI / 180;
+    // If currentOuterRadius is not available (e.g. during SSR or if chart not fully initialized), use a default
+    const effectiveOuterRadius = typeof currentOuterRadius === 'number' ? currentOuterRadius : pieOuterRadius;
+    const radius = effectiveOuterRadius + labelRadiusOffset;
+    const lx = x + radius * Math.cos(-midAngle * RADIAN);
+    const ly = y + radius * Math.sin(-midAngle * RADIAN);
+    const textAnchor = lx > x ? 'start' : 'end';
+
+    if (isMobileView && percent * 100 < 7) return null; // Hide small percentage labels on mobile
+
+    return (
+      <text x={lx} y={ly} fill="currentColor" textAnchor={textAnchor} dominantBaseline="central" className="text-[9px] sm:text-xs fill-foreground">
+        {`${name} (${(percent * 100).toFixed(0)}%)`}
+      </text>
+    );
+  };
+
+
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
@@ -86,7 +119,7 @@ export default function DetailedDashboardPage() {
             <CardDescription className="text-xs sm:text-sm">Overall breakdown of classified items by category.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[280px] sm:max-h-[350px]">
+            <ChartContainer config={chartConfig} className="mx-auto aspect-square min-h-[250px] max-h-[250px] sm:max-h-[300px] md:max-h-[350px]">
               <RechartsPieChart>
                 <RechartsTooltip content={<ChartTooltipContent nameKey="name" />} />
                 <Pie
@@ -95,22 +128,11 @@ export default function DetailedDashboardPage() {
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  outerRadius={window.innerWidth < 640 ? 60 : 80} 
+                  outerRadius={pieOuterRadius} 
                   labelLine={false}
-                  label={({ name, percent, x, y, midAngle }) => {
-                    // Basic label positioning, can be improved
-                     const RADIAN = Math.PI / 180;
-                     const radius = (window.innerWidth < 640 ? 60: 80) + 20; // Adjust label distance
-                     const lx = x + radius * Math.cos(-midAngle * RADIAN);
-                     const ly = y + radius * Math.sin(-midAngle * RADIAN);
-                     return (
-                        <text x={lx} y={ly} fill="currentColor" textAnchor={lx > x ? 'start' : 'end'} dominantBaseline="central" className="text-xs fill-foreground">
-                         {`${name} (${(percent * 100).toFixed(0)}%)`}
-                       </text>
-                     );
-                  }}
+                  label={renderPieLabel}
                 />
-                <RechartsLegend content={<ChartLegendContent />} />
+                <RechartsLegend content={<ChartLegendContent nameKey="name" className="text-xs sm:text-sm [&>div]:gap-1 [&>div>svg]:size-3" />} />
               </RechartsPieChart>
             </ChartContainer>
           </CardContent>
@@ -125,13 +147,13 @@ export default function DetailedDashboardPage() {
             <CardDescription className="text-xs sm:text-sm">Number of items classified each month.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[280px] sm:h-[350px] w-full">
-              <RechartsBarChart data={placeholderMonthlyData} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}> {/* Adjusted margins */}
+            <ChartContainer config={chartConfig} className="min-h-[250px] h-[250px] sm:h-[300px] md:h-[350px] w-full">
+              <RechartsBarChart data={placeholderMonthlyData} margin={{ top: 5, right: 5, left: barChartLeftMargin, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false}/>
-                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize="0.75rem" />
-                  <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize="0.75rem" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize="0.65rem" sm:fontSize="0.75rem" />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize="0.65rem" sm:fontSize="0.75rem" />
                   <RechartsTooltip cursor={false} content={<ChartTooltipContent indicator="dashed" />} />
-                  <RechartsLegend content={<ChartLegendContent nameKey="name" />} />
+                  <RechartsLegend content={<ChartLegendContent nameKey="name" className="text-xs sm:text-sm [&>div]:gap-1 [&>div>svg]:size-3"/>} />
                   <Bar dataKey="ewaste" stackId="a" fill={chartConfig.ewaste.color} radius={[4, 4, 0, 0]} name={chartConfig.ewaste.label as string} />
                   <Bar dataKey="plastic" stackId="a" fill={chartConfig.plastic.color} name={chartConfig.plastic.label as string} />
                   <Bar dataKey="biowaste" stackId="a" fill={chartConfig.biowaste.color} name={chartConfig.biowaste.label as string} />
@@ -154,7 +176,7 @@ export default function DetailedDashboardPage() {
           <CardDescription className="text-xs sm:text-sm">Track how your classification of specific waste types changes over time.</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="h-[250px] sm:h-72 w-full bg-muted/50 rounded-md flex items-center justify-center border border-dashed">
+            <div className="min-h-[200px] h-[200px] sm:h-60 md:h-72 w-full bg-muted/50 rounded-md flex items-center justify-center border border-dashed">
             <p className="text-sm text-muted-foreground p-4 text-center">Line chart for individual category trends will appear here when data is available.</p>
             </div>
         </CardContent>
@@ -184,7 +206,7 @@ export default function DetailedDashboardPage() {
          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Bio-Waste</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" /> {/* Consider Leaf icon for biowaste */}
+                <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
                 <div className="text-xl sm:text-2xl font-bold">41 items</div>
@@ -196,3 +218,4 @@ export default function DetailedDashboardPage() {
     </div>
   );
 }
+
