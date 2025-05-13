@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -13,7 +12,7 @@ import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
 import type { ClassificationRecord, UserProfile, QuickLogItem, WasteCategory } from '@/lib/types';
 import { ImageUpload } from '@/components/image-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Settings, Award, ImagePlus, ChevronRight, BarChart3, Recycle, Trash2, Droplets, ShoppingBag, BotIcon, History, MapPin } from 'lucide-react';
+import { Award, ImagePlus, ChevronRight, BarChart3, Recycle, MapPin, BotIcon } from 'lucide-react';
 import Link from 'next/link';
 
 const HISTORY_STORAGE_KEY = 'ecoSnapHistory';
@@ -33,12 +32,12 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
 const CO2_SAVED_PER_POINT = 0.1; 
 
 const quickLogItems: QuickLogItem[] = [
-  { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.jpg', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box' },
-  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.jpg', points: WASTE_POINTS.paper, dataAiHint: 'stock paper' },
-  { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.jpg', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
-  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.jpg', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
-  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.jpg', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
-  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core' },
+  { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.png', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box' },
+  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stock paper' },
+  { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
+  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
+  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.png', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core' },
 ];
 
 const defaultUserProfile: UserProfile = {
@@ -347,4 +346,3 @@ export default function HomePage() {
     </div>
   );
 }
-
