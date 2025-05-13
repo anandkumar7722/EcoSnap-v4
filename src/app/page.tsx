@@ -45,7 +45,7 @@ const defaultUserProfile: UserProfile = {
   displayName: 'Anand',
   avatar: 'https://picsum.photos/seed/useravatar/100/100',
   score: 330,
-  targetScore: 250,
+  targetScore: 1000, // Increased target score
   co2Managed: 258.4,
   totalEwaste: 0,
   totalPlastic: 0,
@@ -68,6 +68,10 @@ export default function HomePage() {
 
   useEffect(() => {
     const storedUserData = getFromLocalStorage<UserProfile>(USER_DATA_KEY, defaultUserProfile);
+    // Ensure targetScore is updated if it was lower previously
+    if (storedUserData.targetScore < defaultUserProfile.targetScore) {
+        storedUserData.targetScore = defaultUserProfile.targetScore;
+    }
     setUserData(storedUserData);
 
     const history = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
@@ -132,6 +136,8 @@ export default function HomePage() {
             co2Managed: parseFloat(newCo2Managed.toFixed(1)), // Keep one decimal place for CO2
             itemsClassified: prevData.itemsClassified + 1,
             [categoryKey]: updatedCategoryCount,
+            // Increase target score if current score exceeds it
+            targetScore: newScore >= (prevData.targetScore || 0) ? Math.floor(newScore / 500 + 1) * 500 : (prevData.targetScore || defaultUserProfile.targetScore),
           };
           saveToLocalStorage(USER_DATA_KEY, newUserData);
           return newUserData;
@@ -176,9 +182,7 @@ export default function HomePage() {
           <p className="text-muted-foreground">Hi {userData.displayName}!</p>
           <h1 className="text-3xl font-bold text-foreground">Let's recycle</h1>
         </div>
-        <Button variant="ghost" size="icon" aria-label="Settings" className="text-muted-foreground">
-          <Settings className="h-6 w-6" />
-        </Button>
+        {/* Settings button removed as per user request */}
       </section>
 
       <section>
