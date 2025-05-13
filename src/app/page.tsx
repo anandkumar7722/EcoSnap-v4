@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -33,12 +32,12 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
 const CO2_SAVED_PER_POINT = 0.1; 
 
 const quickLogItems: QuickLogItem[] = [
-  { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.png', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box' },
-  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stack paper' },
-  { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
-  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
-  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
-  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.png', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core' },
+  { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.jpg', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box' },
+  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.jpg', points: WASTE_POINTS.paper, dataAiHint: 'stack paper' },
+  { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.jpg', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
+  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.jpg', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
+  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/e-waste.jpg', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/trash.jpg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core food' }, // Using trash.jpg for biowaste
 ];
 
 const defaultUserProfile: UserProfile = {
@@ -200,7 +199,7 @@ export default function HomePage() {
               <DialogTrigger asChild>
                 <Card className="min-w-[110px] sm:min-w-[130px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="p-2 flex flex-col items-center text-center">
-                    <div className="relative w-full h-[44px] sm:h-[50px] rounded-md mb-1 overflow-hidden">
+                    <div className="relative w-full h-[44px] sm:h-[50px] rounded-md mb-1 overflow-hidden bg-muted">
                       <Image 
                         src={item.imageUrl} 
                         alt={item.name} 
@@ -260,7 +259,7 @@ export default function HomePage() {
           <div className="space-y-2 sm:space-y-3">
             {recentClassifications.map(item => (
               <Card key={item.id} className="p-2 sm:p-3 flex items-center gap-2 sm:gap-3">
-                <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden">
+                <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted">
                   <Image src={item.imageDataUri} alt={item.category} layout="fill" objectFit="cover" className="rounded-md aspect-square" data-ai-hint={`${item.category} item`} />
                 </div>
                 <div className="flex-grow">
