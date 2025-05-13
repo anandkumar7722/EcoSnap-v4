@@ -1,21 +1,27 @@
+export type WasteCategory = 'ewaste' | 'plastic' | 'biowaste' | 'cardboard' | 'paper' | 'glass' | 'other';
+
 export interface ClassificationRecord {
   id: string;
   imageDataUri: string;
-  category: string; // Will now be 'recyclable', 'compostable', or 'non-recyclable'
+  category: WasteCategory;
   confidence: number;
   timestamp: number;
+  points?: number;
 }
 
 // For Gamified Reduction Challenges
 export interface Challenge {
-  id: string;
+  id:string;
   title: string;
   description: string;
   points: number;
   badgeIcon?: string; // Lucide icon name or path to SVG for the badge
+  currentProgress?: number; // Added for UI display
+  targetProgress?: number; // Added for UI display
+  completed?: boolean; // Added for UI display
   criteria: {
-    type: 'classification_count' | 'login_streak' | 'share_app' | 'custom'; // Type of challenge
-    categoryGoal?: 'recyclable' | 'compostable' | 'non-recyclable'; // Specific category for classification challenges
+    type: 'classification_count' | 'login_streak' | 'share_app' | 'custom' | 'specific_category_count'; // Type of challenge
+    categoryGoal?: WasteCategory; // Specific category for classification challenges
     countGoal?: number; // Number of items to classify, days for streak etc.
     customLogic?: string; // Identifier for custom challenge logic if needed
   };
@@ -44,22 +50,40 @@ export interface MarketplaceItem {
   contactInfo?: string; // How to contact the poster (e.g. "Reply via app" if messaging was implemented, or masked email)
 }
 
-// For Leaderboard System
-export interface UserProfile { // Basic user profile, even if local
-  id: string; // Could be a locally generated UUID
+// For Leaderboard System & User Data
+export interface UserProfile {
+  id: string;
   displayName: string;
   avatar?: string; // data URI or link to an image
-  score: number;
-  // Extended stats for leaderboard details
-  totalRecyclable: number;
-  totalCompostable: number;
-  totalNonRecyclable: number;
+  score: number; // Total points
+  targetScore?: number; // Target points for progress bar
+  co2Managed: number; // CO2 managed in Kg
+
+  // Counts for new categories
+  totalEwaste: number;
+  totalPlastic: number;
+  totalBiowaste: number;
+  totalCardboard: number;
+  totalPaper: number;
+  totalGlass: number;
+  totalOther: number;
+  
+  itemsClassified: number; // Overall count of all items
   challengesCompleted: number;
 }
 
-// Data structure for storing user game/app data
+// Data structure for storing user game/app data (consolidated)
 export interface UserEcoData {
   profile: UserProfile;
   challengeProgress: UserChallengeProgress[];
-  // Classification history is already stored separately under 'ecoSnapHistory'
+  // Classification history is stored separately under 'ecoSnapHistory'
+}
+
+// For the "Let's recycle" quick log section
+export interface QuickLogItem {
+  id: WasteCategory;
+  name: string;
+  imageUrl: string;
+  points: number;
+  dataAiHint: string;
 }

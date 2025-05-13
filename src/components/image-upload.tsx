@@ -1,20 +1,21 @@
 "use client";
 
-import { ChangeEvent, useState, useRef } from 'react';
+import { ChangeEvent, useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ImageUp, Loader2, AlertTriangle } from 'lucide-react';
+import { Camera, Loader2, AlertTriangle, ImagePlus } from 'lucide-react'; // Changed Icon
 import type { ClassifyWasteOutput } from '@/ai/flows/classify-waste';
 
 interface ImageUploadProps {
   onClassify: (imageDataUri: string) => Promise<ClassifyWasteOutput | null>;
   isClassifying: boolean;
   classificationError: string | null;
+  initialPromptText?: string; // Optional: To prefill some context if needed by AI
 }
 
-export function ImageUpload({ onClassify, isClassifying, classificationError }: ImageUploadProps) {
+export function ImageUpload({ onClassify, isClassifying, classificationError, initialPromptText }: ImageUploadProps) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [internalError, setInternalError] = useState<string | null>(null);
@@ -30,7 +31,7 @@ export function ImageUpload({ onClassify, isClassifying, classificationError }: 
         return;
       }
       setSelectedImage(file);
-      setInternalError(null);
+      setInternalError(null); // Clear previous internal errors
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result as string);
@@ -41,8 +42,9 @@ export function ImageUpload({ onClassify, isClassifying, classificationError }: 
 
   const handleClassify = async () => {
     if (selectedImage && previewUrl) {
-      setInternalError(null);
+      setInternalError(null); // Clear previous internal errors before new attempt
       await onClassify(previewUrl);
+      // Do not reset selectedImage/previewUrl here, let parent component decide if modal closes
     } else {
       setInternalError("Please select an image first.");
     }
@@ -51,25 +53,33 @@ export function ImageUpload({ onClassify, isClassifying, classificationError }: 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
+  
+  // Effect to clear errors if the component is re-rendered (e.g. modal reopens)
+  useEffect(() => {
+    setInternalError(null);
+    // classificationError is managed by parent
+  }, []);
+
 
   return (
-    <Card className="w-full max-w-md shadow-lg">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ImageUp className="h-6 w-6 text-primary" />
-          Upload Waste Image
+    <Card className="w-full max-w-md shadow-lg border-none"> {/* Removed border to fit modal better */}
+      <CardHeader className="pt-2 pb-4"> {/* Adjusted padding */}
+        <CardTitle className="flex items-center gap-2 text-lg"> {/* Smaller title */}
+          <Camera className="h-5 w-5 text-primary" />
+          Snap & Classify
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <Input
           type="file"
           accept="image/*"
+          capture="environment" // Prioritize rear camera on mobile
           onChange={handleFileChange}
           ref={fileInputRef}
           className="hidden"
         />
         <Button variant="outline" onClick={triggerFileInput} className="w-full">
-          <ImageUp className="mr-2 h-4 w-4" /> Choose Image
+          <ImagePlus className="mr-2 h-4 w-4" /> {previewUrl ? "Change Image" : "Choose or Capture Image"}
         </Button>
         
         {previewUrl && (
@@ -79,14 +89,14 @@ export function ImageUpload({ onClassify, isClassifying, classificationError }: 
         )}
         
         {(internalError || classificationError) && (
-          <div className="mt-2 text-sm text-destructive flex items-center gap-1">
+          <div className="mt-2 text-sm text-destructive flex items-center gap-1 p-2 bg-destructive/10 rounded-md">
             <AlertTriangle className="h-4 w-4" />
             {internalError || classificationError}
           </div>
         )}
       </CardContent>
       <CardFooter>
-        <Button onClick={handleClassify} disabled={!selectedImage || isClassifying} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+        <Button onClick={handleClassify} disabled={!selectedImage || isClassifying} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
           {isClassifying ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
