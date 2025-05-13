@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,8 +20,8 @@ import {
   YAxis, 
   CartesianGrid, 
   BarChart as RechartsBarChart, // Aliased import for Recharts BarChart
-  PieChart as RechartsPieChart   // Aliased import for Recharts PieChart
-  // ResponsiveContainer is implicitly handled by ChartContainer
+  PieChart as RechartsPieChart,   // Aliased import for Recharts PieChart
+  ResponsiveContainer
 } from "recharts";
 
 
@@ -56,7 +57,7 @@ const chartConfig = {
 export default function DetailedDashboardPage() {
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold text-primary">Detailed Waste Dashboard</h1>
         <Button variant="outline" asChild>
             <Link href="/"><Edit className="mr-2 h-4 w-4" /> Back to Main Dashboard</Link>
@@ -82,19 +83,19 @@ export default function DetailedDashboardPage() {
             <CardDescription>Overall breakdown of classified items by category.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px]">
+            <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px] sm:max-h-[350px]">
               <RechartsPieChart>
+                <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
                 <Pie
                   data={placeholderCategoryDistribution}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  outerRadius={100}
+                  outerRadius={80} // Adjusted for smaller screens
                   labelLine={false}
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 />
-                <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
                 <ChartLegend content={<ChartLegendContent />} />
               </RechartsPieChart>
             </ChartContainer>
@@ -110,12 +111,12 @@ export default function DetailedDashboardPage() {
             <CardDescription>Number of items classified each month across categories.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <ChartContainer config={chartConfig} className="h-[300px] sm:h-[350px] w-full">
               <RechartsBarChart data={placeholderMonthlyData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false}/>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={8} />
+                  <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dashed" />} />
                   <ChartLegend content={<ChartLegendContent />} />
                   <Bar dataKey="ewaste" stackId="a" fill="var(--color-ewaste)" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="plastic" stackId="a" fill="var(--color-plastic)" />
@@ -145,7 +146,7 @@ export default function DetailedDashboardPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total E-Waste</CardTitle>

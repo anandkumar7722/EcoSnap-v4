@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -40,7 +41,7 @@ export default function HistoryPage() {
   return (
     <div className="flex flex-col items-center w-full">
       <div className="w-full max-w-4xl">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <h1 className="text-3xl font-bold text-primary">Classification History</h1>
           {history.length > 0 && (
             <Button variant="destructive" onClick={clearHistory} size="sm">
@@ -58,7 +59,7 @@ export default function HistoryPage() {
             </AlertDescription>
           </Alert>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {history.map((record) => (
               <ClassificationResultCard key={record.id} {...record} />
             ))}

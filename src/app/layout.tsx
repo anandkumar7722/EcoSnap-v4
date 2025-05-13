@@ -28,7 +28,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         <AppHeader />
-        <main className="flex-grow container py-8">
+        <main className="flex-grow container py-6 md:py-8">
           {children}
         </main>
         <Toaster />

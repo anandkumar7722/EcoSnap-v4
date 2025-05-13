@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -80,7 +81,7 @@ export default function ChallengesPage() {
         </AlertDescription>
       </Alert>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {placeholderChallenges.map(challenge => (
           <Card key={challenge.id} className={`flex flex-col justify-between ${challenge.completed ? 'opacity-80 bg-muted/50' : 'bg-card'}`}>
             <CardHeader>
@@ -120,7 +121,7 @@ export default function ChallengesPage() {
       <section className="mt-12 text-center">
         <h2 className="text-2xl font-semibold mb-4">Your Badges (Coming Soon)</h2>
         <Card className="p-6">
-            <CardContent className="flex justify-center gap-4 items-center">
+            <CardContent className="flex flex-wrap justify-center gap-4 items-center">
                 <div className="p-4 border-2 border-dashed rounded-full bg-muted shadow-inner" title="Eco Starter Badge (Placeholder)">
                     <Trophy className="h-10 w-10 text-muted-foreground opacity-50"/>
                 </div>

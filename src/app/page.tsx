@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -45,7 +46,7 @@ const defaultUserProfile: UserProfile = {
   displayName: 'Anand',
   avatar: 'https://picsum.photos/seed/useravatar/100/100',
   score: 330,
-  targetScore: 1000, // Increased target score
+  targetScore: 1000, 
   co2Managed: 258.4,
   totalEwaste: 0,
   totalPlastic: 0,
@@ -68,10 +69,17 @@ export default function HomePage() {
 
   useEffect(() => {
     const storedUserData = getFromLocalStorage<UserProfile>(USER_DATA_KEY, defaultUserProfile);
-    // Ensure targetScore is updated if it was lower previously
-    if (storedUserData.targetScore < defaultUserProfile.targetScore) {
+    
+    let targetScoreUpdated = false;
+    if (storedUserData.score >= (storedUserData.targetScore || 0)) {
+      storedUserData.targetScore = Math.floor(storedUserData.score / 500 + 1) * 500;
+      targetScoreUpdated = true;
+    }
+     if (storedUserData.targetScore < defaultUserProfile.targetScore && !targetScoreUpdated) {
         storedUserData.targetScore = defaultUserProfile.targetScore;
     }
+
+
     setUserData(storedUserData);
 
     const history = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
@@ -129,6 +137,12 @@ export default function HomePage() {
           const categoryKey = `total${result.category.charAt(0).toUpperCase() + result.category.slice(1)}` as keyof UserProfile;
           
           const updatedCategoryCount = (typeof prevData[categoryKey] === 'number' ? (prevData[categoryKey] as number) : 0) + 1;
+          
+          let newTargetScore = prevData.targetScore || defaultUserProfile.targetScore;
+          if (newScore >= newTargetScore) {
+            newTargetScore = Math.floor(newScore / 500 + 1) * 500;
+          }
+
 
           const newUserData: UserProfile = {
             ...prevData,
@@ -136,8 +150,7 @@ export default function HomePage() {
             co2Managed: parseFloat(newCo2Managed.toFixed(1)), // Keep one decimal place for CO2
             itemsClassified: prevData.itemsClassified + 1,
             [categoryKey]: updatedCategoryCount,
-            // Increase target score if current score exceeds it
-            targetScore: newScore >= (prevData.targetScore || 0) ? Math.floor(newScore / 500 + 1) * 500 : (prevData.targetScore || defaultUserProfile.targetScore),
+            targetScore: newTargetScore,
           };
           saveToLocalStorage(USER_DATA_KEY, newUserData);
           return newUserData;
@@ -177,12 +190,11 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-6 pb-24"> {/* Padding bottom for FAB */}
-      <section className="flex justify-between items-center">
+      <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div>
-          <p className="text-muted-foreground">Hi {userData.displayName}!</p>
-          <h1 className="text-3xl font-bold text-foreground">Let's recycle</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Hi {userData.displayName}!</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Let's recycle</h1>
         </div>
-        {/* Settings button removed as per user request */}
       </section>
 
       <section>
@@ -190,10 +202,10 @@ export default function HomePage() {
           {quickLogItems.map(item => (
             <Dialog key={item.id} onOpenChange={ open => { if(open) { setClassificationError(null); } setIsUploadModalOpen(open); }}>
               <DialogTrigger asChild>
-                <Card className="min-w-[140px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
-                  <CardContent className="p-3 flex flex-col items-center text-center">
-                    <Image src={item.imageUrl} alt={item.name} width={80} height={60} className="rounded-md mb-2 object-cover h-[60px]" data-ai-hint={item.dataAiHint} />
-                    <p className="text-sm font-medium">{item.name}</p>
+                <Card className="min-w-[120px] sm:min-w-[140px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
+                  <CardContent className="p-2 sm:p-3 flex flex-col items-center text-center">
+                    <Image src={item.imageUrl} alt={item.name} width={80} height={60} className="rounded-md mb-2 object-cover h-[50px] sm:h-[60px]" data-ai-hint={item.dataAiHint} />
+                    <p className="text-xs sm:text-sm font-medium">{item.name}</p>
                     <p className="text-xs text-muted-foreground">{item.points} points</p>
                   </CardContent>
                 </Card>
@@ -215,42 +227,40 @@ export default function HomePage() {
       </section>
       
       <section>
-        <h2 className="text-xl font-semibold mb-2 text-foreground">Progress</h2>
-        <Card className="bg-primary text-primary-foreground p-6 shadow-xl">
+        <h2 className="text-lg sm:text-xl font-semibold mb-2 text-foreground">Progress</h2>
+        <Card className="bg-primary text-primary-foreground p-4 sm:p-6 shadow-xl">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm opacity-90">Waste managed: {userData.co2Managed} Kg CO₂</p>
-              <p className="text-2xl font-bold mt-1">{userData.score} / {userData.targetScore} points</p>
+              <p className="text-xs sm:text-sm opacity-90">Waste managed: {userData.co2Managed} Kg CO₂</p>
+              <p className="text-xl sm:text-2xl font-bold mt-1">{userData.score} / {userData.targetScore} points</p>
             </div>
             <div className="bg-accent p-2 rounded-full">
-              <Award className="h-8 w-8 text-accent-foreground" />
+              <Award className="h-6 w-6 sm:h-8 sm:w-8 text-accent-foreground" />
             </div>
           </div>
-          <Progress value={scorePercentage} className="mt-4 h-3 [&>div]:bg-white/80 bg-white/30" />
+          <Progress value={scorePercentage} className="mt-3 sm:mt-4 h-2 sm:h-3 [&>div]:bg-white/80 bg-white/30" />
         </Card>
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold mb-2 text-foreground">Items</h2>
+        <h2 className="text-lg sm:text-xl font-semibold mb-2 text-foreground">Items</h2>
         {recentClassifications.length > 0 ? (
           <div className="space-y-3">
             {recentClassifications.map(item => (
               <Card key={item.id} className="p-3 flex items-center gap-3">
                 <Image src={item.imageDataUri} alt={item.category} width={48} height={48} className="rounded-md aspect-square object-cover" data-ai-hint={`${item.category} item`} />
                 <div className="flex-grow">
-                  <p className="font-medium capitalize">{item.category}</p>
-                  <p className="text-sm text-muted-foreground">{item.points || 0} points</p>
+                  <p className="font-medium capitalize text-sm sm:text-base">{item.category}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{item.points || 0} points</p>
                 </div>
-                {/* For count, you'd need to aggregate history. Simplified for now. */}
-                {/* <p className="text-sm text-muted-foreground">x {item.count || 1}</p>  */}
               </Card>
             ))}
-             <Button variant="link" asChild className="text-primary p-0 h-auto">
+             <Button variant="link" asChild className="text-primary p-0 h-auto text-sm sm:text-base">
                 <Link href="/history">View all items <ChevronRight className="h-4 w-4 ml-1" /></Link>
             </Button>
           </div>
         ) : (
-          <Card className="p-4 text-center text-muted-foreground">
+          <Card className="p-4 text-center text-muted-foreground text-sm sm:text-base">
             <p>No items classified yet. Tap the button below to start!</p>
           </Card>
         )}
@@ -259,26 +269,26 @@ export default function HomePage() {
       <Separator className="my-4" />
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground">Explore More</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-foreground">Explore More</h2>
         <Link href="/dashboard" className="block">
-          <Card className="p-4 hover:bg-muted/50 transition-colors">
+          <Card className="p-3 sm:p-4 hover:bg-muted/50 transition-colors">
             <div className="flex items-center gap-3">
-              <BarChart3 className="h-6 w-6 text-primary" />
+              <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               <div>
-                <h3 className="font-medium">Waste Dashboard</h3>
-                <p className="text-sm text-muted-foreground">Visualize your impact.</p>
+                <h3 className="font-medium text-sm sm:text-base">Waste Dashboard</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Visualize your impact.</p>
               </div>
               <ChevronRight className="h-5 w-5 ml-auto text-muted-foreground" />
             </div>
           </Card>
         </Link>
          <Link href="/challenges" className="block">
-          <Card className="p-4 hover:bg-muted/50 transition-colors">
+          <Card className="p-3 sm:p-4 hover:bg-muted/50 transition-colors">
             <div className="flex items-center gap-3">
-              <Award className="h-6 w-6 text-primary" />
+              <Award className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               <div>
-                <h3 className="font-medium">Eco Challenges</h3>
-                <p className="text-sm text-muted-foreground">Earn points and badges.</p>
+                <h3 className="font-medium text-sm sm:text-base">Eco Challenges</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Earn points and badges.</p>
               </div>
               <ChevronRight className="h-5 w-5 ml-auto text-muted-foreground" />
             </div>
@@ -289,11 +299,11 @@ export default function HomePage() {
 
       <Dialog open={isUploadModalOpen} onOpenChange={open => { if(!open) setClassificationError(null); setIsUploadModalOpen(open);}}>
         <DialogTrigger asChild>
-           <Button className="fixed bottom-8 right-8 h-16 w-16 rounded-full shadow-2xl text-2xl" aria-label="Classify new item">
-            <ImagePlus className="h-8 w-8" />
+           <Button className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-2xl text-2xl p-0">
+            <ImagePlus className="h-7 w-7 sm:h-8 sm:w-8" />
           </Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Upload Waste Image</DialogTitle>
           </DialogHeader>
@@ -313,4 +323,3 @@ export default function HomePage() {
 const getItemCountFromHistory = (history: ClassificationRecord[], category: WasteCategory): number => {
   return history.filter(item => item.category === category).length;
 };
-
