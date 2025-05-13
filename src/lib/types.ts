@@ -1,3 +1,6 @@
+
+import type { z } from 'zod';
+
 export type WasteCategory = 'ewaste' | 'plastic' | 'biowaste' | 'cardboard' | 'paper' | 'glass' | 'other';
 
 export interface ClassificationRecord {
@@ -54,6 +57,7 @@ export interface MarketplaceItem {
 export interface UserProfile {
   id: string;
   displayName: string;
+  email?: string;
   avatar?: string; // data URI or link to an image
   score: number; // Total points
   targetScore?: number; // Target points for progress bar
@@ -87,3 +91,21 @@ export interface QuickLogItem {
   points: number;
   dataAiHint: string;
 }
+
+// Form input types
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+export type LoginFormInputs = z.infer<typeof loginSchema>;
+
+const signupSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(6),
+  confirmPassword: z.string().min(6),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match.",
+  path: ['confirmPassword'],
+});
+export type SignupFormInputs = z.infer<typeof signupSchema>;

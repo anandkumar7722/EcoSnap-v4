@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -12,7 +13,7 @@ import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
 import type { ClassificationRecord, UserProfile, QuickLogItem, WasteCategory } from '@/lib/types';
 import { ImageUpload } from '@/components/image-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Award, ImagePlus, ChevronRight, BarChart3, Recycle, MapPin, BotIcon } from 'lucide-react';
+import { Award, ImagePlus, ChevronRight, BarChart3, Recycle, MapPin, BotIcon, LogIn } from 'lucide-react';
 import Link from 'next/link';
 
 const HISTORY_STORAGE_KEY = 'ecoSnapHistory';
@@ -32,21 +33,22 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
 const CO2_SAVED_PER_POINT = 0.1; 
 
 const quickLogItems: QuickLogItem[] = [
-  { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.jpg', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box' },
-  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.jpg', points: WASTE_POINTS.paper, dataAiHint: 'stack paper' },
-  { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.jpg', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
-  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.jpg', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
-  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/e-waste.jpg', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
-  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/trash.jpg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core food' }, // Using trash.jpg for biowaste
+  { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.png', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box' },
+  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stack paper' },
+  { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
+  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
+  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.png', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core food' },
 ];
 
 const defaultUserProfile: UserProfile = {
   id: 'localUser',
-  displayName: 'Anand',
-  avatar: 'https://picsum.photos/seed/useravatar/100/100',
-  score: 330,
+  displayName: 'Guest',
+  email: '',
+  avatar: 'https://picsum.photos/seed/guestavatar/100/100',
+  score: 0,
   targetScore: 500, 
-  co2Managed: 258.4,
+  co2Managed: 0,
   totalEwaste: 0,
   totalPlastic: 0,
   totalBiowaste: 0,
@@ -64,39 +66,88 @@ export default function HomePage() {
   const [isClassifying, setIsClassifying] = useState(false);
   const [classificationError, setClassificationError] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    const storedUserData = getFromLocalStorage<UserProfile>(USER_DATA_KEY, defaultUserProfile);
-    
-    let targetScoreUpdated = false;
-    let baseTarget = storedUserData.targetScore || defaultUserProfile.targetScore;
-    if (baseTarget <= storedUserData.score) {
-        baseTarget = Math.floor(storedUserData.score / 500 + 1) * 500;
-        targetScoreUpdated = true;
-    }
-    if (baseTarget < defaultUserProfile.targetScore && !targetScoreUpdated) {
-        baseTarget = defaultUserProfile.targetScore;
-    }
-    storedUserData.targetScore = baseTarget;
+    const checkLoginStatus = () => {
+      const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+      setIsLoggedIn(loggedIn);
 
-
-    setUserData(storedUserData);
-
-    const history = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
-     const uniqueRecentItems = Object.values(
-      history.reduce((acc, item) => {
-        if (!acc[item.category] || acc[item.category].timestamp < item.timestamp) {
-          acc[item.category] = item;
+      let storedUserData = getFromLocalStorage<UserProfile>(USER_DATA_KEY, defaultUserProfile);
+      
+      if (loggedIn) {
+        const userEmail = localStorage.getItem('userEmail');
+        const userName = localStorage.getItem('userName');
+        if (userEmail && storedUserData.email !== userEmail) { // User changed or new login
+           storedUserData = { // Reset or fetch user specific data
+            ...defaultUserProfile,
+            id: userEmail, // Use email as ID for simplicity
+            displayName: userName || userEmail.split('@')[0],
+            email: userEmail,
+            avatar: `https://picsum.photos/seed/${userEmail}/100/100`,
+           };
+        } else if (!userEmail && storedUserData.email) { // Logged out from this user
+            storedUserData = defaultUserProfile; // Reset to guest
         }
-        return acc;
-      }, {} as Record<string, ClassificationRecord>)
-    ).sort((a,b) => b.timestamp - a.timestamp)
-     .slice(0, MAX_HISTORY_DISPLAY_ITEMS);
-    setRecentClassifications(uniqueRecentItems);
+      } else {
+         // If not logged in, ensure we are using default guest profile
+        if (storedUserData.id !== 'localUser' || storedUserData.email) {
+            storedUserData = defaultUserProfile;
+        }
+      }
+      
+      let targetScoreUpdated = false;
+      let baseTarget = storedUserData.targetScore || defaultUserProfile.targetScore;
+      if (storedUserData.score > 0 && baseTarget <= storedUserData.score) {
+          baseTarget = Math.floor(storedUserData.score / 500 + 1) * 500;
+          targetScoreUpdated = true;
+      }
+       if (baseTarget < defaultUserProfile.targetScore && !targetScoreUpdated) {
+          baseTarget = defaultUserProfile.targetScore;
+      }
+      storedUserData.targetScore = baseTarget;
+
+      setUserData(storedUserData);
+      saveToLocalStorage(USER_DATA_KEY, storedUserData); // Save potentially updated profile (like target score or if reset to guest)
+
+      const history = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
+      const uniqueRecentItems = Object.values(
+        history.reduce((acc, item) => {
+          if (!acc[item.category] || acc[item.category].timestamp < item.timestamp) {
+            acc[item.category] = item;
+          }
+          return acc;
+        }, {} as Record<string, ClassificationRecord>)
+      ).sort((a,b) => b.timestamp - a.timestamp)
+      .slice(0, MAX_HISTORY_DISPLAY_ITEMS);
+      setRecentClassifications(uniqueRecentItems);
+    };
+
+    checkLoginStatus();
+    window.addEventListener('authChange', checkLoginStatus); // Listen for login/logout events
+    return () => {
+        window.removeEventListener('authChange', checkLoginStatus);
+    };
   }, []);
 
+
   const handleClassify = async (imageDataUri: string): Promise<ClassifyWasteOutput | null> => {
+    if (!isLoggedIn) {
+      toast({
+        title: "Login Required",
+        description: "Please log in or sign up to classify items and track your progress.",
+        variant: "destructive",
+        action: (
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/login">Login</Link>
+          </Button>
+        )
+      });
+      setIsUploadModalOpen(false);
+      return null;
+    }
+
     setIsClassifying(true);
     setClassificationError(null);
 
@@ -132,7 +183,10 @@ export default function HomePage() {
           const newScore = prevData.score + pointsEarned;
           const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
           const categoryKey = `total${result.category.charAt(0).toUpperCase() + result.category.slice(1)}` as keyof UserProfile;
-          const updatedCategoryCount = (typeof prevData[categoryKey] === 'number' ? (prevData[categoryKey] as number) : 0) + 1;
+          
+          // Ensure categoryKey is valid and refers to a number property
+          const currentCategoryCount = typeof prevData[categoryKey] === 'number' ? (prevData[categoryKey] as number) : 0;
+          const updatedCategoryCount = currentCategoryCount + 1;
           
           let newTargetScore = prevData.targetScore || defaultUserProfile.targetScore;
           if (newScore >= newTargetScore) {
@@ -144,7 +198,7 @@ export default function HomePage() {
             score: newScore,
             co2Managed: parseFloat(newCo2Managed.toFixed(1)),
             itemsClassified: prevData.itemsClassified + 1,
-            [categoryKey]: updatedCategoryCount,
+            [categoryKey]: updatedCategoryCount, // This line could be problematic if categoryKey is not a valid key
             targetScore: newTargetScore,
           };
           saveToLocalStorage(USER_DATA_KEY, newUserData);
@@ -187,10 +241,27 @@ export default function HomePage() {
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
       <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
         <div>
-          <p className="text-muted-foreground text-sm sm:text-base">Hi {userData.displayName}!</p>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Let's recycle</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Hi {userData.displayName || 'Guest'}!</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Let&apos;s recycle</h1>
         </div>
       </section>
+
+      {!isLoggedIn && (
+        <Card className="bg-primary/10 p-4 sm:p-6 text-center">
+            <CardTitle className="text-primary mb-2">Join the EcoSnap Community!</CardTitle>
+            <CardDescription className="mb-4">
+              Log in or sign up to classify waste, track your progress, and earn rewards.
+            </CardDescription>
+            <div className="flex gap-2 sm:gap-3 justify-center">
+              <Button asChild>
+                <Link href="/login"><LogIn className="mr-2 h-4 w-4"/>Login</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/signup">Sign Up</Link>
+              </Button>
+            </div>
+        </Card>
+      )}
 
       <section>
         <div className="flex overflow-x-auto space-x-2 sm:space-x-3 pb-2 no-scrollbar">
@@ -203,7 +274,8 @@ export default function HomePage() {
                       <Image 
                         src={item.imageUrl} 
                         alt={item.name} 
-                        layout="fill" 
+                        width={130}
+                        height={50}
                         objectFit="cover" 
                         className="rounded-md" 
                         data-ai-hint={item.dataAiHint}
@@ -230,51 +302,55 @@ export default function HomePage() {
         </div>
       </section>
       
-      <section>
-        <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Progress</h2>
-        <Card className="bg-primary text-primary-foreground p-3 sm:p-6 shadow-xl">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-xs sm:text-sm opacity-90">Waste managed: {userData.co2Managed} Kg CO₂</p>
-              <p className="text-lg sm:text-2xl font-bold mt-1">{userData.score} / {userData.targetScore} points</p>
+      {isLoggedIn && (
+        <section>
+          <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Progress</h2>
+          <Card className="bg-primary text-primary-foreground p-3 sm:p-6 shadow-xl">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-xs sm:text-sm opacity-90">Waste managed: {userData.co2Managed} Kg CO₂</p>
+                <p className="text-lg sm:text-2xl font-bold mt-1">{userData.score} / {userData.targetScore} points</p>
+              </div>
+              <div className="bg-accent p-1.5 sm:p-2 rounded-full">
+                <Award className="h-5 w-5 sm:h-8 sm:w-8 text-accent-foreground" />
+              </div>
             </div>
-            <div className="bg-accent p-1.5 sm:p-2 rounded-full">
-              <Award className="h-5 w-5 sm:h-8 sm:w-8 text-accent-foreground" />
-            </div>
-          </div>
-          <Progress value={scorePercentage} className="mt-2 sm:mt-4 h-1.5 sm:h-3 [&>div]:bg-white/80 bg-white/30" />
-        </Card>
-      </section>
-
-      <section>
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-base sm:text-xl font-semibold text-foreground">Recent Items</h2>
-          {recentClassifications.length > 0 && (
-              <Button variant="link" asChild className="text-primary p-0 h-auto text-xs sm:text-base">
-                  <Link href="/history">View all <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" /></Link>
-              </Button>
-          )}
-        </div>
-        {recentClassifications.length > 0 ? (
-          <div className="space-y-2 sm:space-y-3">
-            {recentClassifications.map(item => (
-              <Card key={item.id} className="p-2 sm:p-3 flex items-center gap-2 sm:gap-3">
-                <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted">
-                  <Image src={item.imageDataUri} alt={item.category} layout="fill" objectFit="cover" className="rounded-md aspect-square" data-ai-hint={`${item.category} item`} />
-                </div>
-                <div className="flex-grow">
-                  <p className="font-medium capitalize text-sm sm:text-base">{item.category}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{item.points || 0} points</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="p-3 sm:p-4 text-center text-muted-foreground text-sm">
-            <p>No items classified yet. Tap the <ImagePlus className="inline h-4 w-4 relative -top-px" /> button below to start!</p>
+            <Progress value={scorePercentage} className="mt-2 sm:mt-4 h-1.5 sm:h-3 [&>div]:bg-white/80 bg-white/30" />
           </Card>
-        )}
-      </section>
+        </section>
+      )}
+
+      {isLoggedIn && (
+        <section>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-base sm:text-xl font-semibold text-foreground">Recent Items</h2>
+            {recentClassifications.length > 0 && (
+                <Button variant="link" asChild className="text-primary p-0 h-auto text-xs sm:text-base">
+                    <Link href="/history">View all <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" /></Link>
+                </Button>
+            )}
+          </div>
+          {recentClassifications.length > 0 ? (
+            <div className="space-y-2 sm:space-y-3">
+              {recentClassifications.map(item => (
+                <Card key={item.id} className="p-2 sm:p-3 flex items-center gap-2 sm:gap-3">
+                  <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted">
+                    <Image src={item.imageDataUri} alt={item.category} layout="fill" objectFit="cover" className="rounded-md aspect-square" data-ai-hint={`${item.category} item`} />
+                  </div>
+                  <div className="flex-grow">
+                    <p className="font-medium capitalize text-sm sm:text-base">{item.category}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{item.points || 0} points</p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="p-3 sm:p-4 text-center text-muted-foreground text-sm">
+              <p>No items classified yet. Tap the <ImagePlus className="inline h-4 w-4 relative -top-px" /> button below to start!</p>
+            </Card>
+          )}
+        </section>
+      )}
 
       <Separator className="my-2 sm:my-4" />
 
@@ -353,6 +429,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-
-    
