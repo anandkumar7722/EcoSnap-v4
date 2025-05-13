@@ -2,9 +2,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { BarChart, LineChart, PieChart, Info, Recycle, Package, Atom, Edit } from 'lucide-react';
+import { BarChart, LineChart, PieChart as PieChartIcon, Info, Recycle, Package, Atom, Edit } from 'lucide-react'; // Renamed PieChart to PieChartIcon to avoid conflict
 import Link from 'next/link';
-import { Button } from '@/components/ui/button'; // Added import for Button
+import { Button } from '@/components/ui/button';
 import {
   ChartContainer,
   ChartTooltip,
@@ -12,7 +12,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Pie } from "recharts";
+import { Bar, Pie, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"; // Pie is imported here
 
 
 const placeholderMonthlyData = [
@@ -67,7 +67,7 @@ export default function DetailedDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5 text-primary" />
+              <PieChartIcon className="h-5 w-5 text-primary" />
               Waste Category Distribution
             </CardTitle>
             <CardDescription>Overall breakdown of classified items by category.</CardDescription>
@@ -87,8 +87,8 @@ export default function DetailedDashboardPage() {
                 >
                 </Pie>
               </ResponsiveContainer>
+              <ChartLegend content={<ChartLegendContent />} />
             </ChartContainer>
-             <ChartLegend content={<ChartLegendContent />} />
           </CardContent>
         </Card>
 
@@ -174,4 +174,3 @@ export default function DetailedDashboardPage() {
     </div>
   );
 }
-
