@@ -33,8 +33,8 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
 const CO2_SAVED_PER_POINT = 0.1; 
 
 const quickLogItems: QuickLogItem[] = [
-  { id: 'cardboard', name: 'Cardboard', imageUrl: 'https://picsum.photos/seed/cardboardbox/200/150', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box' },
-  { id: 'paper', name: 'Paper', imageUrl: 'https://picsum.photos/seed/papernotes/200/150', points: WASTE_POINTS.paper, dataAiHint: 'paper notes' },
+  { id: 'cardboard', name: 'Cardboard', imageUrl: 'https://picsum.photos/seed/cardboardbox/200/150', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard' },
+  { id: 'paper', name: 'Paper', imageUrl: 'https://picsum.photos/seed/papernotes/200/150', points: WASTE_POINTS.paper, dataAiHint: 'paper' },
   { id: 'glass', name: 'Glass', imageUrl: 'https://picsum.photos/seed/glassjar/200/150', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
   { id: 'plastic', name: 'Plastic', imageUrl: 'https://picsum.photos/seed/plasticbottle/200/150', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: 'https://picsum.photos/seed/ewasteitems/200/150', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
@@ -239,7 +239,14 @@ export default function HomePage() {
       </section>
 
       <section>
-        <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Recent Items</h2>
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-base sm:text-xl font-semibold text-foreground">Recent Items</h2>
+          {recentClassifications.length > 0 && (
+              <Button variant="link" asChild className="text-primary p-0 h-auto text-xs sm:text-base">
+                  <Link href="/history">View all <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" /></Link>
+              </Button>
+          )}
+        </div>
         {recentClassifications.length > 0 ? (
           <div className="space-y-2 sm:space-y-3">
             {recentClassifications.map(item => (
@@ -251,9 +258,6 @@ export default function HomePage() {
                 </div>
               </Card>
             ))}
-             <Button variant="link" asChild className="text-primary p-0 h-auto text-xs sm:text-base">
-                <Link href="/history">View all items <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" /></Link>
-            </Button>
           </div>
         ) : (
           <Card className="p-3 sm:p-4 text-center text-muted-foreground text-sm">
@@ -339,3 +343,4 @@ export default function HomePage() {
     </div>
   );
 }
+
