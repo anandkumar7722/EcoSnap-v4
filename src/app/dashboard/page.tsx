@@ -69,19 +69,18 @@ export default function DetailedDashboardPage() {
   }, []);
 
   const pieOuterRadius = isMobileView ? 60 : 90;
-  const barChartLeftMargin = isMobileView ? -20 : -25;
+  const barChartLeftMargin = isMobileView ? -25 : -25; // Adjusted for mobile if needed, default is fine
 
   const renderPieLabel = ({ name, percent, x, y, midAngle, outerRadius: currentOuterRadius }: any) => {
     const labelRadiusOffset = isMobileView ? 10 : 15;
     const RADIAN = Math.PI / 180;
-    // If currentOuterRadius is not available (e.g. during SSR or if chart not fully initialized), use a default
     const effectiveOuterRadius = typeof currentOuterRadius === 'number' ? currentOuterRadius : pieOuterRadius;
     const radius = effectiveOuterRadius + labelRadiusOffset;
     const lx = x + radius * Math.cos(-midAngle * RADIAN);
     const ly = y + radius * Math.sin(-midAngle * RADIAN);
     const textAnchor = lx > x ? 'start' : 'end';
 
-    if (isMobileView && percent * 100 < 7) return null; // Hide small percentage labels on mobile
+    if (isMobileView && percent * 100 < 7) return null; 
 
     return (
       <text x={lx} y={ly} fill="currentColor" textAnchor={textAnchor} dominantBaseline="central" className="text-[9px] sm:text-xs fill-foreground">
@@ -148,10 +147,10 @@ export default function DetailedDashboardPage() {
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="min-h-[250px] h-[250px] sm:h-[300px] md:h-[350px] w-full">
-              <RechartsBarChart data={placeholderMonthlyData} margin={{ top: 5, right: 5, left: barChartLeftMargin, bottom: 5 }}>
+              <RechartsBarChart data={placeholderMonthlyData} margin={{ top: 5, right: isMobileView ? 0 : 5, left: barChartLeftMargin, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false}/>
-                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize="0.65rem" sm:fontSize="0.75rem" />
-                  <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize="0.65rem" sm:fontSize="0.75rem" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize="0.65rem" />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize="0.65rem" />
                   <RechartsTooltip cursor={false} content={<ChartTooltipContent indicator="dashed" />} />
                   <RechartsLegend content={<ChartLegendContent nameKey="name" className="text-xs sm:text-sm [&>div]:gap-1 [&>div>svg]:size-3"/>} />
                   <Bar dataKey="ewaste" stackId="a" fill={chartConfig.ewaste.color} radius={[4, 4, 0, 0]} name={chartConfig.ewaste.label as string} />
