@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -33,7 +34,7 @@ const CO2_SAVED_PER_POINT = 0.1;
 
 const quickLogItems: QuickLogItem[] = [
   { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.png', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box' },
-  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stock paper' },
+  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stack paper' },
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
@@ -200,7 +201,14 @@ export default function HomePage() {
                 <Card className="min-w-[110px] sm:min-w-[130px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="p-2 flex flex-col items-center text-center">
                     <div className="relative w-full h-[44px] sm:h-[50px] rounded-md mb-1 overflow-hidden">
-                      <Image src={item.imageUrl} alt={item.name} layout="fill" objectFit="cover" className="rounded-md" data-ai-hint={item.dataAiHint} />
+                      <Image 
+                        src={item.imageUrl} 
+                        alt={item.name} 
+                        layout="fill" 
+                        objectFit="cover" 
+                        className="rounded-md" 
+                        data-ai-hint={item.dataAiHint}
+                      />
                     </div>
                     <p className="text-xs sm:text-sm font-medium leading-snug mt-1 line-clamp-1">{item.name}</p>
                     <p className="text-xs text-muted-foreground">{item.points} pts</p>
@@ -346,3 +354,6 @@ export default function HomePage() {
     </div>
   );
 }
+
+
+    
