@@ -37,7 +37,7 @@ const quickLogItems: QuickLogItem[] = [
   { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stack paper' },
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
-  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/Ewates.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
+  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/Ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
   { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core food' },
 ];
 
@@ -428,3 +428,4 @@ export default function HomePage() {
     </div>
   );
 }
+
