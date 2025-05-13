@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { BarChart, LineChart, PieChart as PieChartIcon, Info, Recycle, Package, Atom, Edit } from 'lucide-react'; // Renamed PieChart to PieChartIcon to avoid conflict
+import { BarChart as BarChartIcon, LineChart as LineChartIcon, PieChart as PieChartIconLucide, Info, Recycle, Package, Atom, Edit } from 'lucide-react'; // Renamed PieChart to PieChartIconLucide to avoid conflict with Recharts one
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +12,16 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { Bar, Pie, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"; // Pie is imported here
+import { 
+  Bar, 
+  Pie, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  BarChart as RechartsBarChart, // Aliased import for Recharts BarChart
+  PieChart as RechartsPieChart   // Aliased import for Recharts PieChart
+  // ResponsiveContainer is implicitly handled by ChartContainer
+} from "recharts";
 
 
 const placeholderMonthlyData = [
@@ -67,14 +76,14 @@ export default function DetailedDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PieChartIcon className="h-5 w-5 text-primary" />
+              <PieChartIconLucide className="h-5 w-5 text-primary" />
               Waste Category Distribution
             </CardTitle>
             <CardDescription>Overall breakdown of classified items by category.</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <RechartsPieChart>
                 <Pie
                   data={placeholderCategoryDistribution}
                   dataKey="value"
@@ -84,10 +93,10 @@ export default function DetailedDashboardPage() {
                   outerRadius={100}
                   labelLine={false}
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                </Pie>
-              </ResponsiveContainer>
-              <ChartLegend content={<ChartLegendContent />} />
+                />
+                <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
+                <ChartLegend content={<ChartLegendContent />} />
+              </RechartsPieChart>
             </ChartContainer>
           </CardContent>
         </Card>
@@ -95,15 +104,14 @@ export default function DetailedDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BarChart className="h-5 w-5 text-primary" />
+              <BarChartIcon className="h-5 w-5 text-primary" />
               Monthly Classification Volume
             </CardTitle>
             <CardDescription>Number of items classified each month across categories.</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={placeholderMonthlyData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+              <RechartsBarChart data={placeholderMonthlyData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false}/>
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -116,8 +124,7 @@ export default function DetailedDashboardPage() {
                   <Bar dataKey="paper" stackId="a" fill="var(--color-paper)" />
                   <Bar dataKey="glass" stackId="a" fill="var(--color-glass)" />
                   <Bar dataKey="other" stackId="a" fill="var(--color-other)" radius={[0,0,4,4]} />
-                </BarChart>
-              </ResponsiveContainer>
+              </RechartsBarChart>
             </ChartContainer>
           </CardContent>
         </Card>
@@ -126,7 +133,7 @@ export default function DetailedDashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <LineChart className="h-5 w-5 text-primary" />
+            <LineChartIcon className="h-5 w-5 text-primary" />
             Category Trends Over Time (Placeholder)
           </CardTitle>
           <CardDescription>Track how your classification of specific waste types changes over time.</CardDescription>
