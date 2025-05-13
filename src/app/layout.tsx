@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'EcoRecycle - Smart Waste Management',
-  description: 'Snap photos to classify waste, track progress, and live sustainably!',
+  title: 'EcoSnap - Smart Waste Classification & Tracking',
+  description: 'Snap photos to classify waste, track your impact, and contribute to a greener planet!',
 };
 
 export default function RootLayout({

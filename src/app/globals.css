@@ -4,96 +4,96 @@
 
 @layer base {
   :root {
-    --background: 240 20% 98%; /* Very light cool grey */
-    --foreground: 240 10% 10%; /* Dark grey */
+    --background: 0 0% 100%; /* White */
+    --foreground: 240 10% 3.9%; /* Dark Gray */
 
-    --card: 0 0% 100%; /* White */
-    --card-foreground: 240 10% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 10%;
+    --popover-foreground: 240 10% 3.9%;
 
-    --primary: 265 60% 55%; /* Vibrant Purple for progress bar, FAB */
+    --primary: 122 39% 49%; /* Green #4CAF50 */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 265 40% 90%; /* Lighter purple for progress bar track */
-    --secondary-foreground: 265 60% 45%; /* Darker purple for text on secondary */
+    --secondary: 0 0% 94.1%; /* Light gray #F0F0F0 */
+    --secondary-foreground: 122 39% 29%; /* Darker Green for text on secondary */
 
-    --muted: 240 10% 90%; /* Light grey for dividers, subtle backgrounds */
+    --muted: 0 0% 90%; /* Light grey for dividers, subtle backgrounds */
     --muted-foreground: 240 5% 45%; /* Medium grey for less important text */
 
-    --accent: 40 95% 60%; /* Gold/Orange for badge/star */
-    --accent-foreground: 0 0% 10%; /* Dark text on accent */
+    --accent: 36 100% 50%; /* Orange #FF9800 */
+    --accent-foreground: 0 0% 100%; /* White text on accent */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 10% 85%; /* Slightly darker border for cards */
-    --input: 240 10% 88%;
-    --ring: 265 60% 50%; /* Purple for focus rings */
+    --border: 0 0% 89.8%; /* Slightly darker border for cards */
+    --input: 0 0% 89.8%;
+    --ring: 122 39% 49%; /* Green for focus rings */
     
-    --chart-1: 265 70% 60%; /* Purple shade */
-    --chart-2: 240 60% 65%; /* Blue-ish purple */
-    --chart-3: 40 80% 60%;  /* Gold/Orange shade */
-    --chart-4: 120 40% 60%; /* Green (kept from original if needed) */
-    --chart-5: 0 0% 70%; /* Grey for 'other' */
+    --chart-1: 122 39% 49%;  /* Primary Green */
+    --chart-2: 48 96% 50%;   /* Yellow for plastic/paper */
+    --chart-3: 200 60% 55%;  /* Blue for glass/water */
+    --chart-4: 30 70% 50%;   /* Brown for biowaste/cardboard */
+    --chart-5: 0 0% 60%;     /* Grey for 'other' or e-waste */
     --radius: 0.5rem;
 
     /* Sidebar specific colors, adjusted slightly */
-    --sidebar-background: 240 15% 96%;
+    --sidebar-background: 0 0% 98%; /* Very light gray */
     --sidebar-foreground: 240 10% 20%;
-    --sidebar-primary: 265 60% 55%; 
+    --sidebar-primary: 122 39% 49%; 
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 265 40% 90%;
-    --sidebar-accent-foreground: 265 60% 45%;
-    --sidebar-border: 240 10% 80%;
-    --sidebar-ring: 265 60% 50%;
+    --sidebar-accent: 122 30% 85%; /* Lighter Green */
+    --sidebar-accent-foreground: 122 39% 29%;
+    --sidebar-border: 0 0% 85%;
+    --sidebar-ring: 122 39% 49%;
   }
 
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 5.9%; /* Slightly lighter card for dark mode */
+    --card: 240 10% 5.9%; 
     --card-foreground: 0 0% 98%;
 
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 265 65% 65%; /* Adjusted Purple for dark mode */
+    --primary: 122 45% 55%; /* Slightly lighter Green for dark mode */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 265 30% 20%; /* Darker secondary for dark mode */
+    --secondary: 240 5% 15%; /* Darker gray for dark mode secondary */
     --secondary-foreground: 0 0% 90%;
 
     --muted: 240 5% 15%;
     --muted-foreground: 0 0% 63.9%;
 
-    --accent: 40 90% 65%; /* Adjusted Gold/Orange for dark mode */
-    --accent-foreground: 0 0% 10%;
+    --accent: 36 90% 55%; /* Slightly lighter Orange for dark mode */
+    --accent-foreground: 0 0% 10%; /* Dark text on accent for dark mode */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 240 5% 20%;
     --input: 240 5% 20%;
-    --ring: 265 65% 60%;
+    --ring: 122 45% 55%;
     
-    --chart-1: 265 60% 60%;
-    --chart-2: 240 50% 60%;
-    --chart-3: 40 70% 60%;
-    --chart-4: 120 30% 55%;
+    --chart-1: 122 45% 55%;
+    --chart-2: 48 80% 55%;
+    --chart-3: 200 50% 60%;
+    --chart-4: 30 60% 55%;
     --chart-5: 0 0% 50%;
 
     /* Sidebar specific colors for dark mode */
     --sidebar-background: 240 8% 8%;
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 265 65% 65%;
+    --sidebar-primary: 122 45% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 265 30% 20%;
+    --sidebar-accent: 122 25% 25%; /* Darker Green accent */
     --sidebar-accent-foreground: 0 0% 90%;
     --sidebar-border: 240 5% 15%;
-    --sidebar-ring: 265 65% 60%;
+    --sidebar-ring: 122 45% 55%;
   }
 }
 

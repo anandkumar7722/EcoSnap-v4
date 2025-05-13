@@ -29,7 +29,7 @@ export function AppHeader() {
       <div className="container flex h-16 items-center">
         <Link href="/" className="mr-auto flex items-center gap-2">
           <Leaf className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">EcoRecycle</span>
+          <span className="font-bold text-lg">EcoSnap</span>
         </Link>
         
         {/* Desktop Navigation */}

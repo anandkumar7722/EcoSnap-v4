@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { BarChart, LineChart, PieChart, Info, Recycle, Package, Atom, Edit } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button'; // Added import for Button
 import {
   ChartContainer,
   ChartTooltip,
@@ -173,3 +174,4 @@ export default function DetailedDashboardPage() {
     </div>
   );
 }
+

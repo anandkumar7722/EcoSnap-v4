@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Trophy, Zap, Target, Recycle, Leaf, Package } from 'lucide-react';
+import { CheckCircle, Trophy, Zap, Target, Recycle, Leaf, Package, Atom } from 'lucide-react'; // Added Atom
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
