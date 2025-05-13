@@ -1,3 +1,4 @@
+
 "use client";
 
 import { ChangeEvent, useState, useRef, useEffect } from 'react';
@@ -73,7 +74,6 @@ export function ImageUpload({ onClassify, isClassifying, classificationError, in
         <Input
           type="file"
           accept="image/*"
-          capture="environment" // Prioritize rear camera on mobile
           onChange={handleFileChange}
           ref={fileInputRef}
           className="hidden"
@@ -110,3 +110,4 @@ export function ImageUpload({ onClassify, isClassifying, classificationError, in
     </Card>
   );
 }
+
