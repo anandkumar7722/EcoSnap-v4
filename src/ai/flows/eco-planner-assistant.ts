@@ -10,12 +10,12 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const EcoPlannerInputSchema = z.object({
+const EcoPlannerInputSchema = z.object({
   userQuery: z.string().describe('The user query asking for eco-friendly advice, product recommendations, or event planning tips.'),
 });
 export type EcoPlannerInput = z.infer<typeof EcoPlannerInputSchema>;
 
-export const EcoPlannerOutputSchema = z.object({
+const EcoPlannerOutputSchema = z.object({
   recommendation: z.string().describe('The AI-generated recommendation or advice.'),
   sourceLinks: z.array(z.string().url()).optional().describe('Optional list of URLs for sources or further reading.'),
 });
