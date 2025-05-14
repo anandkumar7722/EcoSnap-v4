@@ -274,9 +274,9 @@ export default function HomePage() {
                       <Image 
                         src={item.imageUrl} 
                         alt={item.name} 
-                        layout="fill"
-                        objectFit="cover" 
-                        className="rounded-md" 
+                        fill
+                        className="rounded-md object-cover" 
+                        sizes="(max-width: 639px) 110px, 130px"
                         data-ai-hint={item.dataAiHint}
                       />
                     </div>
@@ -334,7 +334,7 @@ export default function HomePage() {
               {recentClassifications.map(item => (
                 <Card key={item.id} className="p-2 sm:p-3 flex items-center gap-2 sm:gap-3">
                   <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted">
-                    <Image src={item.imageDataUri} alt={item.category} layout="fill" objectFit="cover" className="rounded-md aspect-square" data-ai-hint={`${item.category} item`} />
+                    <Image src={item.imageDataUri} alt={item.category} fill className="rounded-md object-cover aspect-square" data-ai-hint={`${item.category} item`} sizes="48px" />
                   </div>
                   <div className="flex-grow">
                     <p className="font-medium capitalize text-sm sm:text-base">{item.category}</p>
