@@ -45,7 +45,7 @@ const defaultUserProfile: UserProfile = {
   id: 'localUser',
   displayName: 'Guest',
   email: '',
-  avatar: 'https://picsum.photos/seed/guestavatar/100/100',
+  avatar: 'https://placehold.co/100x100.png', // Updated placeholder
   score: 0,
   targetScore: 500, 
   co2Managed: 0,
@@ -79,19 +79,18 @@ export default function HomePage() {
       if (loggedIn) {
         const userEmail = localStorage.getItem('userEmail');
         const userName = localStorage.getItem('userName');
-        if (userEmail && storedUserData.email !== userEmail) { // User changed or new login
-           storedUserData = { // Reset or fetch user specific data
+        if (userEmail && storedUserData.email !== userEmail) { 
+           storedUserData = { 
             ...defaultUserProfile,
-            id: userEmail, // Use email as ID for simplicity
+            id: userEmail, 
             displayName: userName || userEmail.split('@')[0],
             email: userEmail,
-            avatar: `https://picsum.photos/seed/${userEmail}/100/100`,
+            avatar: `https://placehold.co/100x100.png?text=${(userName || userEmail.split('@')[0]).substring(0,2).toUpperCase()}`, // Updated placeholder
            };
-        } else if (!userEmail && storedUserData.email) { // Logged out from this user
-            storedUserData = defaultUserProfile; // Reset to guest
+        } else if (!userEmail && storedUserData.email) { 
+            storedUserData = defaultUserProfile; 
         }
       } else {
-         // If not logged in, ensure we are using default guest profile
         if (storedUserData.id !== 'localUser' || storedUserData.email) {
             storedUserData = defaultUserProfile;
         }
@@ -109,7 +108,7 @@ export default function HomePage() {
       storedUserData.targetScore = baseTarget;
 
       setUserData(storedUserData);
-      saveToLocalStorage(USER_DATA_KEY, storedUserData); // Save potentially updated profile (like target score or if reset to guest)
+      saveToLocalStorage(USER_DATA_KEY, storedUserData); 
 
       const history = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
       const uniqueRecentItems = Object.values(
@@ -125,7 +124,7 @@ export default function HomePage() {
     };
 
     checkLoginStatus();
-    window.addEventListener('authChange', checkLoginStatus); // Listen for login/logout events
+    window.addEventListener('authChange', checkLoginStatus); 
     return () => {
         window.removeEventListener('authChange', checkLoginStatus);
     };
@@ -184,7 +183,6 @@ export default function HomePage() {
           const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
           const categoryKey = `total${result.category.charAt(0).toUpperCase() + result.category.slice(1)}` as keyof UserProfile;
           
-          // Ensure categoryKey is valid and refers to a number property
           const currentCategoryCount = typeof prevData[categoryKey] === 'number' ? (prevData[categoryKey] as number) : 0;
           const updatedCategoryCount = currentCategoryCount + 1;
           
@@ -270,13 +268,14 @@ export default function HomePage() {
               <DialogTrigger asChild>
                 <Card className="min-w-[110px] sm:min-w-[130px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="p-2 flex flex-col items-center text-center">
-                    <div className="relative w-full h-[44px] sm:h-[50px] rounded-md mb-1 overflow-hidden bg-muted">
+                    {/* Explicitly sized container for the image */}
+                    <div className="relative w-[calc(110px-0.5rem*2)] h-[44px] sm:w-[calc(130px-0.5rem*2)] sm:h-[50px] rounded-md mb-1 overflow-hidden bg-muted">
                       <Image 
                         src={item.imageUrl} 
                         alt={item.name} 
                         fill
                         className="rounded-md object-cover" 
-                        sizes="(max-width: 639px) 110px, 130px"
+                        sizes="(max-width: 639px) 94px, 114px" // Adjusted based on explicit container widths
                         data-ai-hint={item.dataAiHint}
                       />
                     </div>
