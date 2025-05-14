@@ -37,7 +37,7 @@ const quickLogItems: QuickLogItem[] = [
   { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stack paper' },
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
-  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
+  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.jpeg', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
   { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core food' },
 ];
 
@@ -268,7 +268,6 @@ export default function HomePage() {
               <DialogTrigger asChild>
                 <Card className="min-w-[110px] sm:min-w-[130px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="p-2 flex flex-col items-center text-center">
-                    {/* Explicitly sized container for the image */}
                     <div className="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md mb-1 overflow-hidden bg-muted">
                       <Image 
                         src={item.imageUrl} 
