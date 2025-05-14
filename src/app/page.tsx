@@ -269,7 +269,7 @@ export default function HomePage() {
                 <Card className="min-w-[110px] sm:min-w-[130px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="p-2 flex flex-col items-center text-center">
                     {/* Explicitly sized container for the image */}
-                    <div className="relative w-full h-[44px] sm:h-[50px] rounded-md mb-1 overflow-hidden bg-muted">
+                    <div className="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md mb-1 overflow-hidden bg-muted">
                       <Image 
                         src={item.imageUrl} 
                         alt={item.name} 
@@ -427,6 +427,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-
-    
