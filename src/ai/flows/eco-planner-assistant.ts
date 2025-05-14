@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview AI assistant for eco-friendly planning and advice.
@@ -17,7 +18,7 @@ export type EcoPlannerInput = z.infer<typeof EcoPlannerInputSchema>;
 
 const EcoPlannerOutputSchema = z.object({
   recommendation: z.string().describe('The AI-generated recommendation or advice.'),
-  sourceLinks: z.array(z.string().url()).optional().describe('Optional list of URLs for sources or further reading.'),
+  sourceLinks: z.array(z.string()).optional().describe('Optional list of valid URLs for sources or further reading.'),
 });
 export type EcoPlannerOutput = z.infer<typeof EcoPlannerOutputSchema>;
 
@@ -34,7 +35,7 @@ A user is asking for advice. Provide helpful, actionable, and concise recommenda
 
 User Query: {{{userQuery}}}
 
-Please provide a helpful recommendation. If relevant, you can suggest up to 2-3 source links for more information.
+Please provide a helpful recommendation. If relevant, you can suggest up to 2-3 valid URL source links for more information.
 Focus on practical advice related to waste reduction, sustainable product choices, or eco-conscious event planning.
 `,
 });
@@ -59,3 +60,4 @@ const ecoPlannerAssistantFlow = ai.defineFlow(
     return output;
   }
 );
+
