@@ -45,7 +45,7 @@ const defaultUserProfile: UserProfile = {
   id: 'localUser',
   displayName: 'Guest',
   email: '',
-  avatar: 'https://placehold.co/100x100.png', // Updated placeholder
+  avatar: 'https://placehold.co/100x100.png', 
   score: 0,
   targetScore: 500, 
   co2Managed: 0,
@@ -85,7 +85,7 @@ export default function HomePage() {
             id: userEmail, 
             displayName: userName || userEmail.split('@')[0],
             email: userEmail,
-            avatar: `https://placehold.co/100x100.png?text=${(userName || userEmail.split('@')[0]).substring(0,2).toUpperCase()}`, // Updated placeholder
+            avatar: `https://placehold.co/100x100.png?text=${(userName || userEmail.split('@')[0]).substring(0,2).toUpperCase()}`,
            };
         } else if (!userEmail && storedUserData.email) { 
             storedUserData = defaultUserProfile; 
@@ -269,13 +269,13 @@ export default function HomePage() {
                 <Card className="min-w-[110px] sm:min-w-[130px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="p-2 flex flex-col items-center text-center">
                     {/* Explicitly sized container for the image */}
-                    <div className="relative w-[calc(110px-0.5rem*2)] h-[44px] sm:w-[calc(130px-0.5rem*2)] sm:h-[50px] rounded-md mb-1 overflow-hidden bg-muted">
+                    <div className="relative w-full h-[44px] sm:h-[50px] rounded-md mb-1 overflow-hidden bg-muted">
                       <Image 
                         src={item.imageUrl} 
                         alt={item.name} 
                         fill
                         className="rounded-md object-cover" 
-                        sizes="(max-width: 639px) 94px, 114px" // Adjusted based on explicit container widths
+                        sizes="(max-width: 639px) 94px, 114px"
                         data-ai-hint={item.dataAiHint}
                       />
                     </div>
@@ -333,7 +333,7 @@ export default function HomePage() {
               {recentClassifications.map(item => (
                 <Card key={item.id} className="p-2 sm:p-3 flex items-center gap-2 sm:gap-3">
                   <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted">
-                    <Image src={item.imageDataUri} alt={item.category} fill className="rounded-md object-cover aspect-square" data-ai-hint={`${item.category} item`} sizes="48px" />
+                    <Image src={item.imageDataUri} alt={item.category} fill className="rounded-md object-cover aspect-square" data-ai-hint={`${item.category} item`} sizes="(max-width: 639px) 40px, 48px" />
                   </div>
                   <div className="flex-grow">
                     <p className="font-medium capitalize text-sm sm:text-base">{item.category}</p>
@@ -428,3 +428,5 @@ export default function HomePage() {
   );
 }
 
+
+    
