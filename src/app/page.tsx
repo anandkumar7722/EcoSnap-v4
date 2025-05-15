@@ -38,7 +38,7 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
 const CO2_SAVED_PER_POINT = 0.1; 
 
 const ImageWithFallback = ({
-  src: initialSrcProp, // Renamed to avoid conflict with state
+  src: initialSrcProp, 
   alt,
   dataAiHint,
   placeholderSize = "114x50", 
@@ -46,12 +46,20 @@ const ImageWithFallback = ({
   className = "rounded-md object-cover",
   wrapperClassName = "relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center",
   icon 
+}: {
+  src: string | null | undefined;
+  alt: string;
+  dataAiHint: string;
+  placeholderSize?: string;
+  sizes?: string;
+  className?: string;
+  wrapperClassName?: string;
+  icon?: React.ReactNode;
 }) => {
-  // Treat empty string src prop as null for internal state and next/image
   const validatedInitialSrc = initialSrcProp === "" ? null : initialSrcProp;
 
   const [currentSrc, setCurrentSrc] = useState(validatedInitialSrc);
-  const [isError, setIsError] = useState(!validatedInitialSrc && !icon); // Initial error if no src and no icon
+  const [isError, setIsError] = useState(!validatedInitialSrc && !icon); 
   const [isLoading, setIsLoading] = useState(!!validatedInitialSrc);
 
 
@@ -62,15 +70,13 @@ const ImageWithFallback = ({
       setIsError(false);
       setIsLoading(true);
     } else {
-      // No valid src prop, prepare for icon or placeholder
       setCurrentSrc(null); 
-      setIsError(true); // Mark as error to trigger fallback
+      setIsError(true); 
       setIsLoading(false);
     }
   }, [initialSrcProp]);
 
   const handleError = () => {
-    // Only set error if not already in an error state from initial check
     if (!isError) {
       setIsError(true);
     }
@@ -79,13 +85,11 @@ const ImageWithFallback = ({
 
   const handleLoad = () => {
     setIsLoading(false);
-    // if it successfully loads, it's not an error state related to this specific src
-    if (currentSrc === initialSrcProp) { // ensure it's not a placeholder load
+    if (currentSrc === initialSrcProp) { 
         setIsError(false);
     }
   };
   
-  // Render icon if provided and (there's no currentSrc OR an error occurred)
   if (icon && (!currentSrc || isError)) {
     return (
       <div className={wrapperClassName.replace('bg-muted', 'bg-transparent')}>
@@ -94,7 +98,6 @@ const ImageWithFallback = ({
     );
   }
 
-  // Render placeholder if no icon AND (there's no currentSrc OR an error occurred)
   if (!icon && (!currentSrc || isError)) {
     return (
       <div className={wrapperClassName}>
@@ -105,13 +108,12 @@ const ImageWithFallback = ({
           className={className}
           sizes={sizes}
           data-ai-hint={`placeholder ${dataAiHint || ''}`.trim()}
-          unoptimized={true} // Placeholder images don't need optimization
+          unoptimized={true} 
         />
       </div>
     );
   }
   
-  // If we have a currentSrc and no error yet (or if it's a placeholder that successfully "loaded")
   if (currentSrc) {
     const isPlaceholderSrc = currentSrc.startsWith('https://placehold.co');
     return (
@@ -132,7 +134,6 @@ const ImageWithFallback = ({
     );
   }
 
-  // Absolute fallback (should not be reached often if logic is correct)
   return (
     <div className={wrapperClassName}>
        <PackageIcon className="w-1/2 h-1/2 text-muted-foreground opacity-50" />
@@ -447,7 +448,7 @@ export default function HomePage() {
                           placeholderSize="48x48" 
                           sizes="48px"
                           wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-transparent flex items-center justify-center"
-                          className="rounded-md object-contain" // Changed to object-contain
+                          className="rounded-md object-contain" 
                         />
                       ) : CategoryIcon ? (
                         <CategoryIcon className="w-7 h-7 sm:w-8 sm:w-8 text-primary" />
@@ -485,7 +486,7 @@ export default function HomePage() {
                     sizes="(max-width: 639px) 94px, 114px"
                     icon={item.icon ? <item.icon className="w-6 h-6 sm:w-7 sm:w-7 text-primary" /> : undefined}
                     wrapperClassName="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
-                    className="rounded-md object-contain" // Changed to object-contain
+                    className="rounded-md object-contain" 
                   />
                   <div className="flex-grow">
                     <p className="font-medium text-sm sm:text-base">{item.name}</p>
@@ -493,7 +494,7 @@ export default function HomePage() {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-base sm:text-lg font-semibold text-primary">{quantity}</p>
-                    <p className="text-xs text-muted-foreground">Logged</p>
+                    <p className="text-xs text-muted-foreground">Quantity</p>
                   </div>
                   <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground ml-1 sm:ml-2 flex-shrink-0" />
                 </Card>
@@ -637,10 +638,6 @@ export default function HomePage() {
       <Dialog open={isUploadModalOpen} onOpenChange={open => { 
           if(!open) { 
             setClassificationError(null); 
-            // Keep currentUploadCategory and currentUploadCategoryFriendlyName for the DialogTrigger logic,
-            // but ensure they are reset if the dialog is closed manually *without* classifying.
-            // The successful classification already resets them.
-            // A simple way is to reset them IF the modal is closing AND we are not in classifying state.
             if (!isClassifying) {
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
@@ -649,7 +646,6 @@ export default function HomePage() {
           setIsUploadModalOpen(open);
       }}>
         <DialogTrigger asChild>
-           {/* This button is now only for general classification if no category-specific trigger is used */}
            <Button 
              onClick={() => openUploadModalForCategory(undefined, 'General Waste')}
              className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl text-2xl p-0" 
@@ -701,6 +697,8 @@ export default function HomePage() {
   );
 }
     
+    
+
     
 
     
