@@ -13,7 +13,7 @@ import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
 import type { ClassificationRecord, UserProfile, WasteCategory } from '@/lib/types';
 import { ImageUpload } from '@/components/image-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Award, ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple } from 'lucide-react';
+import { Award, ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, UserPlus as SignupIcon, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple } from 'lucide-react';
 import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -36,6 +36,46 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
 
 const CO2_SAVED_PER_POINT = 0.1; 
 
+// New component for handling image with fallback
+const ImageWithFallback = ({
+  src,
+  alt,
+  dataAiHint,
+  placeholderSize = "114x50", // Default to larger size of the container
+  sizes = "(max-width: 639px) 94px, 114px",
+  className = "rounded-md object-cover",
+}) => {
+  const [currentSrc, setCurrentSrc] = useState(src);
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    setCurrentSrc(src); // Reset src if the original src prop changes
+    setIsError(false);  // Reset error state
+  }, [src]);
+
+  const handleError = () => {
+    // Avoid loop if placeholder itself fails or if already placeholder
+    if (!isError && currentSrc !== `https://placehold.co/${placeholderSize}.png`) { 
+      setIsError(true);
+      setCurrentSrc(`https://placehold.co/${placeholderSize}.png`);
+    }
+  };
+
+  return (
+    <Image
+      src={currentSrc}
+      alt={alt}
+      fill
+      className={className}
+      sizes={sizes}
+      data-ai-hint={isError ? `placeholder ${dataAiHint}`.trim() : dataAiHint}
+      onError={handleError}
+      unoptimized={isError} // Using unoptimized for placeholder to avoid potential processing issues by Next/Image
+    />
+  );
+};
+
+
 const verticalLogCategories: Array<{
   id: WasteCategory;
   name: string;
@@ -50,7 +90,7 @@ const verticalLogCategories: Array<{
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar', quantityKey: 'totalGlass' },
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle', quantityKey: 'totalPlastic' },
   { id: 'other', name: 'Trash', icon: Trash2, points: WASTE_POINTS.other, dataAiHint: 'general trash', quantityKey: 'totalOther' },
-  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste', quantityKey: 'totalEwaste' }, // Changed to ewaste.png
+  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste', quantityKey: 'totalEwaste' },
   { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core food', quantityKey: 'totalBiowaste' },
 ];
 
@@ -95,17 +135,22 @@ export default function HomePage() {
       
       if (loggedIn) {
         const userEmail = localStorage.getItem('userEmail');
-        const userName = localStorage.getItem('userName');
+        const userName = localStorage.getItem('userName'); // Use 'userName'
         if (userEmail && storedUserData.email !== userEmail) { 
+           const displayName = userName || userEmail.split('@')[0];
            storedUserData = { 
             ...defaultUserProfile, 
             id: userEmail, 
-            displayName: userName || userEmail.split('@')[0],
+            displayName: displayName,
             email: userEmail,
-            avatar: `https://placehold.co/100x100.png?text=${(userName || userEmail.split('@')[0]).substring(0,2).toUpperCase()}`,
+            avatar: `https://placehold.co/100x100.png?text=${displayName.substring(0,2).toUpperCase()}`,
            };
         } else if (!userEmail && storedUserData.email) { 
             storedUserData = defaultUserProfile; 
+        } else if (userEmail && userName && storedUserData.displayName !== userName) {
+            // If email matches but display name doesn't (e.g. updated from signup)
+            storedUserData.displayName = userName;
+            storedUserData.avatar = `https://placehold.co/100x100.png?text=${userName.substring(0,2).toUpperCase()}`;
         }
       } else { 
         if (storedUserData.id !== 'localUser' || storedUserData.email) { 
@@ -201,10 +246,17 @@ export default function HomePage() {
           const newScore = prevData.score + pointsEarned;
           const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
           
-          const categoryKey = `total${result.category.charAt(0).toUpperCase() + result.category.slice(1)}` as keyof UserProfile;
-          
-          const currentCategoryCount = typeof prevData[categoryKey] === 'number' ? (prevData[categoryKey] as number) : 0;
-          const updatedCategoryCount = currentCategoryCount + 1;
+          let categoryKeyToUpdate = `total${result.category.charAt(0).toUpperCase() + result.category.slice(1)}` as keyof UserProfile;
+          // Handle 'organic' and 'biowaste' potentially mapping to same counter or if schema strictly uses one
+          if (result.category === 'organic' && !('totalOrganic' in defaultUserProfile) && ('totalBiowaste' in defaultUserProfile)) {
+            categoryKeyToUpdate = 'totalBiowaste';
+          } else if (result.category === 'biowaste' && !('totalBiowaste' in defaultUserProfile) && ('totalOrganic' in defaultUserProfile)) {
+             categoryKeyToUpdate = 'totalOrganic';
+          }
+
+
+          const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
+          const updatedCategoryCount = currentCategoryCount + 1; // Assuming each classification is 1 item
           
           let newTargetScore = prevData.targetScore && prevData.targetScore > 0 ? prevData.targetScore : defaultUserProfile.targetScore;
           if (newScore >= newTargetScore) {
@@ -216,7 +268,7 @@ export default function HomePage() {
             score: newScore,
             co2Managed: parseFloat(newCo2Managed.toFixed(1)),
             itemsClassified: prevData.itemsClassified + 1,
-            [categoryKey]: updatedCategoryCount, 
+            [categoryKeyToUpdate]: updatedCategoryCount, 
             targetScore: newTargetScore,
           };
           saveToLocalStorage(USER_DATA_KEY, newUserData);
@@ -276,7 +328,7 @@ export default function HomePage() {
                 <Link href="/login"><LogIn className="mr-2 h-4 w-4"/>Login</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/signup">Sign Up</Link>
+                <Link href="/signup"><SignupIcon className="mr-2 h-4 w-4"/>Sign Up</Link>
               </Button>
             </div>
         </Card>
@@ -297,13 +349,12 @@ export default function HomePage() {
                 <Card className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm">
                   <div className="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
                     {item.imageUrl ? (
-                      <Image 
-                        src={item.imageUrl} 
-                        alt={item.name} 
-                        fill
-                        className="rounded-md object-cover" 
-                        sizes="(max-width: 639px) 94px, 114px"
-                        data-ai-hint={item.dataAiHint}
+                       <ImageWithFallback
+                        src={item.imageUrl}
+                        alt={item.name}
+                        dataAiHint={item.dataAiHint}
+                        // placeholderSize will default to "114x50"
+                        // sizes prop will default to "(max-width: 639px) 94px, 114px"
                       />
                     ) : CategoryIcon ? (
                       <CategoryIcon className="w-6 h-6 sm:w-7 sm:w-7 text-primary" />
@@ -333,7 +384,7 @@ export default function HomePage() {
           <Card className="bg-primary text-primary-foreground p-3 sm:p-6 shadow-xl">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-xs sm:text-sm opacity-90">Waste managed: {userData.co2Managed} Kg CO₂</p>
+                <p className="text-xs sm:text-sm opacity-90">Waste managed: {userData.co2Managed.toFixed(1)} Kg CO₂</p>
                 <p className="text-lg sm:text-2xl font-bold mt-1">{userData.score} / {userData.targetScore} points</p>
               </div>
               <div className="bg-accent p-1.5 sm:p-2 rounded-full">
@@ -346,21 +397,24 @@ export default function HomePage() {
       )}
 
       {/* Horizontal Recent Items Section */}
-      {isLoggedIn && (
+      {isLoggedIn && recentClassifications.length > 0 && (
         <section>
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-base sm:text-xl font-semibold text-foreground">Recent Items</h2>
-            {recentClassifications.length > 0 && (
-                <Button variant="link" asChild className="text-primary p-0 h-auto text-xs sm:text-base">
-                    <Link href="/history">View all <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" /></Link>
-                </Button>
-            )}
+             <Button variant="link" asChild className="text-primary p-0 h-auto text-xs sm:text-base">
+                <Link href="/history">View all <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" /></Link>
+            </Button>
           </div>
-          {recentClassifications.length > 0 ? (
             <div className="flex overflow-x-auto space-x-3 pb-3 no-scrollbar">
               {recentClassifications.map(item => {
-                const categoryKey = `total${item.category.charAt(0).toUpperCase() + item.category.slice(1)}` as keyof UserProfile;
-                const quantity = (userData && typeof userData[categoryKey] === 'number') ? userData[categoryKey] as number : 0;
+                 let categoryKeyForQuantity = `total${item.category.charAt(0).toUpperCase() + item.category.slice(1)}` as keyof UserProfile;
+                 // Adjust for biowaste/organic mapping if necessary, similar to handleClassify
+                  if (item.category === 'organic' && !('totalOrganic' in defaultUserProfile) && ('totalBiowaste' in defaultUserProfile)) {
+                    categoryKeyForQuantity = 'totalBiowaste';
+                  } else if (item.category === 'biowaste' && !('totalBiowaste' in defaultUserProfile) && ('totalOrganic' in defaultUserProfile)) {
+                    categoryKeyForQuantity = 'totalOrganic';
+                  }
+                const quantity = (userData && typeof userData[categoryKeyForQuantity] === 'number') ? userData[categoryKeyForQuantity] as number : 0;
 
                 return (
                   <Card key={item.id} className="p-3 flex items-center gap-3 min-w-[260px] sm:min-w-[300px] flex-shrink-0 shadow-sm hover:shadow-md transition-shadow">
@@ -385,13 +439,19 @@ export default function HomePage() {
                 );
               })}
             </div>
-          ) : (
+        </section>
+      )}
+       {isLoggedIn && recentClassifications.length === 0 && (
+         <section>
+            <div className="flex justify-between items-center mb-2">
+                <h2 className="text-base sm:text-xl font-semibold text-foreground">Recent Items</h2>
+            </div>
             <Card className="p-3 sm:p-4 text-center text-muted-foreground text-sm">
               <p>No items classified yet. Tap the <ImagePlus className="inline h-4 w-4 relative -top-px" /> button below to start!</p>
             </Card>
-          )}
-        </section>
+         </section>
       )}
+
 
       <Separator className="my-2 sm:my-4" />
 
@@ -503,4 +563,6 @@ export default function HomePage() {
     </div>
   );
 }
+    
+
     
