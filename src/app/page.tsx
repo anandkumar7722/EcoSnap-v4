@@ -184,8 +184,8 @@ const topHorizontalCategories: Array<{
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', dataAiHint: 'glass jar' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', dataAiHint: 'electronic waste' },
   { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/bio-waste.png', dataAiHint: 'food waste' },
-  { id: 'metal', name: 'Metal', icon: Wind, dataAiHint: 'metal cans' }, 
-  { id: 'other', name: 'Trash', icon: Trash2, dataAiHint: 'general trash' },
+  { id: 'metal', name: 'Metal', imageUrl: '/assets/images/metal.png', dataAiHint: 'metal scrap' }, 
+  { id: 'other', name: 'Trash', imageUrl: '/assets/images/trash.png', dataAiHint: 'trash bag' },
 ];
 
 
@@ -204,8 +204,8 @@ const verticalLogCategories: Array<{
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle', quantityKey: 'totalPlastic' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste', quantityKey: 'totalEwaste' },
   { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/bio-waste.png', points: WASTE_POINTS.biowaste, dataAiHint: 'food waste', quantityKey: 'totalBiowaste' },
-  { id: 'metal', name: 'Metal', icon: Wind, points: WASTE_POINTS.metal, dataAiHint: 'metal items', quantityKey: 'totalMetal'}, 
-  { id: 'other', name: 'Trash', icon: Trash2, points: WASTE_POINTS.other, dataAiHint: 'general trash', quantityKey: 'totalOther' },
+  { id: 'metal', name: 'Metal', imageUrl: '/assets/images/metal.png', points: WASTE_POINTS.metal, dataAiHint: 'metal items', quantityKey: 'totalMetal'}, 
+  { id: 'other', name: 'Trash', imageUrl: '/assets/images/trash.png', points: WASTE_POINTS.other, dataAiHint: 'trash bag', quantityKey: 'totalOther' },
 ];
 
 
@@ -751,5 +751,6 @@ export default function HomePage() {
     
 
     
+
 
 
