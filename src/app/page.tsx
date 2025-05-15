@@ -15,6 +15,8 @@ import { ImageUpload } from '@/components/image-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Award, ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple } from 'lucide-react';
 import Link from 'next/link';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 
 const HISTORY_STORAGE_KEY = 'ecoSnapHistory';
 const USER_DATA_KEY = 'ecoSnapUserData';
@@ -48,7 +50,7 @@ const verticalLogCategories: Array<{
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar', quantityKey: 'totalGlass' },
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle', quantityKey: 'totalPlastic' },
   { id: 'other', name: 'Trash', icon: Trash2, points: WASTE_POINTS.other, dataAiHint: 'general trash', quantityKey: 'totalOther' },
-  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.jpeg', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste', quantityKey: 'totalEwaste' },
+  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste', quantityKey: 'totalEwaste' }, // Changed to ewaste.png
   { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core food', quantityKey: 'totalBiowaste' },
 ];
 
@@ -478,6 +480,24 @@ export default function HomePage() {
                 </Alert>
             )
           ))}
+           {currentUploadCategory && verticalLogCategories.find(vc => vc.name === currentUploadCategory)?.id === 'ewaste' && (
+             <Alert variant="default" className="mt-4 text-xs">
+                <Tv2 className="h-3 w-3" />
+                <AlertTitle>Tip for E-Waste</AlertTitle>
+                <AlertDescription>
+                    Includes items like old phones, laptops, chargers, cables, and batteries. Ensure they are disposed of at designated e-waste collection points.
+                </AlertDescription>
+            </Alert>
+           )}
+           {currentUploadCategory && verticalLogCategories.find(vc => vc.name === currentUploadCategory)?.id === 'biowaste' && (
+             <Alert variant="default" className="mt-4 text-xs">
+                <Apple className="h-3 w-3" />
+                <AlertTitle>Tip for Bio-Waste</AlertTitle>
+                <AlertDescription>
+                    Includes fruit and vegetable scraps, coffee grounds, and garden trimmings. Great for composting!
+                </AlertDescription>
+            </Alert>
+           )}
         </DialogContent>
       </Dialog>
     </div>
