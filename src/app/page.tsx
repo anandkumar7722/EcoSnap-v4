@@ -37,6 +37,35 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
 
 const CO2_SAVED_PER_POINT = 0.1; 
 
+interface LevelInfo {
+  name: string;
+  minScore: number;
+  targetForNext: number; // Score needed to reach the NEXT level. For Diamond, this could be Infinity.
+  cardColor: string; // Tailwind class for the Card background
+  textColor: string; // Tailwind class for text on the Card
+  badgeIconContainerColor: string; // Tailwind class for the Award icon's circular background
+  badgeIconColor: string; // Tailwind class for the Award icon itself
+  progressBarIndicatorColor: string; // Tailwind class for the Progress component's indicator
+  progressBarTrackColor: string; // Tailwind class for the Progress component's track (background of the indicator)
+}
+
+const LEVELS: LevelInfo[] = [
+  { name: 'Bronze', minScore: 0, targetForNext: 500, cardColor: 'bg-yellow-700', textColor: 'text-yellow-100', badgeIconContainerColor: 'bg-yellow-500', badgeIconColor: 'text-yellow-50', progressBarIndicatorColor: 'bg-yellow-400', progressBarTrackColor: 'bg-yellow-900' },
+  { name: 'Silver', minScore: 500, targetForNext: 1500, cardColor: 'bg-slate-600', textColor: 'text-slate-100', badgeIconContainerColor: 'bg-slate-400', badgeIconColor: 'text-slate-50', progressBarIndicatorColor: 'bg-slate-300', progressBarTrackColor: 'bg-slate-800' },
+  { name: 'Gold', minScore: 1500, targetForNext: 3000, cardColor: 'bg-amber-600', textColor: 'text-amber-100', badgeIconContainerColor: 'bg-amber-400', badgeIconColor: 'text-amber-50', progressBarIndicatorColor: 'bg-amber-300', progressBarTrackColor: 'bg-amber-800' },
+  { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-sky-600', textColor: 'text-sky-100', badgeIconContainerColor: 'bg-sky-400', badgeIconColor: 'text-sky-50', progressBarIndicatorColor: 'bg-sky-300', progressBarTrackColor: 'bg-sky-800' },
+];
+
+const getCurrentLevel = (score: number): LevelInfo => {
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (score >= LEVELS[i].minScore) {
+      return LEVELS[i];
+    }
+  }
+  return LEVELS[0]; // Default to Bronze
+};
+
+
 const ImageWithFallback = ({
   src: initialSrcProp, 
   alt,
@@ -85,7 +114,6 @@ const ImageWithFallback = ({
 
   const handleLoad = () => {
     setIsLoading(false);
-    // Check if the loaded src is the one we intended, not an old one from a previous render cycle
     if (currentSrc === initialSrcProp) { 
         setIsError(false);
     }
@@ -135,7 +163,6 @@ const ImageWithFallback = ({
     );
   }
 
-  // Fallback for when currentSrc is null and there's no icon (should ideally be caught by previous check)
   return (
     <div className={wrapperClassName}>
        <PackageIcon className="w-1/2 h-1/2 text-muted-foreground opacity-50" />
@@ -188,7 +215,7 @@ const defaultUserProfile: UserProfile = {
   email: '',
   avatar: `https://placehold.co/100x100.png?text=G`, 
   score: 0,
-  targetScore: 500, 
+  // targetScore removed, will be derived from LEVELS
   co2Managed: 0,
   totalEwaste: 0,
   totalPlastic: 0,
@@ -245,19 +272,11 @@ export default function HomePage() {
         }
       }
       
-      let targetScoreUpdated = false;
-      let baseTarget = storedUserData.targetScore && storedUserData.targetScore > 0 ? storedUserData.targetScore : defaultUserProfile.targetScore;
-      if (storedUserData.score > 0 && baseTarget <= storedUserData.score) {
-          baseTarget = Math.floor(storedUserData.score / 500 + 1) * 500;
-          targetScoreUpdated = true;
-      }
-       if (baseTarget < defaultUserProfile.targetScore && !targetScoreUpdated) {
-          baseTarget = defaultUserProfile.targetScore;
-      }
-      storedUserData.targetScore = baseTarget;
-
       setUserData(storedUserData);
-      saveToLocalStorage(USER_DATA_KEY, storedUserData); 
+      if (Object.keys(storedUserData).length > Object.keys(defaultUserProfile).length || storedUserData.score > 0) {
+          saveToLocalStorage(USER_DATA_KEY, storedUserData); 
+      }
+
 
       const history = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
       const uniqueRecentItems = Object.values(
@@ -340,22 +359,15 @@ export default function HomePage() {
              categoryKeyToUpdate = 'totalOrganic';
           }
 
-
           const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
           const updatedCategoryCount = currentCategoryCount + 1; 
           
-          let newTargetScore = prevData.targetScore && prevData.targetScore > 0 ? prevData.targetScore : defaultUserProfile.targetScore;
-          if (newScore >= newTargetScore) {
-            newTargetScore = Math.floor(newScore / 500 + 1) * 500;
-          }
-
           const newUserData: UserProfile = {
             ...prevData,
             score: newScore,
             co2Managed: parseFloat(newCo2Managed.toFixed(1)),
             itemsClassified: prevData.itemsClassified + 1,
             [categoryKeyToUpdate]: updatedCategoryCount, 
-            targetScore: newTargetScore,
           };
           saveToLocalStorage(USER_DATA_KEY, newUserData);
           return newUserData;
@@ -393,7 +405,23 @@ export default function HomePage() {
     }
   };
   
-  const scorePercentage = userData.targetScore && userData.targetScore > 0 ? Math.min((userData.score / userData.targetScore) * 100, 100) : 0;
+  const currentLevel = getCurrentLevel(userData.score);
+  let scorePercentage = 0;
+  let pointsForNextLevelDisplay: string | number = currentLevel.targetForNext;
+
+  if (currentLevel.targetForNext !== Infinity) {
+    const pointsEarnedInLevel = Math.max(0, userData.score - currentLevel.minScore);
+    const pointsToNextLevelRange = currentLevel.targetForNext - currentLevel.minScore;
+    if (pointsToNextLevelRange > 0) {
+      scorePercentage = Math.min((pointsEarnedInLevel / pointsToNextLevelRange) * 100, 100);
+    } else {
+      scorePercentage = userData.score >= currentLevel.minScore ? 100 : 0;
+    }
+  } else { 
+    scorePercentage = 100;
+    pointsForNextLevelDisplay = "Max"; 
+  }
+
 
   const openUploadModalForCategory = (categoryId: WasteCategory | undefined, categoryName: string) => {
     setClassificationError(null);
@@ -428,7 +456,6 @@ export default function HomePage() {
         </Card>
       )}
 
-      {/* Top Horizontal Quick Classify Categories (No Quantity) */}
       <section className="mt-1 mb-4">
         <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Quick Classify</h2>
         <div className="flex overflow-x-auto space-x-3 pb-2 no-scrollbar">
@@ -474,7 +501,6 @@ export default function HomePage() {
       </section>
 
 
-      {/* Vertical Quick Log Section (With Quantity) */}
       <section className="space-y-2 sm:space-y-3">
         <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Log Items by Category</h2>
         {verticalLogCategories.map(item => {
@@ -520,23 +546,32 @@ export default function HomePage() {
       
       {isLoggedIn && (
         <section>
-          <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Progress</h2>
-          <Card className="bg-primary text-primary-foreground p-3 sm:p-6 shadow-xl">
+          <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Progress - {currentLevel.name} Level</h2>
+          <Card className={cn("p-3 sm:p-6 shadow-xl", currentLevel.cardColor, currentLevel.textColor)}>
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs sm:text-sm opacity-90">Waste managed: {userData.co2Managed.toFixed(1)} Kg CO₂</p>
-                <p className="text-lg sm:text-2xl font-bold mt-1">{userData.score} / {userData.targetScore || defaultUserProfile.targetScore} points</p>
+                <p className="text-lg sm:text-2xl font-bold mt-1">
+                  {userData.score} / {pointsForNextLevelDisplay} points
+                </p>
               </div>
-              <div className="bg-accent p-1.5 sm:p-2 rounded-full">
-                <Award className="h-5 w-5 sm:h-8 sm:w-8 text-accent-foreground" />
+              <div className={cn("p-1.5 sm:p-2 rounded-full", currentLevel.badgeIconContainerColor)}>
+                <Award className={cn("h-5 w-5 sm:h-8 sm:w-8", currentLevel.badgeIconColor)} />
               </div>
             </div>
-            <Progress value={scorePercentage} className="mt-2 sm:mt-4 h-1.5 sm:h-3 [&>div]:bg-white/80 bg-white/30" />
+            <Progress 
+                value={scorePercentage} 
+                className={cn(
+                    "mt-2 sm:mt-4 h-1.5 sm:h-3", 
+                    currentLevel.progressBarTrackColor,
+                    "[&>div]:transition-all [&>div]:duration-500", // Added for smooth progress transition
+                    `[&>div]:${currentLevel.progressBarIndicatorColor}`
+                 )}
+            />
           </Card>
         </section>
       )}
 
-      {/* Horizontal Recent Items Section */}
       {isLoggedIn && recentClassifications.length > 0 && (
         <section>
           <div className="flex justify-between items-center mb-2">
@@ -557,16 +592,15 @@ export default function HomePage() {
 
                 return (
                   <Card key={item.id} className="p-3 flex items-center gap-3 min-w-[260px] sm:min-w-[300px] flex-shrink-0 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0">
-                      <Image 
-                        src={item.imageDataUri} 
-                        alt={item.category} 
-                        fill 
-                        className="rounded-md object-cover" 
+                    <ImageWithFallback
+                        src={item.imageDataUri}
+                        alt={item.category}
+                        dataAiHint={`${item.category} item`}
+                        placeholderSize="48x48"
                         sizes="(max-width: 639px) 40px, 48px"
-                        data-ai-hint={`${item.category} item`} 
-                      />
-                    </div>
+                        wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0"
+                        className="rounded-md object-cover"
+                    />
                     <div className="flex-grow overflow-hidden">
                       <p className="font-medium capitalize text-sm sm:text-base truncate">{item.category}</p>
                       <p className="text-xs sm:text-sm text-muted-foreground">
@@ -652,7 +686,7 @@ export default function HomePage() {
       <Dialog open={isUploadModalOpen} onOpenChange={open => { 
           if(!open) { 
             setClassificationError(null); 
-            if (!isClassifying) { // Only clear category context if not currently classifying
+            if (!isClassifying) { 
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
             }
@@ -718,3 +752,4 @@ export default function HomePage() {
     
 
     
+

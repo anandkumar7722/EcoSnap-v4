@@ -34,7 +34,7 @@ export interface UserProfile {
   email?: string;
   avatar?: string; // data URI or link to an image
   score: number; // Total points
-  targetScore?: number; // Target points for progress bar
+  targetScore?: number; // Optional: Target points for the next level or personal goal
   co2Managed: number; // CO2 managed in Kg
   
   // Detailed waste counts
@@ -50,7 +50,7 @@ export interface UserProfile {
   
   itemsClassified: number; // Overall count of all items
   challengesCompleted: number;
-  badges?: string[]; // Array of badge IDs or names
+  badges?: string[]; // Array of badge IDs or names based on completed challenges or levels
 }
 
 // For Gamified Reduction Challenges
@@ -128,3 +128,4 @@ const signupSchema = z.object({
   path: ['confirmPassword'],
 });
 export type SignupFormInputs = z.infer<typeof signupSchema>;
+
