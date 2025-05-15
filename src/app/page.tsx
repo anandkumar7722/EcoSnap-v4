@@ -27,6 +27,8 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
   cardboard: 80,
   paper: 70,
   glass: 30,
+  metal: 40,
+  organic: 60, // Same as biowaste for consistency
   other: 10,
 };
 
@@ -45,7 +47,7 @@ const defaultUserProfile: UserProfile = {
   id: 'localUser',
   displayName: 'Guest',
   email: '',
-  avatar: 'https://placehold.co/100x100.png', 
+  avatar: `https://placehold.co/100x100.png?text=G`, 
   score: 0,
   targetScore: 500, 
   co2Managed: 0,
@@ -55,6 +57,8 @@ const defaultUserProfile: UserProfile = {
   totalCardboard: 0,
   totalPaper: 0,
   totalGlass: 0,
+  totalMetal: 0,
+  totalOrganic: 0,
   totalOther: 0,
   itemsClassified: 0,
   challengesCompleted: 0,
@@ -81,23 +85,23 @@ export default function HomePage() {
         const userName = localStorage.getItem('userName');
         if (userEmail && storedUserData.email !== userEmail) { 
            storedUserData = { 
-            ...defaultUserProfile,
+            ...defaultUserProfile, // Start from default to reset counts if user changes
             id: userEmail, 
             displayName: userName || userEmail.split('@')[0],
             email: userEmail,
             avatar: `https://placehold.co/100x100.png?text=${(userName || userEmail.split('@')[0]).substring(0,2).toUpperCase()}`,
            };
-        } else if (!userEmail && storedUserData.email) { 
+        } else if (!userEmail && storedUserData.email) { // User logged out but old data present
             storedUserData = defaultUserProfile; 
         }
-      } else {
-        if (storedUserData.id !== 'localUser' || storedUserData.email) {
+      } else { // Not logged in
+        if (storedUserData.id !== 'localUser' || storedUserData.email) { // If there's non-guest data, reset
             storedUserData = defaultUserProfile;
         }
       }
       
       let targetScoreUpdated = false;
-      let baseTarget = storedUserData.targetScore || defaultUserProfile.targetScore;
+      let baseTarget = storedUserData.targetScore && storedUserData.targetScore > 0 ? storedUserData.targetScore : defaultUserProfile.targetScore;
       if (storedUserData.score > 0 && baseTarget <= storedUserData.score) {
           baseTarget = Math.floor(storedUserData.score / 500 + 1) * 500;
           targetScoreUpdated = true;
@@ -124,8 +128,10 @@ export default function HomePage() {
     };
 
     checkLoginStatus();
+    window.addEventListener('storage', checkLoginStatus); 
     window.addEventListener('authChange', checkLoginStatus); 
     return () => {
+        window.removeEventListener('storage', checkLoginStatus);
         window.removeEventListener('authChange', checkLoginStatus);
     };
   }, []);
@@ -153,7 +159,7 @@ export default function HomePage() {
     try {
       const result = await classifyWaste({ photoDataUri: imageDataUri });
       if (result && result.category) {
-        const pointsEarned = WASTE_POINTS[result.category] || 0;
+        const pointsEarned = WASTE_POINTS[result.category] || WASTE_POINTS.other;
         const newRecord: ClassificationRecord = {
           id: Date.now().toString(),
           imageDataUri,
@@ -181,12 +187,14 @@ export default function HomePage() {
         setUserData(prevData => {
           const newScore = prevData.score + pointsEarned;
           const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
+          
+          // Construct the key for UserProfile totals, e.g., 'totalPlastic' from 'plastic'
           const categoryKey = `total${result.category.charAt(0).toUpperCase() + result.category.slice(1)}` as keyof UserProfile;
           
           const currentCategoryCount = typeof prevData[categoryKey] === 'number' ? (prevData[categoryKey] as number) : 0;
           const updatedCategoryCount = currentCategoryCount + 1;
           
-          let newTargetScore = prevData.targetScore || defaultUserProfile.targetScore;
+          let newTargetScore = prevData.targetScore && prevData.targetScore > 0 ? prevData.targetScore : defaultUserProfile.targetScore;
           if (newScore >= newTargetScore) {
             newTargetScore = Math.floor(newScore / 500 + 1) * 500;
           }
@@ -233,7 +241,7 @@ export default function HomePage() {
     }
   };
   
-  const scorePercentage = userData.targetScore ? Math.min((userData.score / userData.targetScore) * 100, 100) : 0;
+  const scorePercentage = userData.targetScore && userData.targetScore > 0 ? Math.min((userData.score / userData.targetScore) * 100, 100) : 0;
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
@@ -329,17 +337,25 @@ export default function HomePage() {
           </div>
           {recentClassifications.length > 0 ? (
             <div className="space-y-2 sm:space-y-3">
-              {recentClassifications.map(item => (
-                <Card key={item.id} className="p-2 sm:p-3 flex items-center gap-2 sm:gap-3">
-                  <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted">
-                    <Image src={item.imageDataUri} alt={item.category} fill className="rounded-md object-cover aspect-square" data-ai-hint={`${item.category} item`} sizes="(max-width: 639px) 40px, 48px" />
-                  </div>
-                  <div className="flex-grow">
-                    <p className="font-medium capitalize text-sm sm:text-base">{item.category}</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">{item.points || 0} points</p>
-                  </div>
-                </Card>
-              ))}
+              {recentClassifications.map(item => {
+                const categoryKey = `total${item.category.charAt(0).toUpperCase() + item.category.slice(1)}` as keyof UserProfile;
+                const quantity = (userData && typeof userData[categoryKey] === 'number') ? userData[categoryKey] as number : 0;
+
+                return (
+                  <Card key={item.id} className="p-2 sm:p-3 flex items-center gap-2 sm:gap-3">
+                    <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted">
+                      <Image src={item.imageDataUri} alt={item.category} fill className="rounded-md object-cover aspect-square" data-ai-hint={`${item.category} item`} sizes="(max-width: 639px) 40px, 48px" />
+                    </div>
+                    <div className="flex-grow">
+                      <p className="font-medium capitalize text-sm sm:text-base">{item.category}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {item.points || 0} points{' '}
+                        <span className="text-primary font-medium">x {quantity}</span>
+                      </p>
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
           ) : (
             <Card className="p-3 sm:p-4 text-center text-muted-foreground text-sm">
@@ -426,3 +442,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
