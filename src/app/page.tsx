@@ -10,10 +10,10 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
 import { classifyWaste, type ClassifyWasteOutput } from '@/ai/flows/classify-waste';
 import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
-import type { ClassificationRecord, UserProfile, QuickLogItem, WasteCategory } from '@/lib/types';
+import type { ClassificationRecord, UserProfile, WasteCategory } from '@/lib/types';
 import { ImageUpload } from '@/components/image-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Award, ImagePlus, ChevronRight, BarChart3, Recycle, MapPin, BotIcon, LogIn, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple } from 'lucide-react';
+import { Award, ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple } from 'lucide-react';
 import Link from 'next/link';
 
 const HISTORY_STORAGE_KEY = 'ecoSnapHistory';
@@ -280,6 +280,7 @@ export default function HomePage() {
         </Card>
       )}
 
+      {/* Vertical Quick Log Section */}
       <section className="space-y-2 sm:space-y-3">
         {verticalLogCategories.map(item => {
           const CategoryIcon = item.icon;
@@ -292,14 +293,14 @@ export default function HomePage() {
             }}>
               <DialogTrigger asChild>
                 <Card className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm">
-                  <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
+                  <div className="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
                     {item.imageUrl ? (
                       <Image 
                         src={item.imageUrl} 
                         alt={item.name} 
                         fill
-                        className="object-cover" 
-                        sizes="(max-width: 639px) 40px, 48px"
+                        className="rounded-md object-cover" 
+                        sizes="(max-width: 639px) 94px, 114px"
                         data-ai-hint={item.dataAiHint}
                       />
                     ) : CategoryIcon ? (
@@ -342,6 +343,7 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* Horizontal Recent Items Section */}
       {isLoggedIn && (
         <section>
           <div className="flex justify-between items-center mb-2">
@@ -359,9 +361,16 @@ export default function HomePage() {
                 const quantity = (userData && typeof userData[categoryKey] === 'number') ? userData[categoryKey] as number : 0;
 
                 return (
-                  <Card key={item.id} className="p-3 flex items-center gap-3 min-w-[260px] sm:min-w-[300px] flex-shrink-0">
-                    <div className="relative w-12 h-12 rounded-md overflow-hidden bg-muted flex-shrink-0">
-                      <Image src={item.imageDataUri} alt={item.category} fill className="rounded-md object-cover aspect-square" data-ai-hint={`${item.category} item`} sizes="(max-width: 639px) 40px, 48px" />
+                  <Card key={item.id} className="p-3 flex items-center gap-3 min-w-[260px] sm:min-w-[300px] flex-shrink-0 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                      <Image 
+                        src={item.imageDataUri} 
+                        alt={item.category} 
+                        fill 
+                        className="rounded-md object-cover" 
+                        sizes="(max-width: 639px) 40px, 48px"
+                        data-ai-hint={`${item.category} item`} 
+                      />
                     </div>
                     <div className="flex-grow overflow-hidden">
                       <p className="font-medium capitalize text-sm sm:text-base truncate">{item.category}</p>
