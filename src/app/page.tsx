@@ -284,7 +284,7 @@ export default function HomePage() {
       <section className="space-y-2 sm:space-y-3">
         {verticalLogCategories.map(item => {
           const CategoryIcon = item.icon;
-          const quantity = userData[item.quantityKey] || 0;
+          const quantity = (userData && typeof userData[item.quantityKey] === 'number') ? userData[item.quantityKey] as number : 0;
           return (
             <Dialog key={item.id} onOpenChange={ open => { 
               if(open) { setClassificationError(null); setCurrentUploadCategory(item.name); } 
@@ -314,7 +314,7 @@ export default function HomePage() {
                     <p className="text-xs sm:text-sm text-muted-foreground">{item.points} pts</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-base sm:text-lg font-semibold text-primary">{typeof quantity === 'number' ? quantity : 0}</p>
+                    <p className="text-base sm:text-lg font-semibold text-primary">{quantity}</p>
                     <p className="text-xs text-muted-foreground">Logged</p>
                   </div>
                   <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground ml-1 sm:ml-2 flex-shrink-0" />
@@ -468,7 +468,7 @@ export default function HomePage() {
             initialPromptText={currentUploadCategory ? `Image of ${currentUploadCategory.toLowerCase()}` : undefined}
           />
           {verticalLogCategories.map(item => (
-            item.id === currentUploadCategory?.toLowerCase() && item.id === 'other' && ( // Example for specific help text for 'Trash'
+            item.id === currentUploadCategory?.toLowerCase() && item.id === 'other' && ( 
                 <Alert variant="default" className="mt-4 text-xs">
                     <AlertTriangle className="h-3 w-3" />
                     <AlertTitle>Tip for &quot;{item.name}&quot;</AlertTitle>
