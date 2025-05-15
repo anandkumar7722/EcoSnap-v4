@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { BarChart as BarChartIcon, LineChart as LineChartIcon, PieChart as PieChartIconLucide, Info, Recycle, Package, Atom, Edit } from 'lucide-react';
+import { BarChart as BarChartIcon, LineChart as LineChartIcon, PieChart as PieChartIconLucide, Info, Recycle, Package, Atom, Edit, Filter, CalendarDays as CalendarIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,50 +26,98 @@ import {
   Legend as RechartsLegend
 } from "recharts";
 import { useEffect, useState } from 'react';
+import type { WasteEntry, WasteCategory } from '@/lib/types'; // Assuming WasteEntry type is defined
+import { DateRange } from "react-day-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { addDays, format } from "date-fns";
 
-
-const placeholderMonthlyData = [
-  { month: "Jan", ewaste: 1, plastic: 5, biowaste: 3, cardboard: 2, paper: 4, glass: 1, other: 1 },
-  { month: "Feb", ewaste: 2, plastic: 4, biowaste: 4, cardboard: 3, paper: 3, glass: 2, other: 1 },
-  { month: "Mar", ewaste: 1, plastic: 6, biowaste: 2, cardboard: 4, paper: 5, glass: 1, other: 2 },
-  { month: "Apr", ewaste: 3, plastic: 3, biowaste: 5, cardboard: 2, paper: 2, glass: 3, other: 1 },
+// Placeholder data - in a real app, this would come from Firestore
+const placeholderWasteData: WasteEntry[] = [
+  { userId: '1', timestamp: new Date('2024-01-15').getTime(), type: 'plastic', quantity: 5, unit: 'items' },
+  { userId: '1', timestamp: new Date('2024-01-20').getTime(), type: 'paper', quantity: 2, unit: 'kg' },
+  { userId: '1', timestamp: new Date('2024-02-10').getTime(), type: 'organic', quantity: 3, unit: 'kg' },
+  { userId: '1', timestamp: new Date('2024-02-25').getTime(), type: 'ewaste', quantity: 1, unit: 'items' },
+  { userId: '1', timestamp: new Date('2024-03-05').getTime(), type: 'metal', quantity: 0.5, unit: 'kg' },
+  { userId: '1', timestamp: new Date('2024-03-15').getTime(), type: 'glass', quantity: 8, unit: 'items' },
+  { userId: '1', timestamp: new Date('2024-04-01').getTime(), type: 'plastic', quantity: 7, unit: 'items' },
 ];
 
-const placeholderCategoryDistribution = [
-  { name: 'E-Waste', value: 25, fill: 'hsl(var(--chart-1))' },
-  { name: 'Plastic', value: 180, fill: 'hsl(var(--chart-2))' },
-  { name: 'Bio-Waste', value: 150, fill: 'hsl(var(--chart-3))' },
-  { name: 'Cardboard', value: 120, fill: 'hsl(var(--chart-4))' },
-  { name: 'Paper', value: 100, fill: 'hsl(var(--chart-5))' },
-  { name: 'Glass', value: 90, fill: 'hsl(var(--chart-1))' },
-  { name: 'Other', value: 30, fill: 'hsl(var(--muted))' },
-];
+const allWasteCategories: WasteCategory[] = ['ewaste', 'plastic', 'biowaste', 'cardboard', 'paper', 'glass', 'metal', 'organic', 'other'];
 
 
 const chartConfig = {
-  items: { label: "Items" },
+  items: { label: "Items/Kg" },
   ewaste: { label: "E-Waste", color: "hsl(var(--chart-1))" },
   plastic: { label: "Plastic", color: "hsl(var(--chart-2))" },
-  biowaste: { label: "Bio-Waste", color: "hsl(var(--chart-3))" },
+  biowaste: { label: "Bio-Waste", color: "hsl(var(--chart-3))" }, // Used for 'organic' in this context
+  organic: { label: "Organic", color: "hsl(var(--chart-3))" },
   cardboard: { label: "Cardboard", color: "hsl(var(--chart-4))" },
   paper: { label: "Paper", color: "hsl(var(--chart-5))" },
-  glass: { label: "Glass", color: "hsl(var(--chart-1))" }, 
+  glass: { label: "Glass", color: "hsl(var(--chart-1))" },
+  metal: { label: "Metal", color: "hsl(var(--chart-2))" }, // Re-using a color
   other: { label: "Other", color: "hsl(var(--muted))" },
 } satisfies import("@/components/ui/chart").ChartConfig;
 
 
 export default function DetailedDashboardPage() {
   const [isMobileView, setIsMobileView] = useState(false);
+  const [filteredData, setFilteredData] = useState<WasteEntry[]>(placeholderWasteData);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -30),
+    to: new Date(),
+  });
+  const [selectedWasteType, setSelectedWasteType] = useState<WasteCategory | 'all'>('all');
 
   useEffect(() => {
-    const checkMobile = () => setIsMobileView(window.innerWidth < 768); // md breakpoint
+    const checkMobile = () => setIsMobileView(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  useEffect(() => {
+    let data = placeholderWasteData;
+    if (dateRange?.from && dateRange?.to) {
+      data = data.filter(entry => entry.timestamp >= dateRange.from!.getTime() && entry.timestamp <= dateRange.to!.getTime());
+    }
+    if (selectedWasteType !== 'all') {
+      data = data.filter(entry => entry.type === selectedWasteType);
+    }
+    setFilteredData(data);
+  }, [dateRange, selectedWasteType]);
+
+  const monthlyData = filteredData.reduce((acc, entry) => {
+    const month = format(new Date(entry.timestamp), "MMM");
+    if (!acc[month]) {
+      acc[month] = { month };
+      allWasteCategories.forEach(cat => acc[month][cat] = 0);
+    }
+    // Simple aggregation: sum quantities. Might need conversion if units differ significantly.
+    acc[month][entry.type] = (acc[month][entry.type] || 0) + entry.quantity;
+    return acc;
+  }, {} as Record<string, any>);
+  const barChartData = Object.values(monthlyData);
+
+  const categoryDistribution = filteredData.reduce((acc, entry) => {
+    const existing = acc.find(item => item.name === entry.type);
+    if (existing) {
+      existing.value += entry.quantity;
+    } else {
+      acc.push({ name: entry.type, value: entry.quantity, fill: chartConfig[entry.type]?.color || chartConfig.other.color });
+    }
+    return acc;
+  }, [] as { name: WasteCategory; value: number, fill: string }[]);
+
+  const totalWaste = filteredData.reduce((sum, entry) => sum + (entry.unit === 'items' ? entry.quantity * 0.1 : entry.quantity), 0).toFixed(1); // Assuming 0.1kg per item for simplicity
+  const recycledPercentage = категорииDistribution.length > 0 ? 
+    ((categoryDistribution.filter(cat => cat.name !== 'other' && cat.name !== 'organic' && cat.name !== 'biowaste').reduce((sum, cat) => sum + cat.value, 0) / 
+    categoryDistribution.reduce((sum, cat) => sum + cat.value, 0)) * 100).toFixed(0) : 0;
+
+
   const pieOuterRadius = isMobileView ? 60 : 90;
-  const barChartLeftMargin = isMobileView ? -25 : -25; // Adjusted for mobile if needed, default is fine
+  const barChartLeftMargin = isMobileView ? -25 : -25;
 
   const renderPieLabel = ({ name, percent, x, y, midAngle, outerRadius: currentOuterRadius }: any) => {
     const labelRadiusOffset = isMobileView ? 10 : 15;
@@ -79,34 +127,116 @@ export default function DetailedDashboardPage() {
     const lx = x + radius * Math.cos(-midAngle * RADIAN);
     const ly = y + radius * Math.sin(-midAngle * RADIAN);
     const textAnchor = lx > x ? 'start' : 'end';
-
     if (isMobileView && percent * 100 < 7) return null; 
-
     return (
       <text x={lx} y={ly} fill="currentColor" textAnchor={textAnchor} dominantBaseline="central" className="text-[9px] sm:text-xs fill-foreground">
-        {`${name} (${(percent * 100).toFixed(0)}%)`}
+        {`${chartConfig[name as WasteCategory]?.label || name} (${(percent * 100).toFixed(0)}%)`}
       </text>
     );
   };
 
-
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-primary">Detailed Waste Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary">Waste Tracking Dashboard</h1>
         <Button variant="outline" asChild size="sm">
-            <Link href="/"><Edit className="mr-2 h-4 w-4" /> Back to Main Dashboard</Link>
+            <Link href="/"><Edit className="mr-2 h-4 w-4" /> Back to Main Page</Link>
         </Button>
       </div>
       
       <Alert>
         <Info className="h-4 w-4" />
-        <AlertTitle>Data Visualization Center</AlertTitle>
+        <AlertTitle>Track Your Impact!</AlertTitle>
         <AlertDescription>
-          This section provides a deeper dive into your waste classification trends. Track your progress in reducing waste and see breakdowns by type and time.
-          Classify items on the <Link href="/" className="font-medium text-primary hover:underline">home page</Link> to populate data. (Currently showing placeholder data).
+          Visualize your waste habits and find ways to reduce. Data shown is based on your logged entries.
+          Log items on the <Link href="/" className="font-medium text-primary hover:underline">home page</Link>. (Currently using placeholder data).
         </AlertDescription>
       </Alert>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Filter className="h-5 w-5 text-primary" />
+            Filters
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className="w-full sm:w-auto justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, "LLL dd, y")} -{" "}
+                      {format(dateRange.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(dateRange.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Pick a date range</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
+          <Select value={selectedWasteType} onValueChange={(value) => setSelectedWasteType(value as WasteCategory | 'all')}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Select waste type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {allWasteCategories.map(cat => (
+                <SelectItem key={cat} value={cat} className="capitalize">{chartConfig[cat]?.label || cat}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+      
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
+         <Card>
+            <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Total Waste Logged</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{totalWaste} kg <span className="text-xs text-muted-foreground">(approx)</span></div>
+                <p className="text-xs text-muted-foreground">Across selected period</p>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Recycled Ratio (Est.)</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{recycledPercentage}%</div>
+                <p className="text-xs text-muted-foreground">Non-organic/other vs total</p>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Items Logged</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{filteredData.length}</div>
+                <p className="text-xs text-muted-foreground">Entries in selected period</p>
+            </CardContent>
+        </Card>
+      </div>
+
 
       <div className="grid gap-4 sm:gap-6 md:grid-cols-1 lg:grid-cols-2">
         <Card>
@@ -122,7 +252,7 @@ export default function DetailedDashboardPage() {
               <RechartsPieChart>
                 <RechartsTooltip content={<ChartTooltipContent nameKey="name" />} />
                 <Pie
-                  data={placeholderCategoryDistribution}
+                  data={categoryDistribution}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
@@ -143,78 +273,25 @@ export default function DetailedDashboardPage() {
               <BarChartIcon className="h-5 w-5 text-primary" />
               Monthly Classification Volume
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Number of items classified each month.</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Volume of items classified each month by type.</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="min-h-[250px] h-[250px] sm:h-[300px] md:h-[350px] w-full">
-              <RechartsBarChart data={placeholderMonthlyData} margin={{ top: 5, right: isMobileView ? 0 : 5, left: barChartLeftMargin, bottom: 5 }}>
+              <RechartsBarChart data={barChartData} margin={{ top: 5, right: isMobileView ? 0 : 5, left: barChartLeftMargin, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false}/>
-                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize="0.65rem" />
-                  <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize="0.65rem" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={isMobileView ? "0.6rem" : "0.75rem"} />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={isMobileView ? "0.6rem" : "0.75rem"} />
                   <RechartsTooltip cursor={false} content={<ChartTooltipContent indicator="dashed" />} />
                   <RechartsLegend content={<ChartLegendContent nameKey="name" className="text-xs sm:text-sm [&>div]:gap-1 [&>div>svg]:size-3"/>} />
-                  <Bar dataKey="ewaste" stackId="a" fill={chartConfig.ewaste.color} radius={[4, 4, 0, 0]} name={chartConfig.ewaste.label as string} />
-                  <Bar dataKey="plastic" stackId="a" fill={chartConfig.plastic.color} name={chartConfig.plastic.label as string} />
-                  <Bar dataKey="biowaste" stackId="a" fill={chartConfig.biowaste.color} name={chartConfig.biowaste.label as string} />
-                  <Bar dataKey="cardboard" stackId="a" fill={chartConfig.cardboard.color} name={chartConfig.cardboard.label as string} />
-                  <Bar dataKey="paper" stackId="a" fill={chartConfig.paper.color} name={chartConfig.paper.label as string} />
-                  <Bar dataKey="glass" stackId="a" fill={chartConfig.glass.color} name={chartConfig.glass.label as string} />
-                  <Bar dataKey="other" stackId="a" fill={chartConfig.other.color} radius={[0,0,4,4]} name={chartConfig.other.label as string} />
+                  {allWasteCategories.filter(cat => cat !== 'other').map(cat => ( // Stack all except 'other'
+                     <Bar key={cat} dataKey={cat} stackId="a" fill={chartConfig[cat]?.color || chartConfig.other.color} name={chartConfig[cat]?.label as string} radius={cat === 'ewaste' ? [4,4,0,0] : [0,0,0,0]}/>
+                  ))}
+                   <Bar dataKey="other" stackId="a" fill={chartConfig.other.color} name={chartConfig.other.label as string} radius={[0,0,4,4]}/>
               </RechartsBarChart>
             </ChartContainer>
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <LineChartIcon className="h-5 w-5 text-primary" />
-            Category Trends Over Time (Placeholder)
-          </CardTitle>
-          <CardDescription className="text-xs sm:text-sm">Track how your classification of specific waste types changes over time.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <div className="min-h-[200px] h-[200px] sm:h-60 md:h-72 w-full bg-muted/50 rounded-md flex items-center justify-center border border-dashed">
-            <p className="text-sm text-muted-foreground p-4 text-center">Line chart for individual category trends will appear here when data is available.</p>
-            </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total E-Waste</CardTitle>
-                <Atom className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">7 items</div>
-                <p className="text-xs text-muted-foreground">+2 from last month</p>
-            </CardContent>
-        </Card>
-         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Plastic</CardTitle>
-                <Recycle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">62 items</div>
-                <p className="text-xs text-muted-foreground">-5 from last month</p>
-            </CardContent>
-        </Card>
-         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Bio-Waste</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">41 items</div>
-                <p className="text-xs text-muted-foreground">+10 from last month</p>
-            </CardContent>
-        </Card>
-      </div>
-
     </div>
   );
 }
-
