@@ -13,12 +13,12 @@ import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
 import type { ClassificationRecord, UserProfile, QuickLogItem, WasteCategory } from '@/lib/types';
 import { ImageUpload } from '@/components/image-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Award, ImagePlus, ChevronRight, BarChart3, Recycle, MapPin, BotIcon, LogIn } from 'lucide-react';
+import { Award, ImagePlus, ChevronRight, BarChart3, Recycle, MapPin, BotIcon, LogIn, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple } from 'lucide-react';
 import Link from 'next/link';
 
 const HISTORY_STORAGE_KEY = 'ecoSnapHistory';
 const USER_DATA_KEY = 'ecoSnapUserData';
-const MAX_HISTORY_DISPLAY_ITEMS = 5; // Increased for horizontal scroll
+const MAX_HISTORY_DISPLAY_ITEMS = 5; 
 
 const WASTE_POINTS: Record<WasteCategory, number> = {
   ewaste: 100,
@@ -34,14 +34,24 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
 
 const CO2_SAVED_PER_POINT = 0.1; 
 
-const quickLogItems: QuickLogItem[] = [
-  { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.png', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box' },
-  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stack paper' },
-  { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar' },
-  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle' },
-  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.jpeg', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste' },
-  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core food' },
+const verticalLogCategories: Array<{
+  id: WasteCategory;
+  name: string;
+  imageUrl?: string;
+  icon?: React.ElementType;
+  points: number;
+  dataAiHint: string;
+  quantityKey: keyof Pick<UserProfile, 'totalCardboard' | 'totalPaper' | 'totalGlass' | 'totalPlastic' | 'totalOther' | 'totalEwaste' | 'totalBiowaste' | 'totalMetal' | 'totalOrganic'>;
+}> = [
+  { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.png', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box', quantityKey: 'totalCardboard' },
+  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stack paper', quantityKey: 'totalPaper' },
+  { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar', quantityKey: 'totalGlass' },
+  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle', quantityKey: 'totalPlastic' },
+  { id: 'other', name: 'Trash', icon: Trash2, points: WASTE_POINTS.other, dataAiHint: 'general trash', quantityKey: 'totalOther' },
+  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.jpeg', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste', quantityKey: 'totalEwaste' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core food', quantityKey: 'totalBiowaste' },
 ];
+
 
 const defaultUserProfile: UserProfile = {
   id: 'localUser',
@@ -70,6 +80,7 @@ export default function HomePage() {
   const [isClassifying, setIsClassifying] = useState(false);
   const [classificationError, setClassificationError] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [currentUploadCategory, setCurrentUploadCategory] = useState<string | undefined>(undefined);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { toast } = useToast();
 
@@ -215,6 +226,7 @@ export default function HomePage() {
           description: `Item classified as ${result.category}. You earned ${pointsEarned} points!`,
         });
         setIsUploadModalOpen(false);
+        setCurrentUploadCategory(undefined);
         return result;
       } else {
         setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
@@ -268,42 +280,48 @@ export default function HomePage() {
         </Card>
       )}
 
-      <section>
-        <div className="flex overflow-x-auto space-x-2 sm:space-x-3 pb-2 no-scrollbar">
-          {quickLogItems.map(item => (
-            <Dialog key={item.id} onOpenChange={ open => { if(open) { setClassificationError(null); } setIsUploadModalOpen(open); }}>
+      <section className="space-y-2 sm:space-y-3">
+        {verticalLogCategories.map(item => {
+          const CategoryIcon = item.icon;
+          const quantity = userData[item.quantityKey] || 0;
+          return (
+            <Dialog key={item.id} onOpenChange={ open => { 
+              if(open) { setClassificationError(null); setCurrentUploadCategory(item.name); } 
+              else { setCurrentUploadCategory(undefined); }
+              setIsUploadModalOpen(open); 
+            }}>
               <DialogTrigger asChild>
-                <Card className="min-w-[110px] sm:min-w-[130px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow">
-                  <CardContent className="p-2 flex flex-col items-center text-center">
-                    <div className="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md mb-1 overflow-hidden bg-muted">
+                <Card className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm">
+                  <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
+                    {item.imageUrl ? (
                       <Image 
                         src={item.imageUrl} 
                         alt={item.name} 
                         fill
-                        className="rounded-md object-cover" 
-                        sizes="(max-width: 639px) 94px, 114px"
+                        className="object-cover" 
+                        sizes="(max-width: 639px) 40px, 48px"
                         data-ai-hint={item.dataAiHint}
                       />
-                    </div>
-                    <p className="text-xs sm:text-sm font-medium leading-snug mt-1 line-clamp-1">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.points} pts</p>
-                  </CardContent>
+                    ) : CategoryIcon ? (
+                      <CategoryIcon className="w-6 h-6 sm:w-7 sm:w-7 text-primary" />
+                    ) : (
+                      <PackageIcon className="w-6 h-6 sm:w-7 sm:w-7 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-grow">
+                    <p className="font-medium text-sm sm:text-base">{item.name}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{item.points} pts</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-base sm:text-lg font-semibold text-primary">{typeof quantity === 'number' ? quantity : 0}</p>
+                    <p className="text-xs text-muted-foreground">Logged</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground ml-1 sm:ml-2 flex-shrink-0" />
                 </Card>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Classify {item.name}</DialogTitle>
-                </DialogHeader>
-                <ImageUpload
-                  onClassify={handleClassify}
-                  isClassifying={isClassifying}
-                  classificationError={classificationError}
-                  initialPromptText={`Image of ${item.name.toLowerCase()}`}
-                />
-              </DialogContent>
             </Dialog>
-          ))}
-        </div>
+          );
+        })}
       </section>
       
       {isLoggedIn && (
@@ -343,11 +361,11 @@ export default function HomePage() {
                 return (
                   <Card key={item.id} className="p-3 flex items-center gap-3 min-w-[260px] sm:min-w-[300px] flex-shrink-0">
                     <div className="relative w-12 h-12 rounded-md overflow-hidden bg-muted flex-shrink-0">
-                      <Image src={item.imageDataUri} alt={item.category} fill className="rounded-md object-cover aspect-square" data-ai-hint={`${item.category} item`} sizes="48px" />
+                      <Image src={item.imageDataUri} alt={item.category} fill className="rounded-md object-cover aspect-square" data-ai-hint={`${item.category} item`} sizes="(max-width: 639px) 40px, 48px" />
                     </div>
                     <div className="flex-grow overflow-hidden">
-                      <p className="font-medium capitalize text-base truncate">{item.category}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="font-medium capitalize text-sm sm:text-base truncate">{item.category}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         {item.points || 0} points{' '}
                         <span className="text-primary font-medium">x {quantity}</span>
                       </p>
@@ -421,21 +439,36 @@ export default function HomePage() {
       </section>
 
 
-      <Dialog open={isUploadModalOpen} onOpenChange={open => { if(!open) setClassificationError(null); setIsUploadModalOpen(open);}}>
+      <Dialog open={isUploadModalOpen} onOpenChange={open => { 
+          if(!open) { setClassificationError(null); setCurrentUploadCategory(undefined); }
+          setIsUploadModalOpen(open);
+      }}>
         <DialogTrigger asChild>
-           <Button className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl text-2xl p-0" aria-label="Upload image">
+           <Button className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl text-2xl p-0" aria-label="Upload image for general classification">
             <ImagePlus className="h-6 w-6 sm:h-7 sm:w-7" />
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Upload Waste Image</DialogTitle>
+            <DialogTitle>Upload Waste Image {currentUploadCategory ? `for ${currentUploadCategory}` : ''}</DialogTitle>
           </DialogHeader>
           <ImageUpload 
             onClassify={handleClassify}
             isClassifying={isClassifying}
             classificationError={classificationError}
+            initialPromptText={currentUploadCategory ? `Image of ${currentUploadCategory.toLowerCase()}` : undefined}
           />
+          {verticalLogCategories.map(item => (
+            item.id === currentUploadCategory?.toLowerCase() && item.id === 'other' && ( // Example for specific help text for 'Trash'
+                <Alert variant="default" className="mt-4 text-xs">
+                    <AlertTriangle className="h-3 w-3" />
+                    <AlertTitle>Tip for &quot;{item.name}&quot;</AlertTitle>
+                    <AlertDescription>
+                        Try to be specific if possible! If it&apos;s mixed material or you&apos;re unsure, &quot;other&quot; is okay. The AI will do its best.
+                    </AlertDescription>
+                </Alert>
+            )
+          ))}
         </DialogContent>
       </Dialog>
     </div>
