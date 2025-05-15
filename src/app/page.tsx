@@ -56,7 +56,7 @@ const ImageWithFallback = ({
   wrapperClassName?: string;
   icon?: React.ReactNode;
 }) => {
-  const validatedInitialSrc = initialSrcProp === "" ? null : initialSrcProp;
+  const validatedInitialSrc = initialSrcProp === "" || initialSrcProp === undefined ? null : initialSrcProp;
 
   const [currentSrc, setCurrentSrc] = useState(validatedInitialSrc);
   const [isError, setIsError] = useState(!validatedInitialSrc && !icon); 
@@ -64,7 +64,7 @@ const ImageWithFallback = ({
 
 
   useEffect(() => {
-    const validatedSrcPropOnUpdate = initialSrcProp === "" ? null : initialSrcProp;
+    const validatedSrcPropOnUpdate = initialSrcProp === "" || initialSrcProp === undefined ? null : initialSrcProp;
     if (validatedSrcPropOnUpdate) {
       setCurrentSrc(validatedSrcPropOnUpdate);
       setIsError(false);
@@ -85,6 +85,7 @@ const ImageWithFallback = ({
 
   const handleLoad = () => {
     setIsLoading(false);
+    // Check if the loaded src is the one we intended, not an old one from a previous render cycle
     if (currentSrc === initialSrcProp) { 
         setIsError(false);
     }
@@ -134,6 +135,7 @@ const ImageWithFallback = ({
     );
   }
 
+  // Fallback for when currentSrc is null and there's no icon (should ideally be caught by previous check)
   return (
     <div className={wrapperClassName}>
        <PackageIcon className="w-1/2 h-1/2 text-muted-foreground opacity-50" />
@@ -154,7 +156,7 @@ const topHorizontalCategories: Array<{
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', dataAiHint: 'plastic bottle' },
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', dataAiHint: 'glass jar' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', dataAiHint: 'electronic waste' },
-  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', dataAiHint: 'apple core food' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', dataAiHint: 'food waste' },
   { id: 'metal', name: 'Metal', icon: Wind, dataAiHint: 'metal cans' }, 
   { id: 'other', name: 'Trash', icon: Trash2, dataAiHint: 'general trash' },
 ];
@@ -174,7 +176,7 @@ const verticalLogCategories: Array<{
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar', quantityKey: 'totalGlass' },
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle', quantityKey: 'totalPlastic' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste', quantityKey: 'totalEwaste' },
-  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core food', quantityKey: 'totalBiowaste' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', points: WASTE_POINTS.biowaste, dataAiHint: 'food waste', quantityKey: 'totalBiowaste' },
   { id: 'metal', name: 'Metal', icon: Wind, points: WASTE_POINTS.metal, dataAiHint: 'metal items', quantityKey: 'totalMetal'}, 
   { id: 'other', name: 'Trash', icon: Trash2, points: WASTE_POINTS.other, dataAiHint: 'general trash', quantityKey: 'totalOther' },
 ];
@@ -433,9 +435,15 @@ export default function HomePage() {
           {topHorizontalCategories.map(category => {
             const CategoryIcon = category.icon;
             return (
-              <Dialog key={`top-${category.id}`} open={isUploadModalOpen && currentUploadCategory === category.id} onOpenChange={ open => { 
+              <Dialog key={`top-${category.id}`} open={isUploadModalOpen && currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name} onOpenChange={ open => { 
                 if(open) { openUploadModalForCategory(category.id, category.name); } 
-                else { setCurrentUploadCategory(undefined); setCurrentUploadCategoryFriendlyName(undefined); setIsUploadModalOpen(false); }
+                else { 
+                  if(currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name) {
+                    setCurrentUploadCategory(undefined); 
+                    setCurrentUploadCategoryFriendlyName(undefined); 
+                    setIsUploadModalOpen(false); 
+                  }
+                }
               }}>
                 <DialogTrigger asChild>
                   <Card className="p-3 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm w-[90px] sm:w-[100px] flex-shrink-0">
@@ -472,9 +480,15 @@ export default function HomePage() {
         {verticalLogCategories.map(item => {
           const quantity = (userData && typeof userData[item.quantityKey] === 'number') ? userData[item.quantityKey] as number : 0;
           return (
-            <Dialog key={item.id} open={isUploadModalOpen && currentUploadCategory === item.id} onOpenChange={ open => { 
+            <Dialog key={item.id} open={isUploadModalOpen && currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name} onOpenChange={ open => { 
               if(open) { openUploadModalForCategory(item.id, item.name); } 
-              else { setCurrentUploadCategory(undefined); setCurrentUploadCategoryFriendlyName(undefined); setIsUploadModalOpen(false); }
+              else { 
+                if(currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name) {
+                  setCurrentUploadCategory(undefined); 
+                  setCurrentUploadCategoryFriendlyName(undefined); 
+                  setIsUploadModalOpen(false); 
+                }
+              }
             }}>
               <DialogTrigger asChild>
                 <Card className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm">
@@ -638,7 +652,7 @@ export default function HomePage() {
       <Dialog open={isUploadModalOpen} onOpenChange={open => { 
           if(!open) { 
             setClassificationError(null); 
-            if (!isClassifying) {
+            if (!isClassifying) { // Only clear category context if not currently classifying
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
             }
@@ -656,13 +670,13 @@ export default function HomePage() {
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Upload Waste Image {currentUploadCategoryFriendlyName ? `for ${currentUploadCategoryFriendlyName}` : ''}</DialogTitle>
+            <DialogTitle>Upload Waste Image {currentUploadCategoryFriendlyName && currentUploadCategoryFriendlyName !== 'General Waste' ? `for ${currentUploadCategoryFriendlyName}` : ''}</DialogTitle>
           </DialogHeader>
           <ImageUpload 
             onClassify={handleClassify}
             isClassifying={isClassifying}
             classificationError={classificationError}
-            initialPromptText={currentUploadCategoryFriendlyName ? `Image of ${currentUploadCategoryFriendlyName.toLowerCase()}` : undefined}
+            initialPromptText={currentUploadCategoryFriendlyName && currentUploadCategoryFriendlyName !== 'General Waste' ? `Image of ${currentUploadCategoryFriendlyName.toLowerCase()}` : undefined}
           />
           {currentUploadCategory === 'other' && ( 
               <Alert variant="default" className="mt-4 text-xs">
