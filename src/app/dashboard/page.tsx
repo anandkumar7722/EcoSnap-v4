@@ -111,7 +111,7 @@ export default function DetailedDashboardPage() {
   }, [] as { name: WasteCategory; value: number, fill: string }[]);
 
   const totalWaste = filteredData.reduce((sum, entry) => sum + (entry.unit === 'items' ? entry.quantity * 0.1 : entry.quantity), 0).toFixed(1); // Assuming 0.1kg per item for simplicity
-  const recycledPercentage = категорииDistribution.length > 0 ? 
+  const recycledPercentage = categoryDistribution.length > 0 ? 
     ((categoryDistribution.filter(cat => cat.name !== 'other' && cat.name !== 'organic' && cat.name !== 'biowaste').reduce((sum, cat) => sum + cat.value, 0) / 
     categoryDistribution.reduce((sum, cat) => sum + cat.value, 0)) * 100).toFixed(0) : 0;
 
