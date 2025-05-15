@@ -13,7 +13,7 @@ import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
 import type { ClassificationRecord, UserProfile, WasteCategory } from '@/lib/types';
 import { ImageUpload } from '@/components/image-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Award, ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, UserPlus as SignupIcon, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple } from 'lucide-react';
+import { Award, ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, UserPlus as SignupIcon, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple, Wind, Droplets, Lightbulb, Info } from 'lucide-react'; // Added Wind, Droplets, Lightbulb
 import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -41,20 +41,20 @@ const ImageWithFallback = ({
   src,
   alt,
   dataAiHint,
-  placeholderSize = "114x50", // Default to larger size of the container
+  placeholderSize = "114x50", 
   sizes = "(max-width: 639px) 94px, 114px",
   className = "rounded-md object-cover",
+  wrapperClassName = "relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
 }) => {
   const [currentSrc, setCurrentSrc] = useState(src);
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
-    setCurrentSrc(src); // Reset src if the original src prop changes
-    setIsError(false);  // Reset error state
+    setCurrentSrc(src); 
+    setIsError(false);  
   }, [src]);
 
   const handleError = () => {
-    // Avoid loop if placeholder itself fails or if already placeholder
     if (!isError && currentSrc !== `https://placehold.co/${placeholderSize}.png`) { 
       setIsError(true);
       setCurrentSrc(`https://placehold.co/${placeholderSize}.png`);
@@ -62,18 +62,38 @@ const ImageWithFallback = ({
   };
 
   return (
-    <Image
-      src={currentSrc}
-      alt={alt}
-      fill
-      className={className}
-      sizes={sizes}
-      data-ai-hint={isError ? `placeholder ${dataAiHint}`.trim() : dataAiHint}
-      onError={handleError}
-      unoptimized={isError} // Using unoptimized for placeholder to avoid potential processing issues by Next/Image
-    />
+    <div className={wrapperClassName}>
+      <Image
+        src={currentSrc}
+        alt={alt}
+        fill
+        className={className}
+        sizes={sizes}
+        data-ai-hint={isError ? `placeholder ${dataAiHint}`.trim() : dataAiHint}
+        onError={handleError}
+        unoptimized={isError} 
+      />
+    </div>
   );
 };
+
+
+const topHorizontalCategories: Array<{
+  id: WasteCategory;
+  name: string;
+  imageUrl?: string;
+  icon?: React.ElementType;
+  dataAiHint: string;
+}> = [
+  { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.png', dataAiHint: 'cardboard box' },
+  { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', dataAiHint: 'stack paper' },
+  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', dataAiHint: 'plastic bottle' },
+  { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', dataAiHint: 'glass jar' },
+  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', dataAiHint: 'electronic waste' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', dataAiHint: 'apple core food' },
+  { id: 'metal', name: 'Metal', icon: Wind, dataAiHint: 'metal cans' }, // Using Wind as placeholder for metal
+  { id: 'other', name: 'Trash', icon: Trash2, dataAiHint: 'general trash' },
+];
 
 
 const verticalLogCategories: Array<{
@@ -89,9 +109,10 @@ const verticalLogCategories: Array<{
   { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stack paper', quantityKey: 'totalPaper' },
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar', quantityKey: 'totalGlass' },
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle', quantityKey: 'totalPlastic' },
-  { id: 'other', name: 'Trash', icon: Trash2, points: WASTE_POINTS.other, dataAiHint: 'general trash', quantityKey: 'totalOther' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste', quantityKey: 'totalEwaste' },
   { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', points: WASTE_POINTS.biowaste, dataAiHint: 'apple core food', quantityKey: 'totalBiowaste' },
+  { id: 'metal', name: 'Metal', icon: Wind, points: WASTE_POINTS.metal, dataAiHint: 'metal items', quantityKey: 'totalMetal'}, // Using Wind as placeholder
+  { id: 'other', name: 'Trash', icon: Trash2, points: WASTE_POINTS.other, dataAiHint: 'general trash', quantityKey: 'totalOther' },
 ];
 
 
@@ -123,6 +144,7 @@ export default function HomePage() {
   const [classificationError, setClassificationError] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [currentUploadCategory, setCurrentUploadCategory] = useState<string | undefined>(undefined);
+  const [currentUploadCategoryFriendlyName, setCurrentUploadCategoryFriendlyName] = useState<string | undefined>(undefined);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { toast } = useToast();
 
@@ -135,7 +157,7 @@ export default function HomePage() {
       
       if (loggedIn) {
         const userEmail = localStorage.getItem('userEmail');
-        const userName = localStorage.getItem('userName'); // Use 'userName'
+        const userName = localStorage.getItem('userName'); 
         if (userEmail && storedUserData.email !== userEmail) { 
            const displayName = userName || userEmail.split('@')[0];
            storedUserData = { 
@@ -148,7 +170,6 @@ export default function HomePage() {
         } else if (!userEmail && storedUserData.email) { 
             storedUserData = defaultUserProfile; 
         } else if (userEmail && userName && storedUserData.displayName !== userName) {
-            // If email matches but display name doesn't (e.g. updated from signup)
             storedUserData.displayName = userName;
             storedUserData.avatar = `https://placehold.co/100x100.png?text=${userName.substring(0,2).toUpperCase()}`;
         }
@@ -247,7 +268,6 @@ export default function HomePage() {
           const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
           
           let categoryKeyToUpdate = `total${result.category.charAt(0).toUpperCase() + result.category.slice(1)}` as keyof UserProfile;
-          // Handle 'organic' and 'biowaste' potentially mapping to same counter or if schema strictly uses one
           if (result.category === 'organic' && !('totalOrganic' in defaultUserProfile) && ('totalBiowaste' in defaultUserProfile)) {
             categoryKeyToUpdate = 'totalBiowaste';
           } else if (result.category === 'biowaste' && !('totalBiowaste' in defaultUserProfile) && ('totalOrganic' in defaultUserProfile)) {
@@ -256,7 +276,7 @@ export default function HomePage() {
 
 
           const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
-          const updatedCategoryCount = currentCategoryCount + 1; // Assuming each classification is 1 item
+          const updatedCategoryCount = currentCategoryCount + 1; 
           
           let newTargetScore = prevData.targetScore && prevData.targetScore > 0 ? prevData.targetScore : defaultUserProfile.targetScore;
           if (newScore >= newTargetScore) {
@@ -281,6 +301,7 @@ export default function HomePage() {
         });
         setIsUploadModalOpen(false);
         setCurrentUploadCategory(undefined);
+        setCurrentUploadCategoryFriendlyName(undefined);
         return result;
       } else {
         setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
@@ -308,6 +329,13 @@ export default function HomePage() {
   
   const scorePercentage = userData.targetScore && userData.targetScore > 0 ? Math.min((userData.score / userData.targetScore) * 100, 100) : 0;
 
+  const openUploadModalForCategory = (categoryId: WasteCategory, categoryName: string) => {
+    setClassificationError(null);
+    setCurrentUploadCategory(categoryId);
+    setCurrentUploadCategoryFriendlyName(categoryName);
+    setIsUploadModalOpen(true);
+  };
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
       <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
@@ -334,34 +362,67 @@ export default function HomePage() {
         </Card>
       )}
 
-      {/* Vertical Quick Log Section */}
+      {/* Top Horizontal Quick Log Categories (No Quantity) */}
+      <section className="mt-1 mb-4">
+        <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Quick Classify</h2>
+        <div className="flex overflow-x-auto space-x-3 pb-2 no-scrollbar">
+          {topHorizontalCategories.map(category => {
+            const CategoryIcon = category.icon;
+            return (
+              <Dialog key={`top-${category.id}`} onOpenChange={ open => { 
+                if(open) { openUploadModalForCategory(category.id, category.name); } 
+                else { setCurrentUploadCategory(undefined); setCurrentUploadCategoryFriendlyName(undefined); setIsUploadModalOpen(false); }
+              }}>
+                <DialogTrigger asChild>
+                  <Card className="p-3 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm w-[90px] sm:w-[100px] flex-shrink-0">
+                    <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
+                      {category.imageUrl ? (
+                        <ImageWithFallback
+                          src={category.imageUrl}
+                          alt={category.name}
+                          dataAiHint={category.dataAiHint}
+                          placeholderSize="48x48" 
+                          sizes="48px"
+                          wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex items-center justify-center"
+                        />
+                      ) : CategoryIcon ? (
+                        <CategoryIcon className="w-7 h-7 sm:w-8 sm:w-8 text-primary" />
+                      ) : (
+                        <PackageIcon className="w-7 h-7 sm:w-8 sm:w-8 text-muted-foreground" />
+                      )}
+                    </div>
+                    <p className="font-medium text-xs sm:text-sm text-center truncate w-full">{category.name}</p>
+                  </Card>
+                </DialogTrigger>
+              </Dialog>
+            );
+          })}
+        </div>
+      </section>
+
+
+      {/* Vertical Quick Log Section (With Quantity) */}
       <section className="space-y-2 sm:space-y-3">
+        <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Log Items by Category</h2>
         {verticalLogCategories.map(item => {
           const CategoryIcon = item.icon;
           const quantity = (userData && typeof userData[item.quantityKey] === 'number') ? userData[item.quantityKey] as number : 0;
           return (
             <Dialog key={item.id} onOpenChange={ open => { 
-              if(open) { setClassificationError(null); setCurrentUploadCategory(item.name); } 
-              else { setCurrentUploadCategory(undefined); }
-              setIsUploadModalOpen(open); 
+              if(open) { openUploadModalForCategory(item.id, item.name); } 
+              else { setCurrentUploadCategory(undefined); setCurrentUploadCategoryFriendlyName(undefined); setIsUploadModalOpen(false); }
             }}>
               <DialogTrigger asChild>
                 <Card className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm">
-                  <div className="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
-                    {item.imageUrl ? (
-                       <ImageWithFallback
-                        src={item.imageUrl}
-                        alt={item.name}
-                        dataAiHint={item.dataAiHint}
-                        // placeholderSize will default to "114x50"
-                        // sizes prop will default to "(max-width: 639px) 94px, 114px"
-                      />
-                    ) : CategoryIcon ? (
-                      <CategoryIcon className="w-6 h-6 sm:w-7 sm:w-7 text-primary" />
-                    ) : (
-                      <PackageIcon className="w-6 h-6 sm:w-7 sm:w-7 text-muted-foreground" />
-                    )}
-                  </div>
+                  <ImageWithFallback
+                    src={item.imageUrl}
+                    alt={item.name}
+                    dataAiHint={item.dataAiHint}
+                    placeholderSize="114x50" 
+                    sizes="(max-width: 639px) 94px, 114px"
+                    icon={item.icon ? <item.icon className="w-6 h-6 sm:w-7 sm:w-7 text-primary" /> : <PackageIcon className="w-6 h-6 sm:w-7 sm:w-7 text-muted-foreground" />}
+                    wrapperClassName="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
+                  />
                   <div className="flex-grow">
                     <p className="font-medium text-sm sm:text-base">{item.name}</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">{item.points} pts</p>
@@ -385,7 +446,7 @@ export default function HomePage() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs sm:text-sm opacity-90">Waste managed: {userData.co2Managed.toFixed(1)} Kg CO₂</p>
-                <p className="text-lg sm:text-2xl font-bold mt-1">{userData.score} / {userData.targetScore} points</p>
+                <p className="text-lg sm:text-2xl font-bold mt-1">{userData.score} / {userData.targetScore || defaultUserProfile.targetScore} points</p>
               </div>
               <div className="bg-accent p-1.5 sm:p-2 rounded-full">
                 <Award className="h-5 w-5 sm:h-8 sm:w-8 text-accent-foreground" />
@@ -408,7 +469,6 @@ export default function HomePage() {
             <div className="flex overflow-x-auto space-x-3 pb-3 no-scrollbar">
               {recentClassifications.map(item => {
                  let categoryKeyForQuantity = `total${item.category.charAt(0).toUpperCase() + item.category.slice(1)}` as keyof UserProfile;
-                 // Adjust for biowaste/organic mapping if necessary, similar to handleClassify
                   if (item.category === 'organic' && !('totalOrganic' in defaultUserProfile) && ('totalBiowaste' in defaultUserProfile)) {
                     categoryKeyForQuantity = 'totalBiowaste';
                   } else if (item.category === 'biowaste' && !('totalBiowaste' in defaultUserProfile) && ('totalOrganic' in defaultUserProfile)) {
@@ -447,7 +507,7 @@ export default function HomePage() {
                 <h2 className="text-base sm:text-xl font-semibold text-foreground">Recent Items</h2>
             </div>
             <Card className="p-3 sm:p-4 text-center text-muted-foreground text-sm">
-              <p>No items classified yet. Tap the <ImagePlus className="inline h-4 w-4 relative -top-px" /> button below to start!</p>
+              <p>No items classified yet. Tap a category above or the <ImagePlus className="inline h-4 w-4 relative -top-px" /> button to start!</p>
             </Card>
          </section>
       )}
@@ -511,36 +571,42 @@ export default function HomePage() {
 
 
       <Dialog open={isUploadModalOpen} onOpenChange={open => { 
-          if(!open) { setClassificationError(null); setCurrentUploadCategory(undefined); }
+          if(!open) { 
+            setClassificationError(null); 
+            setCurrentUploadCategory(undefined); 
+            setCurrentUploadCategoryFriendlyName(undefined);
+          }
           setIsUploadModalOpen(open);
       }}>
         <DialogTrigger asChild>
-           <Button className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl text-2xl p-0" aria-label="Upload image for general classification">
+           <Button 
+             onClick={() => openUploadModalForCategory(undefined, 'General Waste')}
+             className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl text-2xl p-0" 
+             aria-label="Upload image for general classification"
+           >
             <ImagePlus className="h-6 w-6 sm:h-7 sm:w-7" />
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Upload Waste Image {currentUploadCategory ? `for ${currentUploadCategory}` : ''}</DialogTitle>
+            <DialogTitle>Upload Waste Image {currentUploadCategoryFriendlyName ? `for ${currentUploadCategoryFriendlyName}` : ''}</DialogTitle>
           </DialogHeader>
           <ImageUpload 
             onClassify={handleClassify}
             isClassifying={isClassifying}
             classificationError={classificationError}
-            initialPromptText={currentUploadCategory ? `Image of ${currentUploadCategory.toLowerCase()}` : undefined}
+            initialPromptText={currentUploadCategoryFriendlyName ? `Image of ${currentUploadCategoryFriendlyName.toLowerCase()}` : undefined}
           />
-          {verticalLogCategories.map(item => (
-            item.id === currentUploadCategory?.toLowerCase() && item.id === 'other' && ( 
-                <Alert variant="default" className="mt-4 text-xs">
-                    <AlertTriangle className="h-3 w-3" />
-                    <AlertTitle>Tip for &quot;{item.name}&quot;</AlertTitle>
-                    <AlertDescription>
-                        Try to be specific if possible! If it&apos;s mixed material or you&apos;re unsure, &quot;other&quot; is okay. The AI will do its best.
-                    </AlertDescription>
-                </Alert>
-            )
-          ))}
-           {currentUploadCategory && verticalLogCategories.find(vc => vc.name === currentUploadCategory)?.id === 'ewaste' && (
+          {currentUploadCategory === 'other' && ( 
+              <Alert variant="default" className="mt-4 text-xs">
+                  <AlertTriangle className="h-3 w-3" />
+                  <AlertTitle>Tip for &quot;Trash&quot;</AlertTitle>
+                  <AlertDescription>
+                      Try to be specific if possible! If it&apos;s mixed material or you&apos;re unsure, &quot;other&quot; is okay. The AI will do its best.
+                  </AlertDescription>
+              </Alert>
+          )}
+           {currentUploadCategory === 'ewaste' && (
              <Alert variant="default" className="mt-4 text-xs">
                 <Tv2 className="h-3 w-3" />
                 <AlertTitle>Tip for E-Waste</AlertTitle>
@@ -549,7 +615,7 @@ export default function HomePage() {
                 </AlertDescription>
             </Alert>
            )}
-           {currentUploadCategory && verticalLogCategories.find(vc => vc.name === currentUploadCategory)?.id === 'biowaste' && (
+           {currentUploadCategory === 'biowaste' && (
              <Alert variant="default" className="mt-4 text-xs">
                 <Apple className="h-3 w-3" />
                 <AlertTitle>Tip for Bio-Waste</AlertTitle>
@@ -563,6 +629,7 @@ export default function HomePage() {
     </div>
   );
 }
+    
     
 
     
