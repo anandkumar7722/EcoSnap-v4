@@ -183,7 +183,7 @@ const topHorizontalCategories: Array<{
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', dataAiHint: 'plastic bottle' },
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', dataAiHint: 'glass jar' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', dataAiHint: 'electronic waste' },
-  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', dataAiHint: 'food waste' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/bio-waste.png', dataAiHint: 'food waste' },
   { id: 'metal', name: 'Metal', icon: Wind, dataAiHint: 'metal cans' }, 
   { id: 'other', name: 'Trash', icon: Trash2, dataAiHint: 'general trash' },
 ];
@@ -203,7 +203,7 @@ const verticalLogCategories: Array<{
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar', quantityKey: 'totalGlass' },
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle', quantityKey: 'totalPlastic' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste', quantityKey: 'totalEwaste' },
-  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/biowaste.jpeg', points: WASTE_POINTS.biowaste, dataAiHint: 'food waste', quantityKey: 'totalBiowaste' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/bio-waste.png', points: WASTE_POINTS.biowaste, dataAiHint: 'food waste', quantityKey: 'totalBiowaste' },
   { id: 'metal', name: 'Metal', icon: Wind, points: WASTE_POINTS.metal, dataAiHint: 'metal items', quantityKey: 'totalMetal'}, 
   { id: 'other', name: 'Trash', icon: Trash2, points: WASTE_POINTS.other, dataAiHint: 'general trash', quantityKey: 'totalOther' },
 ];
@@ -215,7 +215,6 @@ const defaultUserProfile: UserProfile = {
   email: '',
   avatar: `https://placehold.co/100x100.png?text=G`, 
   score: 0,
-  // targetScore removed, will be derived from LEVELS
   co2Managed: 0,
   totalEwaste: 0,
   totalPlastic: 0,
@@ -752,4 +751,5 @@ export default function HomePage() {
     
 
     
+
 
