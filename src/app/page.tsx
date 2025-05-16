@@ -635,7 +635,7 @@ export default function HomePage() {
   }
 
   const selectedCategoryForDialog = useMemo(() => currentUploadCategory || 'general', [currentUploadCategory]);
-  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog]);
+  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog, wasteCategoryFiveRTips]);
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
 
   const fiveRTipsArray = useMemo(() => {
@@ -647,6 +647,7 @@ export default function HomePage() {
 
 
   console.log("HomePage rendering. Is logged in:", isLoggedIn, "User name:", userData.displayName);
+  console.log("Current Upload Category for Dialog:", currentUploadCategoryFriendlyName);
 
 
   return (
@@ -775,13 +776,13 @@ export default function HomePage() {
                   {userData.score} / {pointsForNextLevelDisplay} points
                 </p>
               </div>
-              <div className={cn("p-1.5 sm:p-2 rounded-full", currentLevel.badgeIconContainerColor)}>
+              <div className={cn("p-1 sm:p-1.5 rounded-full", currentLevel.badgeIconContainerColor)}>
                 <Image
                   src={currentLevel.badgeImageUrl}
                   alt={`level ${currentLevel.name.toLowerCase()} badge`}
                   width={40}
                   height={40}
-                  className="h-6 w-6 sm:h-10 sm:w-10"
+                  className="h-5 w-5 sm:h-8 sm:w-8"
                   data-ai-hint={`level ${currentLevel.name.toLowerCase()} badge`}
                 />
               </div>
@@ -789,7 +790,7 @@ export default function HomePage() {
             <Progress
                 value={scorePercentage}
                 className={cn(
-                    "mt-2 sm:mt-4 h-2 sm:h-2.5", // Adjusted height
+                    "mt-2 sm:mt-4 h-2 sm:h-2.5", 
                     currentLevel.progressBarTrackColor,
                     "[&>div]:transition-all [&>div]:duration-500",
                     `[&>div]:${currentLevel.progressBarIndicatorColor}`
@@ -836,7 +837,7 @@ export default function HomePage() {
                         dataAiHint={`${item.category} item`}
                         placeholderSize="48x48"
                         sizes="(max-width: 639px) 40px, 48px"
-                        wrapperClassName="relative w-10 h-10 sm:w-12 sm:w-12 rounded-md overflow-hidden bg-muted flex-shrink-0"
+                        wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0"
                         className="rounded-md object-cover"
                     />
                     <div className="flex-grow overflow-hidden">
@@ -989,3 +990,4 @@ export default function HomePage() {
     </div>
   );
 }
+
