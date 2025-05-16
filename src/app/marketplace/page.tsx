@@ -11,12 +11,12 @@ import { Input } from '@/components/ui/input';
 
 // Placeholder marketplace items
 const placeholderItems = [
-  { id: '1', title: 'Old Textbooks', category: 'Books', imageUrl: 'https://picsum.photos/seed/books/300/200', description: 'Collection of university textbooks.', dataAiHint: 'books pile' },
-  { id: '2', title: 'Winter Jacket', category: 'Clothing', imageUrl: 'https://picsum.photos/seed/jacket/300/200', description: 'Barely used, size M.', dataAiHint: 'winter jacket' },
-  { id: '3', title: 'Unused E-Reader', category: 'Electronics', imageUrl: 'https://picsum.photos/seed/ereader/300/200', description: 'Kindle Paperwhite, good condition.', dataAiHint: 'e-reader device' },
-  { id: '4', title: 'Vintage Ceramic Vase', category: 'Home Goods', imageUrl: 'https://picsum.photos/seed/vase/300/200', description: 'Beautiful hand-painted vase.', dataAiHint: 'ceramic vase' },
-  { id: '5', title: 'Gardening Tools Set', category: 'Garden', imageUrl: 'https://picsum.photos/seed/gardentools/300/200', description: 'Lightly used, includes spade and rake.', dataAiHint: 'gardening tools' },
-  { id: '6', title: 'Board Game Collection', category: 'Toys & Games', imageUrl: 'https://picsum.photos/seed/boardgames/300/200', description: 'Bundle of popular board games.', dataAiHint: 'board games' },
+  { id: '1', title: 'Old Textbooks', category: 'Books', imageUrl: 'https://placehold.co/600x400.png', description: 'Collection of university textbooks.', dataAiHint: 'stacked textbooks' },
+  { id: '2', title: 'Winter Jacket', category: 'Clothing', imageUrl: 'https://placehold.co/600x400.png', description: 'Barely used, size M.', dataAiHint: 'winter jacket' },
+  { id: '3', title: 'Unused E-Reader', category: 'Electronics', imageUrl: 'https://placehold.co/600x400.png', description: 'Kindle Paperwhite, good condition.', dataAiHint: 'e-reader device' },
+  { id: '4', title: 'Vintage Ceramic Vase', category: 'Home Goods', imageUrl: 'https://placehold.co/600x400.png', description: 'Beautiful hand-painted vase.', dataAiHint: 'ceramic vase' },
+  { id: '5', title: 'Gardening Tools Set', category: 'Garden', imageUrl: 'https://placehold.co/600x400.png', description: 'Lightly used, includes spade and rake.', dataAiHint: 'gardening tools' },
+  { id: '6', title: 'Board Game Collection', category: 'Toys & Games', imageUrl: 'https://placehold.co/600x400.png', description: 'Bundle of popular board games.', dataAiHint: 'board games' },
 ];
 
 export default function MarketplacePage() {
@@ -52,10 +52,10 @@ export default function MarketplacePage() {
       {placeholderItems.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {placeholderItems.map((item) => (
-            <Card key={item.id} className="overflow-hidden flex flex-col">
+            <Card key={item.id} className="overflow-hidden flex flex-col group">
               <CardHeader className="p-0">
-                <div className="aspect-[4/3] w-full relative bg-muted"> {/* Changed aspect ratio for better item display */}
-                  {item.imageUrl && (
+                <div className="aspect-[3/2] w-full relative bg-muted"> {/* Adjusted aspect ratio */}
+                  {item.imageUrl ? (
                     <Image 
                         src={item.imageUrl} 
                         alt={item.title} 
@@ -64,8 +64,11 @@ export default function MarketplacePage() {
                         data-ai-hint={item.dataAiHint}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                        <PackageSearch className="w-12 h-12 text-muted-foreground"/>
+                    </div> 
                   )}
-                   {!item.imageUrl && <div className="flex items-center justify-center h-full"><PackageSearch className="w-12 h-12 text-muted-foreground"/></div> }
                 </div>
               </CardHeader>
               <CardContent className="p-3 sm:p-4 flex-grow">
