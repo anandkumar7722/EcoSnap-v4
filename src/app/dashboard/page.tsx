@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { BarChart as BarChartIcon, LineChart as LineChartIcon, PieChart as PieChartIconLucide, Info, Recycle, Package, Atom, Edit, Filter, CalendarDays as CalendarIcon } from 'lucide-react';
+import { BarChart as BarChartIcon, LineChart as LineChartIcon, PieChart as PieChartIconLucide, Info, Recycle, Package, Atom, Edit, Filter, CalendarDays as CalendarIcon, Trash2 as SmartBinIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,20 +44,25 @@ const placeholderWasteData: WasteEntry[] = [
   { userId: '1', timestamp: new Date('2024-04-01').getTime(), type: 'plastic', quantity: 7, unit: 'items' },
 ];
 
-const allWasteCategories: WasteCategory[] = ['ewaste', 'plastic', 'biowaste', 'cardboard', 'paper', 'glass', 'metal', 'organic', 'other'];
+const allWasteCategories: WasteCategory[] = ['ewaste', 'plastic', 'biowaste', 'cardboard', 'paper', 'glass', 'metal', 'organic', 'other', 'plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'];
 
 
 const chartConfig = {
   items: { label: "Items/Kg" },
   ewaste: { label: "E-Waste", color: "hsl(var(--chart-1))" },
   plastic: { label: "Plastic", color: "hsl(var(--chart-2))" },
-  biowaste: { label: "Bio-Waste", color: "hsl(var(--chart-3))" }, // Used for 'organic' in this context
+  biowaste: { label: "Bio-Waste", color: "hsl(var(--chart-3))" }, 
   organic: { label: "Organic", color: "hsl(var(--chart-3))" },
   cardboard: { label: "Cardboard", color: "hsl(var(--chart-4))" },
   paper: { label: "Paper", color: "hsl(var(--chart-5))" },
   glass: { label: "Glass", color: "hsl(var(--chart-1))" },
-  metal: { label: "Metal", color: "hsl(var(--chart-2))" }, // Re-using a color
+  metal: { label: "Metal", color: "hsl(var(--chart-2))" }, 
   other: { label: "Other", color: "hsl(var(--muted))" },
+  plasticPete: { label: "Plastic PETE", color: "hsl(var(--chart-2))" },
+  plasticHdpe: { label: "Plastic HDPE", color: "hsl(var(--chart-2))" },
+  plasticPp: { label: "Plastic PP", color: "hsl(var(--chart-2))" },
+  plasticPs: { label: "Plastic PS", color: "hsl(var(--chart-2))" },
+  plasticOther: { label: "Plastic Other", color: "hsl(var(--chart-2))" },
 } satisfies import("@/components/ui/chart").ChartConfig;
 
 
@@ -94,7 +99,6 @@ export default function DetailedDashboardPage() {
       acc[month] = { month };
       allWasteCategories.forEach(cat => acc[month][cat] = 0);
     }
-    // Simple aggregation: sum quantities. Might need conversion if units differ significantly.
     acc[month][entry.type] = (acc[month][entry.type] || 0) + entry.quantity;
     return acc;
   }, {} as Record<string, any>);
@@ -283,7 +287,7 @@ export default function DetailedDashboardPage() {
                   <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={isMobileView ? "0.6rem" : "0.75rem"} />
                   <RechartsTooltip cursor={false} content={<ChartTooltipContent indicator="dashed" />} />
                   <RechartsLegend content={<ChartLegendContent nameKey="name" className="text-xs sm:text-sm [&>div]:gap-1 [&>div>svg]:size-3"/>} />
-                  {allWasteCategories.filter(cat => cat !== 'other').map(cat => ( // Stack all except 'other'
+                  {allWasteCategories.filter(cat => cat !== 'other' && chartConfig[cat]).map(cat => (
                      <Bar key={cat} dataKey={cat} stackId="a" fill={chartConfig[cat]?.color || chartConfig.other.color} name={chartConfig[cat]?.label as string} radius={cat === 'ewaste' ? [4,4,0,0] : [0,0,0,0]}/>
                   ))}
                    <Bar dataKey="other" stackId="a" fill={chartConfig.other.color} name={chartConfig.other.label as string} radius={[0,0,4,4]}/>
@@ -292,6 +296,29 @@ export default function DetailedDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <SmartBinIcon className="h-5 w-5 text-primary" />
+            Smart Bin Monitoring (IoT)
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
+            Overview of connected smart bin statuses. (Feature in development)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-sm">
+            This section will display real-time data from IoT-enabled smart bins, such as fill levels and locations.
+            The backend logic to update bin 'notify' status based on fill level is handled by a Cloud Function.
+          </p>
+          {/* Placeholder for future bin list or map */}
+          <div className="mt-4 p-4 border border-dashed rounded-md text-center text-muted-foreground">
+            Smart Bin data will appear here.
+          </div>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }

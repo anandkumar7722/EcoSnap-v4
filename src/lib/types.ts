@@ -49,6 +49,7 @@ export interface UserProfile {
   avatar?: string; // data URI or link to an image
   score: number; // Total points
   co2Managed: number; // CO2 managed in Kg
+  targetScore?: number; // Score needed for next level
   
   // Detailed waste counts
   totalEwaste: number;
@@ -146,3 +147,17 @@ const signupSchema = z.object({
   path: ['confirmPassword'],
 });
 export type SignupFormInputs = z.infer<typeof signupSchema>;
+
+// For IoT Smart Bin Integration
+export interface BinLocation {
+  latitude: number;
+  longitude: number;
+}
+
+export interface BinData {
+  id: string;
+  location: BinLocation;
+  fill_level: number; // 0-100
+  lastEmptied: number; // timestamp
+  notify: boolean;
+}
