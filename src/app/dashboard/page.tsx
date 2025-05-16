@@ -712,37 +712,59 @@ export default function DetailedDashboardPage() {
           ) : (
             <div className="space-y-4">
               {smartBinsData.map((bin) => (
-                <Card key={bin.id} className={cn("p-4", bin.notify ? "border-orange-500 bg-orange-500/5" : "border-green-500 bg-green-500/5")}>
+                <Card 
+                  key={bin.id} 
+                  className={cn(
+                    "p-4 shadow-sm transition-all duration-300 ease-in-out", 
+                    bin.notify 
+                      ? "border-destructive bg-destructive/5 hover:shadow-md" 
+                      : "border-green-500 bg-green-500/5 hover:shadow-md"
+                  )}
+                >
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div className="flex-grow">
                       <h4 className="font-semibold text-base sm:text-lg flex items-center">
-                        <TrashIcon className={cn("h-5 w-5 mr-2", bin.notify ? "text-orange-600" : "text-green-600")} />
-                        Bin ID: {bin.id}
+                        <TrashIcon className={cn("h-5 w-5 mr-2 shrink-0", bin.notify ? "text-destructive" : "text-green-600")} />
+                        <span className="truncate" title={`Bin ID: ${bin.id}`}>Bin ID: {bin.id}</span>
                       </h4>
                        {bin.location && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           Location: Lat {bin.location.latitude.toFixed(4)}, Lon {bin.location.longitude.toFixed(4)}
                         </p>
                       )}
                     </div>
-                    <div className="flex flex-col items-start sm:items-end w-full sm:w-auto mt-2 sm:mt-0">
-                      <div className="text-sm w-full">
-                        <div className="flex justify-between mb-1">
-                          <span className="font-medium">Fill Level:</span>
-                          <span className={cn("font-semibold", bin.fill_level >= 90 ? "text-destructive" : bin.fill_level > 70 ? "text-orange-600" : "text-green-600")}>
+                    <div className="flex flex-col items-start sm:items-end w-full sm:w-auto mt-2 sm:mt-0 space-y-1.5">
+                      <div className="text-sm w-full min-w-[120px] sm:min-w-[150px]">
+                        <div className="flex justify-between items-baseline mb-1">
+                          <span className="font-medium text-muted-foreground">Fill Level:</span>
+                          <span className={cn("font-bold text-lg", bin.fill_level >= 90 ? "text-destructive" : bin.fill_level > 70 ? "text-orange-600" : "text-green-600")}>
                             {bin.fill_level}%
                           </span>
                         </div>
-                        <Progress value={bin.fill_level} className={cn("h-2.5", bin.fill_level >= 90 ? "[&>div]:bg-destructive" : bin.fill_level > 70 ? "[&>div]:bg-orange-500" : "[&>div]:bg-green-500")} />
+                        <Progress 
+                          value={bin.fill_level} 
+                          className={cn(
+                            "h-2.5 rounded-full", 
+                            bin.fill_level >= 90 ? "[&>div]:bg-destructive" : 
+                            bin.fill_level > 70 ? "[&>div]:bg-orange-500" : 
+                            "[&>div]:bg-green-500"
+                          )} 
+                          aria-label={`Bin ${bin.id} fill level ${bin.fill_level}%`}
+                        />
                       </div>
-                       <div className={cn("mt-2 text-xs sm:text-sm font-medium flex items-center px-2 py-1 rounded-md", bin.notify ? "bg-destructive/10 text-destructive" : "bg-green-600/10 text-green-700")}>
-                        {bin.notify ? <AlertCircleIcon className="h-4 w-4 mr-1.5" /> : <CheckCircle2Icon className="h-4 w-4 mr-1.5" />}
+                       <div className={cn(
+                         "mt-2 text-xs sm:text-sm font-medium flex items-center px-2.5 py-1 rounded-md shadow-xs", 
+                         bin.notify 
+                           ? "bg-destructive/10 text-destructive" 
+                           : "bg-green-600/10 text-green-700"
+                        )}>
+                        {bin.notify ? <AlertCircleIcon className="h-4 w-4 mr-1.5 shrink-0" /> : <CheckCircle2Icon className="h-4 w-4 mr-1.5 shrink-0" />}
                         Status: {bin.notify ? 'Needs Attention' : 'OK'}
                       </div>
                     </div>
                   </div>
-                   {typeof bin.lastEmptied === 'number' && (
-                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-muted/50">
+                   {typeof bin.lastEmptied === 'number' && bin.lastEmptied > 0 && (
+                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-muted/20">
                       Last Emptied: {format(new Date(bin.lastEmptied), 'PPpp')}
                     </p>
                   )}
