@@ -175,7 +175,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   glass: {
     title: "Glass",
-    icon: Lightbulb,
+    icon: Lightbulb, // Consider a more glass-specific icon if available e.g. GlassWater
     definition: "Made from sand, soda ash, and limestone. Infinitely recyclable without loss of quality.",
     fiveRs: {
       reduce: "Buy items in glass when it's a good alternative to plastic. Consider products with refill options.",
@@ -211,7 +211,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   metal: {
     title: "Metal",
-    icon: Wind,
+    icon: Wind, // Consider a more metal-specific icon e.g. Hammer
     definition: "Includes aluminum cans, steel/tin cans, and sometimes other metal items. Highly recyclable.",
     fiveRs: {
       reduce: "Choose reusable containers over single-use cans where possible.",
@@ -781,9 +781,9 @@ export default function HomePage() {
                 <Image
                   src={currentLevel.badgeImageUrl}
                   alt={`level ${currentLevel.name.toLowerCase()} badge`}
-                  width={64} 
-                  height={64}
-                  className="h-8 w-8 sm:h-12 sm:w-12" 
+                  width={85} 
+                  height={85}
+                  className="h-12 w-12 sm:h-16 sm:w-16" 
                   data-ai-hint={`level ${currentLevel.name.toLowerCase()} badge`}
                 />
               </div>
@@ -991,3 +991,4 @@ export default function HomePage() {
     </div>
   );
 }
+
