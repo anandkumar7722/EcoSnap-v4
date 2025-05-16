@@ -221,7 +221,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: {
+  other: { // Corresponds to "Trash"
     title: "Trash / Other Non-Recyclables",
     icon: Trash2,
     definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
@@ -233,9 +233,9 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { 
+  organic: { // Often grouped with biowaste, but kept distinct as per types
     title: "Organic Waste",
-    icon: Apple, // Typically covered by biowaste, but if distinct
+    icon: Apple,
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
     fiveRs: {
       reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
@@ -635,7 +635,7 @@ export default function HomePage() {
   }
 
   const selectedCategoryForDialog = useMemo(() => currentUploadCategory || 'general', [currentUploadCategory]);
-  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog, wasteCategoryFiveRTips]); // Added wasteCategoryFiveRTips to dependency array
+  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog, wasteCategoryFiveRTips]);
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
 
   const fiveRTipsArray = useMemo(() => {
@@ -777,13 +777,13 @@ export default function HomePage() {
                   {userData.score} / {pointsForNextLevelDisplay} points
                 </p>
               </div>
-              <div className={cn("p-1 sm:p-1.5 rounded-full", currentLevel.badgeIconContainerColor)}>
+              <div className={cn("p-1.5 sm:p-2 rounded-full", currentLevel.badgeIconContainerColor)}>
                 <Image
                   src={currentLevel.badgeImageUrl}
                   alt={`level ${currentLevel.name.toLowerCase()} badge`}
-                  width={40}
-                  height={40}
-                  className="h-5 w-5 sm:h-8 sm:w-8"
+                  width={64} 
+                  height={64}
+                  className="h-8 w-8 sm:h-12 sm:w-12" 
                   data-ai-hint={`level ${currentLevel.name.toLowerCase()} badge`}
                 />
               </div>
@@ -991,6 +991,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-
-    
