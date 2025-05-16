@@ -783,13 +783,14 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-full")}>
+            <div className={cn("mt-2 sm:mt-4 w-5/6 mx-auto")}>
               <Progress
                 value={scorePercentage}
                 className={cn(
-                  "relative w-full overflow-hidden rounded-full h-3 sm:h-4",
+                  "relative w-full overflow-hidden rounded-full",
                   currentLevel.progressBarTrackColor,
-                  `[&>div]:${currentLevel.progressBarIndicatorColor}`
+                  `[&>div]:${currentLevel.progressBarIndicatorColor}`,
+                  "h-3 sm:h-4" 
                 )}
                 aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
               />
@@ -988,5 +989,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
