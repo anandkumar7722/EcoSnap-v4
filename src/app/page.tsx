@@ -233,11 +233,11 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { // Kept for consistency, maps to biowaste tips generally
+  organic: { 
     title: "Organic Waste",
     icon: Apple, 
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
-    fiveRs: { // Shares tips with biowaste
+    fiveRs: { 
       reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
       reuse: "Vegetable scraps for broth, coffee grounds for garden.",
       recycle: "Home composting (bin, pile, worms) or municipal green bin collection.",
@@ -555,7 +555,7 @@ export default function HomePage() {
         } else if (classificationResultCategory === 'plastic' && !specificPlasticKeys[classificationResultCategory]) {
             categoryKeyToUpdate = 'totalPlastic';
         } else if (classificationResultCategory === 'biowaste' || classificationResultCategory === 'organic') {
-            categoryKeyToUpdate = 'totalBiowaste'; // Assuming biowaste and organic map to the same counter
+            categoryKeyToUpdate = 'totalBiowaste'; 
         } else if (!(categoryKeyToUpdate in defaultUserProfile)) {
             console.warn(`Unknown category key derived: ${categoryKeyToUpdate}. Logging to totalOther.`);
             categoryKeyToUpdate = 'totalOther';
@@ -783,16 +783,16 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-3/4")}>
-              <Progress
-                value={scorePercentage}
-                className={cn(
-                  currentLevel.progressBarTrackColor,
-                  `[&>div]:${currentLevel.progressBarIndicatorColor}`,
-                  "h-3 sm:h-4" 
-                )}
-                aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
-              />
+            <div className={cn("mt-2 sm:mt-4 w-5/6 mx-auto")}>
+                <Progress
+                    value={scorePercentage}
+                    className={cn(
+                        currentLevel.progressBarTrackColor,
+                        `[&>div]:${currentLevel.progressBarIndicatorColor}`,
+                        "h-3 sm:h-4" 
+                    )}
+                    aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
+                />
             </div>
           </Card>
         </section>
