@@ -1,9 +1,9 @@
 
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getDatabase, Database } from 'firebase/database';
-// import { getAnalytics, Analytics } from "firebase/analytics"; // Uncomment if you need Analytics
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getDatabase, type Database } from 'firebase/database';
+import { getAnalytics, type Analytics } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -16,7 +16,7 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
@@ -24,22 +24,35 @@ let app: FirebaseApp;
 let auth: Auth;
 let firestore: Firestore;
 let database: Database;
-// let analytics: Analytics; // Uncomment if you need Analytics
+let analytics: Analytics | undefined;
 
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
+if (typeof window !== 'undefined') { // Ensure Firebase is initialized only on the client-side for certain services
+  if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApp();
+  }
+
+  auth = getAuth(app);
+  firestore = getFirestore(app);
+  database = getDatabase(app);
+  
+  // Initialize Analytics only on the client side and if measurementId is present
+  if (firebaseConfig.measurementId) {
+    analytics = getAnalytics(app);
+  }
 } else {
-  app = getApp();
+  // Server-side initialization (can be more limited if only certain services are needed server-side)
+  // For now, we'll ensure 'app' is initialized for potential server-side use of Firestore/Auth admin actions (though this client SDK is not for admin)
+  if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApp();
+  }
+  auth = getAuth(app); // Can be initialized, but most operations are client-side
+  firestore = getFirestore(app); // Can be initialized for server-side data access if needed (e.g. in API routes)
+  database = getDatabase(app); // Same as Firestore
 }
 
-auth = getAuth(app);
-firestore = getFirestore(app);
-database = getDatabase(app);
 
-// Check if window is defined (i.e., running in the browser) before initializing Analytics
-// if (typeof window !== 'undefined') {
-//   analytics = getAnalytics(app);
-// }
-
-export { app, auth, firestore, database };
-// export { app, auth, firestore, database, analytics }; // Uncomment if you need Analytics
+export { app, auth, firestore, database, analytics };
