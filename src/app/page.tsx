@@ -233,11 +233,11 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { // Maintained for WASTE_POINTS mapping, biowaste is primary for tips
-    title: "Organic Waste", // Tip content will primarily come from biowaste
+  organic: { 
+    title: "Organic Waste", 
     icon: Apple, 
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
-    fiveRs: { // These can be brief as biowaste covers it more extensively
+    fiveRs: { 
       reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
       reuse: "Vegetable scraps for broth, coffee grounds for garden.",
       recycle: "Home composting (bin, pile, worms) or municipal green bin collection.",
@@ -784,14 +784,14 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-full")}>
+            <div className={cn("mt-2 sm:mt-4 w-full")}> {/* Container for the Progress bar, set to full width */}
                 <Progress
                     value={scorePercentage}
                     className={cn(
                         currentLevel.progressBarTrackColor, 
                         `[&>div]:${currentLevel.progressBarIndicatorColor}`,
-                        "h-3 sm:h-4", 
-                        "w-[85%]" 
+                        "h-3 sm:h-4", // Height of the progress bar
+                        "w-[105%]" // Width of the progress bar set to 105%
                     )}
                     aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
                 />
