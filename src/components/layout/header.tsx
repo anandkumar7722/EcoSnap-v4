@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, History, LayoutDashboard, Trophy, MapPin, Store, Bot, Users, LogIn, UserPlus, LogOut, UserCircle, Menu, ChevronDown, Leaf } from 'lucide-react'; // Added Leaf here
+import { Home, History, LayoutDashboard, Trophy, MapPin, Store, Bot, Users, LogIn, UserPlus, LogOut, UserCircle, Menu, ChevronDown, Leaf, Server } from 'lucide-react'; // Added Leaf and Server
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -64,6 +64,7 @@ export function AppHeader() {
   ];
 
   const secondaryNavLinks = [
+    { href: "/dashboard/ewaste", label: "E-Waste Dashboard", icon: Server },
     { href: "/challenges", label: "Challenges", icon: Trophy },
     { href: "/recycling-centers", label: "Recycling Hub", icon: MapPin },
     { href: "/marketplace", label: "Marketplace", icon: Store },
@@ -179,7 +180,7 @@ export function AppHeader() {
                 <>
                    <DropdownMenuLabel className="flex items-center gap-2">
                      <Avatar className="h-7 w-7">
-                       <AvatarImage src={`https://placehold.co/30x30.png?text=${getAvatarFallback(userName)}`} alt={userName} data-ai-hint="avatar person" />
+                       <AvatarImage src={`https://placehold.co/30x30.png?text=${getAvatarFallback(userName)}`} alt={userName || 'User'} data-ai-hint="avatar person" />
                        <AvatarFallback>{getAvatarFallback(userName)}</AvatarFallback>
                      </Avatar>
                      <span className="truncate max-w-[120px] font-medium">{userName}</span>
@@ -224,5 +225,3 @@ export function AppHeader() {
     </header>
   );
 }
-
-    

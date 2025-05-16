@@ -112,6 +112,8 @@ export interface MarketplaceItem {
   description: string;
   itemCategory: WasteCategory | 'furniture' | 'clothing' | 'books' | 'food' | 'other_reuse';
   imageDataUri?: string;
+  imageUrl?: string; // Added for consistency
+  dataAiHint?: string; // Added for consistency
   postedAt: number;
   postedByDisplayName: string; // To display without fetching user profile separately
   status: 'available' | 'reserved' | 'taken';
@@ -194,4 +196,23 @@ export interface TipInfo {
     educate: string;
     support: string;
   };
+}
+
+// For E-Waste Dashboard
+export type EWasteCategory = 'batteries' | 'mobiles' | 'laptops' | 'others';
+
+export interface RealTimeEWasteDataPoint {
+  timestamp: string; // HH:MM:SS
+  volume: number; // kg or %
+}
+
+export interface EWasteCategoryDistributionPoint {
+  name: Capitalize<EWasteCategory> | 'Other E-Waste';
+  value: number;
+  fill: string;
+}
+
+export interface MonthlyEWasteDataPoint {
+  month: string; // e.g., "Jan", "Feb"
+  volume: number; // kg
 }
