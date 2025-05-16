@@ -233,11 +233,11 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { 
+  organic: { // Kept for consistency, maps to biowaste tips generally
     title: "Organic Waste",
     icon: Apple, 
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
-    fiveRs: {
+    fiveRs: { // Shares tips with biowaste
       reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
       reuse: "Vegetable scraps for broth, coffee grounds for garden.",
       recycle: "Home composting (bin, pile, worms) or municipal green bin collection.",
@@ -783,11 +783,10 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-5/6 mx-auto")}>
+            <div className={cn("mt-2 sm:mt-4 w-3/4")}>
               <Progress
                 value={scorePercentage}
                 className={cn(
-                  "relative w-full overflow-hidden rounded-full",
                   currentLevel.progressBarTrackColor,
                   `[&>div]:${currentLevel.progressBarIndicatorColor}`,
                   "h-3 sm:h-4" 
@@ -922,7 +921,7 @@ export default function HomePage() {
       <Dialog open={isUploadModalOpen} onOpenChange={open => {
           if(!open) {
             setClassificationError(null);
-            if (!isClassifying) { // Only clear category if not currently classifying
+            if (!isClassifying) { 
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
             }
