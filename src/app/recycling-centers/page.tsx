@@ -37,6 +37,7 @@ const getIconForWasteType = (wasteType: string) => {
 
 export default function RecyclingFeaturesPage() {
   const [centerSearchTerm, setCenterSearchTerm] = useState('');
+  const [embeddedMapQuery, setEmbeddedMapQuery] = useState('');
   const [scheduleSettings, setScheduleSettings] = useState<UserScheduleSettings>({
     locationQuery: '',
     notificationsEnabled: false,
@@ -57,7 +58,10 @@ export default function RecyclingFeaturesPage() {
   const handleCenterSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (centerSearchTerm.trim()) {
-      window.open(`https://www.google.com/maps/search/recycling+centers+near+${encodeURIComponent(centerSearchTerm.trim())}`, '_blank');
+      const query = `recycling centers near ${centerSearchTerm.trim()}`;
+      setEmbeddedMapQuery(query);
+      // Optionally, still open in new tab for full features:
+      // window.open(`https://www.google.com/maps/search/${encodeURIComponent(query)}`, '_blank');
     }
   };
 
@@ -66,7 +70,11 @@ export default function RecyclingFeaturesPage() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          window.open(`https://www.google.com/maps/search/recycling+centers/@${latitude},${longitude},13z`, '_blank');
+          // For embed, using a search query is more reliable without an API key for place details
+          const query = `recycling centers near my current location`;
+          setEmbeddedMapQuery(query);
+          // Optionally, still open in new tab with coordinates:
+          // window.open(`https://www.google.com/maps/search/recycling+centers/@${latitude},${longitude},13z`, '_blank');
         },
         (error) => {
           console.error("Error getting location for centers:", error);
@@ -151,7 +159,7 @@ export default function RecyclingFeaturesPage() {
             <Search className="h-5 w-5 text-primary" />
             Find Recycling Centers
           </CardTitle>
-           <CardDescription className="text-xs sm:text-sm">Search for drop-off locations (opens Google Maps).</CardDescription>
+           <CardDescription className="text-xs sm:text-sm">Search for drop-off locations.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleCenterSearch} className="space-y-3 sm:space-y-4">
@@ -173,30 +181,41 @@ export default function RecyclingFeaturesPage() {
                 </Button>
             </div>
           </form>
-          <Alert variant="destructive" className="mt-4 sm:mt-6">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle className="text-sm sm:text-base">Note on Center Search</AlertTitle>
-            <AlertDescription className="text-xs sm:text-sm">
-              This search opens Google Maps in a new tab. Full map embedding requires a Google Maps API key.
-            </AlertDescription>
-          </Alert>
         </CardContent>
       </Card>
 
       <div className="mt-6 sm:mt-8 text-center">
-        <p className="text-muted-foreground mb-3 sm:mb-4 text-sm sm:text-base">Map preview for centers (placeholder):</p>
-        <div className="aspect-video bg-muted rounded-md overflow-hidden relative w-full max-w-2xl mx-auto border shadow-sm">
-            <Image 
-                src="https://picsum.photos/seed/mapview/800/450?grayscale&blur=2" 
-                alt="Placeholder map" 
-                layout="fill" 
-                objectFit="cover"
-                data-ai-hint="map placeholder"
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                <p className="text-white text-lg sm:text-xl font-semibold p-4 text-center">Map Area (Opens Google Maps)</p>
+        <p className="text-muted-foreground mb-3 sm:mb-4 text-sm sm:text-base">Map preview for centers:</p>
+        {embeddedMapQuery ? (
+          <div className="aspect-video bg-muted rounded-md overflow-hidden relative w-full max-w-2xl mx-auto border shadow-sm">
+            <iframe
+              title="Recycling Centers Map"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://www.google.com/maps/embed/v1/search?q=${encodeURIComponent(embeddedMapQuery)}`}
+              // Note: For Place mode (specific location) or more advanced features,
+              // you'd add your API key: src={`https://www.google.com/maps/embed/v1/search?key=YOUR_API_KEY&q=${encodeURIComponent(embeddedMapQuery)}`}
+            ></iframe>
+          </div>
+        ) : (
+          <div className="aspect-video bg-muted rounded-md overflow-hidden relative w-full max-w-2xl mx-auto border shadow-sm flex items-center justify-center">
+            <div className="text-center p-4">
+              <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+              <p className="text-muted-foreground">Enter a location above to see a map of nearby recycling centers.</p>
             </div>
-        </div>
+          </div>
+        )}
+         <Alert variant="default" className="mt-4 sm:mt-6 max-w-2xl mx-auto text-left">
+            <Info className="h-4 w-4" />
+            <AlertTitle className="text-sm sm:text-base">Embedded Map Note</AlertTitle>
+            <AlertDescription className="text-xs sm:text-sm">
+              The map uses Google Maps Embed API. For more advanced features like custom markers, specific place details, or higher usage limits, the Google Maps JavaScript API and an API key are typically required.
+            </AlertDescription>
+          </Alert>
       </div>
 
       <Card className="w-full max-w-2xl mx-auto">
