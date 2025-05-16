@@ -11,12 +11,12 @@ import { Input } from '@/components/ui/input';
 
 // Placeholder marketplace items
 const placeholderItems = [
-  { id: '1', title: 'Old Textbooks', category: 'Books', imageUrl: 'https://placehold.co/600x400.png', description: 'Collection of university textbooks.', dataAiHint: 'stacked textbooks' },
-  { id: '2', title: 'Winter Jacket', category: 'Clothing', imageUrl: 'https://placehold.co/600x400.png', description: 'Barely used, size M.', dataAiHint: 'winter jacket clothing' },
-  { id: '3', title: 'Unused E-Reader', category: 'Electronics', imageUrl: 'https://placehold.co/600x400.png', description: 'Kindle Paperwhite, good condition.', dataAiHint: 'e-reader device' },
-  { id: '4', title: 'Vintage Ceramic Vase', category: 'Home Goods', imageUrl: 'https://placehold.co/600x400.png', description: 'Beautiful hand-painted vase.', dataAiHint: 'ceramic vase home' },
-  { id: '5', title: 'Gardening Tools Set', category: 'Garden', imageUrl: 'https://placehold.co/600x400.png', description: 'Lightly used, includes spade and rake.', dataAiHint: 'gardening tools' },
-  { id: '6', title: 'Board Game Collection', category: 'Toys & Games', imageUrl: 'https://placehold.co/600x400.png', description: 'Bundle of popular board games.', dataAiHint: 'board games collection' },
+  { id: '1', title: 'Old Textbooks', category: 'Books', imageUrl: '/assets/images/textbooks.png', description: 'Collection of university textbooks.', dataAiHint: 'stacked textbooks' },
+  { id: '2', title: 'Winter Jacket', category: 'Clothing', imageUrl: '/assets/images/winter-jacket.png', description: 'Barely used, size M.', dataAiHint: 'winter jacket clothing' },
+  { id: '3', title: 'Unused E-Reader', category: 'Electronics', imageUrl: '/assets/images/e-reader.png', description: 'Kindle Paperwhite, good condition.', dataAiHint: 'e-reader device' },
+  { id: '4', title: 'Vintage Ceramic Vase', category: 'Home Goods', imageUrl: '/assets/images/ceramic-vase.png', description: 'Beautiful hand-painted vase.', dataAiHint: 'ceramic vase home' },
+  { id: '5', title: 'Gardening Tools Set', category: 'Garden', imageUrl: '/assets/images/gardening-tools.png', description: 'Lightly used, includes spade and rake.', dataAiHint: 'gardening tools' },
+  { id: '6', title: 'Board Game Collection', category: 'Toys & Games', imageUrl: '/assets/images/board-games.png', description: 'Bundle of popular board games.', dataAiHint: 'board games collection' },
 ];
 
 export default function MarketplacePage() {
@@ -54,7 +54,7 @@ export default function MarketplacePage() {
           {placeholderItems.map((item) => (
             <Card key={item.id} className="overflow-hidden flex flex-col group">
               <CardHeader className="p-0">
-                <div className="aspect-[3/2] w-full relative bg-muted"> {/* Adjusted aspect ratio */}
+                <div className="aspect-[3/2] w-full relative bg-muted">
                   {item.imageUrl ? (
                     <Image 
                         src={item.imageUrl} 
