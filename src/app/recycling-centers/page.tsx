@@ -180,8 +180,8 @@ export default function RecyclingFeaturesPage() {
 
       <div className="mt-6 sm:mt-8 text-center">
         <p className="text-muted-foreground mb-3 sm:mb-4 text-sm sm:text-base">Map preview for centers:</p>
-        {embeddedMapQuery ? (
-          <div className="max-w-2xl mx-auto border shadow-sm rounded-md overflow-hidden"> {/* Moved overflow-hidden here */}
+        <div className="max-w-2xl mx-auto border shadow-sm rounded-md overflow-hidden">
+          {embeddedMapQuery ? (
             <div className="rc-embed-map-responsive">
               <div className="rc-embed-map-container">
                 <iframe
@@ -198,15 +198,15 @@ export default function RecyclingFeaturesPage() {
                 <a href="https://sprunkly.org" className="rc-map-attribution">map generator</a>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="aspect-video bg-muted rounded-md overflow-hidden relative w-full max-w-2xl mx-auto border shadow-sm flex items-center justify-center">
-            <div className="text-center p-4">
-              <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-              <p className="text-muted-foreground">Enter a location above to see a map of nearby recycling centers.</p>
+          ) : (
+            <div className="aspect-video bg-muted rounded-md flex items-center justify-center">
+              <div className="text-center p-4">
+                <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground">Enter a location above to see a map of nearby recycling centers.</p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
          <Alert variant="default" className="mt-4 sm:mt-6 max-w-2xl mx-auto text-left">
             <Info className="h-4 w-4" />
             <AlertTitle className="text-sm sm:text-base">Embedded Map Note</AlertTitle>
@@ -233,7 +233,7 @@ export default function RecyclingFeaturesPage() {
               name="scheduleLocation"
               value={scheduleSettings.locationQuery}
               onChange={handleScheduleLocationChange}
-              placeholder="e.g., 'Springfield, IL' or '90210'"
+              placeholder="chennai 600001"
               aria-label="Location for schedule lookup"
               className="text-sm sm:text-base"
               disabled={isFetchingSchedule}
@@ -299,3 +299,4 @@ export default function RecyclingFeaturesPage() {
     </div>
   );
 }
+
