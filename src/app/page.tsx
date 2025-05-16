@@ -221,7 +221,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: { // Corresponds to "Trash"
+  other: { 
     title: "Trash / Other Non-Recyclables",
     icon: Trash2,
     definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
@@ -233,9 +233,9 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { // For completeness, if 'organic' is distinct from 'biowaste' in your data
+  organic: { 
     title: "Organic Waste",
-    icon: Apple, // Example icon
+    icon: Apple, 
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
     fiveRs: {
       reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
@@ -783,7 +783,7 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-3/4 mx-auto")}>
+            <div className={cn("mt-2 sm:mt-4 w-full")}>
               <Progress
                 value={scorePercentage}
                 className={cn(
@@ -988,3 +988,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
