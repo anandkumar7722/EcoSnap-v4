@@ -66,8 +66,9 @@ export default function RecyclingFeaturesPage() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const query = `recycling centers near my current location`;
+          const query = `recycling centers near my current location`; // Simpler query for geolocation
           setEmbeddedMapQuery(query);
+          setCenterSearchTerm("your current location"); // Update input to reflect this
         },
         (error) => {
           console.error("Error getting location for centers:", error);
@@ -180,20 +181,22 @@ export default function RecyclingFeaturesPage() {
       <div className="mt-6 sm:mt-8 text-center">
         <p className="text-muted-foreground mb-3 sm:mb-4 text-sm sm:text-base">Map preview for centers:</p>
         {embeddedMapQuery ? (
-          <div className="rc-embed-map-responsive max-w-2xl mx-auto border shadow-sm rounded-md">
-            <div className="rc-embed-map-container">
-              <iframe
-                className="rc-embed-map-frame"
-                frameBorder="0"
-                scrolling="no"
-                marginHeight="0"
-                marginWidth="0"
-                src={`https://maps.google.com/maps?width=600&height=400&hl=en&q=${encodeURIComponent(embeddedMapQuery)}&t=&z=14&ie=UTF8&iwloc=B&output=embed`}
-                title="Recycling Centers Map"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
-              <a href="https://sprunkly.org" className="rc-map-attribution">map generator</a>
+          <div className="max-w-2xl mx-auto border shadow-sm rounded-md overflow-hidden"> {/* Moved overflow-hidden here */}
+            <div className="rc-embed-map-responsive">
+              <div className="rc-embed-map-container">
+                <iframe
+                  className="rc-embed-map-frame"
+                  frameBorder="0"
+                  scrolling="no"
+                  marginHeight="0"
+                  marginWidth="0"
+                  src={`https://maps.google.com/maps?width=600&height=400&hl=en&q=${encodeURIComponent(embeddedMapQuery)}&t=&z=14&ie=UTF8&iwloc=B&output=embed`}
+                  title="Recycling Centers Map"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                ></iframe>
+                <a href="https://sprunkly.org" className="rc-map-attribution">map generator</a>
+              </div>
             </div>
           </div>
         ) : (
