@@ -783,7 +783,7 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className="w-full">
+            <div className="w-3/4 mx-auto">
                 <Progress
                     value={scorePercentage}
                     className={cn(
@@ -988,3 +988,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
