@@ -59,9 +59,9 @@ interface LevelInfo {
 
 
 const LEVELS: LevelInfo[] = [
-  { name: 'Bronze', minScore: 0, targetForNext: 500, cardColor: 'bg-orange-600', textColor: 'text-orange-50', badgeIconContainerColor: 'bg-orange-400', badgeImageUrl: '/assets/images/bronze-badge.png', progressBarIndicatorColor: 'bg-orange-300', progressBarTrackColor: 'bg-orange-700' },
+  { name: 'Bronze', minScore: 0, targetForNext: 500, cardColor: 'bg-amber-700', textColor: 'text-amber-100', badgeIconContainerColor: 'bg-amber-500', badgeImageUrl: '/assets/images/bronze-badge.png', progressBarIndicatorColor: 'bg-amber-400', progressBarTrackColor: 'bg-amber-900' },
   { name: 'Silver', minScore: 500, targetForNext: 1500, cardColor: 'bg-slate-600', textColor: 'text-slate-100', badgeIconContainerColor: 'bg-slate-400', badgeImageUrl: '/assets/images/silver-badge.png', progressBarIndicatorColor: 'bg-slate-300', progressBarTrackColor: 'bg-slate-800' },
-  { name: 'Gold', minScore: 1500, targetForNext: 3000, cardColor: 'bg-amber-600', textColor: 'text-amber-100', badgeIconContainerColor: 'bg-amber-400', badgeImageUrl: '/assets/images/gold-badge.png', progressBarIndicatorColor: 'bg-amber-300', progressBarTrackColor: 'bg-amber-800' },
+  { name: 'Gold', minScore: 1500, targetForNext: 3000, cardColor: 'bg-yellow-500', textColor: 'text-yellow-900', badgeIconContainerColor: 'bg-yellow-300', badgeImageUrl: '/assets/images/gold-badge.png', progressBarIndicatorColor: 'bg-yellow-600', progressBarTrackColor: 'bg-yellow-200' },
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-sky-600', textColor: 'text-sky-100', badgeIconContainerColor: 'bg-sky-400', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-300', progressBarTrackColor: 'bg-sky-800' },
 ];
 
@@ -222,7 +222,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: { 
+  other: {
     title: "Trash / Other Non-Recyclables",
     icon: Trash2,
     definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
@@ -234,7 +234,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { 
+  organic: { // Retained for completeness if 'organic' is ever used distinctly from 'biowaste'
     title: "Organic Waste",
     icon: Apple,
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
@@ -247,6 +247,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
     }
   }
 };
+
 
 const topHorizontalCategories: Array<{
   id: WasteCategory | 'general';
@@ -304,7 +305,7 @@ const defaultUserProfile: UserProfile = {
   totalPaper: 0,
   totalGlass: 0,
   totalMetal: 0,
-  totalOrganic: 0, 
+  totalOrganic: 0,
   totalOther: 0,
   totalPlasticOther: 0,
   totalPlasticPete: 0,
@@ -351,7 +352,7 @@ const ImageWithFallback = ({
       setIsLoading(true);
     } else {
       setCurrentSrc(null);
-      setIsError(!IconComponent);
+      setIsError(!IconComponent); // Error only if no icon fallback
       setIsLoading(false);
     }
   }, [initialSrcProp, IconComponent]);
@@ -363,7 +364,8 @@ const ImageWithFallback = ({
 
   const handleLoad = () => {
     setIsLoading(false);
-    if (currentSrc === initialSrcProp) setIsError(false);
+    // Check if the loaded src is indeed the one from initialSrcProp to avoid setting error to false if it's already a placeholder
+    if (currentSrc === initialSrcProp && initialSrcProp !== null) setIsError(false);
   };
 
   const placeholderBaseUrl = "https://placehold.co";
@@ -371,12 +373,12 @@ const ImageWithFallback = ({
   if (IconComponent && (!currentSrc || isError)) {
     return (
       <div className={wrapperClassName.replace('bg-muted', 'bg-transparent')}>
-        <IconComponent />
+        <IconComponent className="w-full h-full text-muted-foreground p-1" />
       </div>
     );
   }
-  
-  const finalSrc = (!currentSrc || isError) 
+
+  const finalSrc = (!currentSrc || isError)
     ? (placeholderText ? `${placeholderBaseUrl}/${placeholderSize}.png?text=${encodeURIComponent(placeholderText)}` : `${placeholderBaseUrl}/${placeholderSize}.png`)
     : currentSrc;
 
@@ -389,12 +391,12 @@ const ImageWithFallback = ({
         src={finalSrc}
         alt={alt}
         fill
-        className={cn(className, isLoading && !isUsingPlaceholder ? 'opacity-0' : 'opacity-100')}
+        className={cn(className, (isLoading && !isUsingPlaceholder) ? 'opacity-0' : 'opacity-100')}
         sizes={sizes}
         data-ai-hint={(isError || isUsingPlaceholder) ? `placeholder ${dataAiHint}`.trim() : dataAiHint}
         onError={handleError}
         onLoad={handleLoad}
-        unoptimized={isUsingPlaceholder}
+        unoptimized={isUsingPlaceholder} // Avoids optimizing placeholder.co images which might be rate-limited
       />
     </div>
   );
@@ -421,29 +423,32 @@ export default function HomePage() {
 
       if (loggedIn) {
         const userEmail = localStorage.getItem('userEmail');
-        const userName = localStorage.getItem('userName');
+        const userName = localStorage.getItem('userName'); // Get userName if it exists
         if (userEmail && storedUserData.email !== userEmail) {
-           const displayName = userName || userEmail.split('@')[0];
+           // If email changes (new login or different user), reset or update profile
+           const displayName = userName || userEmail.split('@')[0]; // Use userName if available
            storedUserData = {
-            ...defaultUserProfile,
-            id: userEmail,
+            ...defaultUserProfile, // Reset to default if it's a truly new/different user
+            id: userEmail, // UID from email
             displayName: displayName,
             email: userEmail,
-            avatar: `https://placehold.co/100x100.png?text=${displayName.substring(0,2).toUpperCase()}`,
+            avatar: `https://placehold.co/100x100.png?text=${displayName.substring(0,2).toUpperCase()}`, // Avatar based on displayName
            };
-        } else if (!userEmail && storedUserData.email) {
-            storedUserData = defaultUserProfile;
-        } else if (userEmail && userName && storedUserData.displayName !== userName) {
+        } else if (!userEmail && storedUserData.email) { // Logged out on another tab, but local data exists
+            storedUserData = defaultUserProfile; // Reset to guest
+        } else if (userEmail && userName && storedUserData.displayName !== userName) { // User name updated (e.g. from profile settings elsewhere)
             storedUserData.displayName = userName;
             storedUserData.avatar = `https://placehold.co/100x100.png?text=${userName.substring(0,2).toUpperCase()}`;
         }
-      } else {
+      } else { // Not logged in
+        // If there's user-specific data for a non-guest, reset to guest
         if (storedUserData.id !== 'localUser' || storedUserData.email) {
             storedUserData = defaultUserProfile;
         }
       }
 
       setUserData(storedUserData);
+      // Only save back to local storage if there was a change to avoid unnecessary writes
       if (JSON.stringify(getFromLocalStorage<UserProfile>(USER_DATA_KEY, {})) !== JSON.stringify(storedUserData)) {
           saveToLocalStorage(USER_DATA_KEY, storedUserData);
       }
@@ -462,9 +467,9 @@ export default function HomePage() {
       setRecentClassifications(uniqueRecentItems);
     };
 
-    checkLoginStatus();
-    window.addEventListener('storage', checkLoginStatus); 
-    window.addEventListener('authChange', checkLoginStatus); 
+    checkLoginStatus(); // Initial check
+    window.addEventListener('storage', checkLoginStatus); // Listen for changes in other tabs
+    window.addEventListener('authChange', checkLoginStatus); // Custom event for immediate login/logout updates
     return () => {
         window.removeEventListener('storage', checkLoginStatus);
         window.removeEventListener('authChange', checkLoginStatus);
@@ -492,11 +497,13 @@ export default function HomePage() {
 
     try {
       let classificationResultCategory: WasteCategory;
-      let classificationConfidence = 1.0;
+      let classificationConfidence = 1.0; // Default confidence if manually categorized
 
       if (currentUploadCategory && currentUploadCategory !== 'general') {
+        // If a category was pre-selected (e.g., user clicked "Cardboard"), use it
         classificationResultCategory = currentUploadCategory;
       } else {
+        // Otherwise, call the AI for classification
         const result = await classifyWaste({ photoDataUri: imageDataUri });
         if (!result || !result.category) {
           setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
@@ -522,10 +529,12 @@ export default function HomePage() {
         points: pointsEarned,
       };
 
+      // Update history
       const currentHistory = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
-      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); 
+      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); // Keep last 50 items
       saveToLocalStorage(HISTORY_STORAGE_KEY, updatedHistory);
 
+      // Update recent classifications display (unique by category, newest first)
       const sortedHistoryForRecent = updatedHistory.sort((a,b) => b.timestamp - a.timestamp);
       const uniqueRecentItems = Object.values(
         sortedHistoryForRecent.reduce((acc, item) => {
@@ -537,12 +546,15 @@ export default function HomePage() {
       ).slice(0, MAX_HISTORY_DISPLAY_ITEMS);
       setRecentClassifications(uniqueRecentItems);
 
+      // Update user profile data
       setUserData(prevData => {
         const newScore = prevData.score + pointsEarned;
         const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
 
+        // Determine the correct quantity key to update in UserProfile
         let categoryKeyToUpdate: keyof UserProfile = `total${classificationResultCategory.charAt(0).toUpperCase() + classificationResultCategory.slice(1)}` as keyof UserProfile;
 
+        // Handle specific plastic types correctly
         const specificPlasticKeys: Partial<Record<WasteCategory, keyof UserProfile>> = {
             plasticPete: 'totalPlasticPete',
             plasticHdpe: 'totalPlasticHdpe',
@@ -554,15 +566,19 @@ export default function HomePage() {
         if (specificPlasticKeys[classificationResultCategory]) {
             categoryKeyToUpdate = specificPlasticKeys[classificationResultCategory]!;
         } else if (classificationResultCategory === 'plastic' && !specificPlasticKeys[classificationResultCategory]) {
+            // This handles the generic 'plastic' category if it's ever directly used
             categoryKeyToUpdate = 'totalPlastic';
         } else if (classificationResultCategory === 'biowaste' || classificationResultCategory === 'organic') {
-            categoryKeyToUpdate = 'totalBiowaste'; 
+            // Consolidate biowaste and organic under totalBiowaste for tracking
+            categoryKeyToUpdate = 'totalBiowaste';
         } else if (!(categoryKeyToUpdate in defaultUserProfile)) {
+            // Fallback for any unexpected category, log under 'totalOther'
+            console.warn(`Unknown category key derived: ${categoryKeyToUpdate}. Logging to totalOther.`);
             categoryKeyToUpdate = 'totalOther';
         }
 
         const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
-        const updatedCategoryCount = currentCategoryCount + 1; 
+        const updatedCategoryCount = currentCategoryCount + 1; // Assuming each classification logs 1 item quantity
 
         const newUserData: UserProfile = {
           ...prevData,
@@ -579,8 +595,8 @@ export default function HomePage() {
         title: "Classification Successful!",
         description: `Item classified as ${currentUploadCategoryFriendlyName || classificationResultCategory}. You earned ${pointsEarned} points!`,
       });
-      setIsUploadModalOpen(false); 
-      setCurrentUploadCategory(undefined); 
+      setIsUploadModalOpen(false); // Close modal on success
+      setCurrentUploadCategory(undefined); // Reset category context
       setCurrentUploadCategoryFriendlyName(undefined);
       return { category: classificationResultCategory, confidence: classificationConfidence };
 
@@ -605,11 +621,11 @@ export default function HomePage() {
         return LEVELS[i];
       }
     }
-    return LEVELS[0]; 
+    return LEVELS[0]; // Default to Bronze if no level met (shouldn't happen with minScore 0)
   };
 
   const openUploadModalForCategory = (categoryId: WasteCategory | 'general' | undefined, categoryName: string) => {
-    setClassificationError(null); 
+    setClassificationError(null); // Clear previous errors
     setCurrentUploadCategory(categoryId);
     setCurrentUploadCategoryFriendlyName(categoryName);
     setIsUploadModalOpen(true);
@@ -625,10 +641,10 @@ export default function HomePage() {
     const pointsToNextLevelRange = currentLevel.targetForNext - currentLevel.minScore;
     if (pointsToNextLevelRange > 0) {
       scorePercentage = Math.min((pointsEarnedInLevel / pointsToNextLevelRange) * 100, 100);
-    } else { 
+    } else { // Should not happen if levels are defined correctly
       scorePercentage = userData.score >= currentLevel.minScore ? 100 : 0;
     }
-  } else { 
+  } else { // Max level reached
     scorePercentage = 100;
     pointsForNextLevelDisplay = "Max";
   }
@@ -641,9 +657,12 @@ export default function HomePage() {
     if (!selectedCategoryTips || !selectedCategoryTips.fiveRs) return [];
     return (Object.keys(selectedCategoryTips.fiveRs) as Array<keyof TipInfo['fiveRs']>)
       .map(key => ({ key, tip: selectedCategoryTips.fiveRs[key] }))
-      .filter(item => item.tip); 
+      .filter(item => item.tip); // Ensure only tips with content are shown
   }, [selectedCategoryTips]);
-  
+
+
+  console.log("HomePage rendering. isLoggedIn:", isLoggedIn, "userData:", userData.displayName);
+
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
@@ -680,6 +699,7 @@ export default function HomePage() {
               <Dialog key={`top-${category.id}`} open={isUploadModalOpen && currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name} onOpenChange={ open => {
                 if(open) { openUploadModalForCategory(category.id, category.name); }
                 else {
+                  // Only reset/close if this specific dialog instance was the one being closed
                   if(currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name) {
                     setCurrentUploadCategory(undefined);
                     setCurrentUploadCategoryFriendlyName(undefined);
@@ -699,7 +719,7 @@ export default function HomePage() {
                         placeholderSize="48x48"
                         sizes="48px"
                         wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
-                        className="rounded-md object-contain" 
+                        className="rounded-md object-contain"
                         icon={CategoryIconComponent ? <CategoryIconComponent className="w-7 h-7 sm:w-8 sm:w-8 text-primary" /> : undefined}
                       />
                     <p className="font-medium text-xs sm:text-sm text-center truncate w-full">{category.name}</p>
@@ -721,6 +741,7 @@ export default function HomePage() {
             <Dialog key={item.id} open={isUploadModalOpen && currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name} onOpenChange={ open => {
               if(open) { openUploadModalForCategory(item.id, item.name); }
               else {
+                 // Only reset/close if this specific dialog instance was the one being closed
                  if(currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name) {
                     setCurrentUploadCategory(undefined);
                     setCurrentUploadCategoryFriendlyName(undefined);
@@ -737,11 +758,11 @@ export default function HomePage() {
                     src={item.imageUrl}
                     alt={item.name}
                     dataAiHint={item.dataAiHint}
-                    placeholderSize="114x50" 
+                    placeholderSize="114x50"
                     sizes="(max-width: 639px) 94px, 114px"
                     icon={ItemIconComponent ? <ItemIconComponent className="w-6 h-6 sm:w-7 sm:w-7 text-primary" /> : undefined}
                     wrapperClassName="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
-                    className="rounded-md object-contain" 
+                    className="rounded-md object-contain"
                     placeholderText={item.placeholderText}
                   />
                   <div className="flex-grow">
@@ -775,9 +796,9 @@ export default function HomePage() {
                 <Image
                   src={currentLevel.badgeImageUrl}
                   alt={`level ${currentLevel.name.toLowerCase()} badge`}
-                  width={40} 
+                  width={40}
                   height={40}
-                  className="h-6 w-6 sm:h-10 sm:w-10" 
+                  className="h-6 w-6 sm:h-10 sm:w-10"
                   data-ai-hint={`level ${currentLevel.name.toLowerCase()} badge`}
                 />
               </div>
@@ -787,7 +808,7 @@ export default function HomePage() {
                 className={cn(
                     "mt-2 sm:mt-4 h-1.5 sm:h-3",
                     currentLevel.progressBarTrackColor,
-                    "[&>div]:transition-all [&>div]:duration-500", 
+                    "[&>div]:transition-all [&>div]:duration-500",
                     `[&>div]:${currentLevel.progressBarIndicatorColor}`
                  )}
             />
@@ -820,7 +841,7 @@ export default function HomePage() {
                   } else if ((item.category === 'biowaste' || item.category === 'organic') && ('totalBiowaste' in defaultUserProfile)) {
                     categoryKeyForQuantity = 'totalBiowaste';
                   } else if (!(categoryKeyForQuantity in defaultUserProfile)) {
-                      categoryKeyForQuantity = 'totalOther'; 
+                      categoryKeyForQuantity = 'totalOther';
                   }
                 const quantity = (userData && typeof userData[categoryKeyForQuantity] === 'number') ? userData[categoryKeyForQuantity] as number : 0;
 
@@ -916,14 +937,15 @@ export default function HomePage() {
       </section>
 
       <Dialog open={isUploadModalOpen} onOpenChange={open => {
-          if(!open) { 
-            setClassificationError(null); 
-            if (!isClassifying) { 
+          if(!open) {
+            setClassificationError(null);
+            // Reset context only if not actively classifying, to prevent UI flicker on successful classification
+            if (!isClassifying) {
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
             }
           }
-          setIsUploadModalOpen(open); 
+          setIsUploadModalOpen(open);
       }}>
         <DialogTrigger asChild>
            <Button
@@ -971,7 +993,7 @@ export default function HomePage() {
           <Separator className={cn(
             ( (selectedCategoryTips && selectedCategoryTips.definition) || fiveRTipsArray.length > 0 ||
               (currentUploadCategory && ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory))
-            ) ? "my-3" : "my-0" 
+            ) ? "my-3" : "my-0"
           )} />
 
           <ImageUpload
@@ -985,5 +1007,3 @@ export default function HomePage() {
     </div>
   );
 }
-    
-
