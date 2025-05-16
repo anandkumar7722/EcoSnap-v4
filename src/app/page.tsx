@@ -49,16 +49,16 @@ interface LevelInfo {
   cardColor: string; 
   textColor: string; 
   badgeIconContainerColor: string; 
-  badgeIconColor: string; 
+  badgeImageUrl: string; 
   progressBarIndicatorColor: string;
   progressBarTrackColor: string; 
 }
 
 const LEVELS: LevelInfo[] = [
-  { name: 'Bronze', minScore: 0, targetForNext: 500, cardColor: 'bg-yellow-700', textColor: 'text-yellow-100', badgeIconContainerColor: 'bg-yellow-500', badgeIconColor: 'text-yellow-50', progressBarIndicatorColor: 'bg-yellow-400', progressBarTrackColor: 'bg-yellow-900' },
-  { name: 'Silver', minScore: 500, targetForNext: 1500, cardColor: 'bg-slate-600', textColor: 'text-slate-100', badgeIconContainerColor: 'bg-slate-400', badgeIconColor: 'text-slate-50', progressBarIndicatorColor: 'bg-slate-300', progressBarTrackColor: 'bg-slate-800' },
-  { name: 'Gold', minScore: 1500, targetForNext: 3000, cardColor: 'bg-amber-600', textColor: 'text-amber-100', badgeIconContainerColor: 'bg-amber-400', badgeIconColor: 'text-amber-50', progressBarIndicatorColor: 'bg-amber-300', progressBarTrackColor: 'bg-amber-800' },
-  { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-sky-600', textColor: 'text-sky-100', badgeIconContainerColor: 'bg-sky-400', badgeIconColor: 'text-sky-50', progressBarIndicatorColor: 'bg-sky-300', progressBarTrackColor: 'bg-sky-800' },
+  { name: 'Bronze', minScore: 0, targetForNext: 500, cardColor: 'bg-yellow-700', textColor: 'text-yellow-100', badgeIconContainerColor: 'bg-yellow-500', badgeImageUrl: '/assets/images/bronze-badge.png', progressBarIndicatorColor: 'bg-yellow-400', progressBarTrackColor: 'bg-yellow-900' },
+  { name: 'Silver', minScore: 500, targetForNext: 1500, cardColor: 'bg-slate-600', textColor: 'text-slate-100', badgeIconContainerColor: 'bg-slate-400', badgeImageUrl: '/assets/images/silver-badge.png', progressBarIndicatorColor: 'bg-slate-300', progressBarTrackColor: 'bg-slate-800' },
+  { name: 'Gold', minScore: 1500, targetForNext: 3000, cardColor: 'bg-amber-600', textColor: 'text-amber-100', badgeIconContainerColor: 'bg-amber-400', badgeImageUrl: '/assets/images/gold-badge.png', progressBarIndicatorColor: 'bg-amber-300', progressBarTrackColor: 'bg-amber-800' },
+  { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-sky-600', textColor: 'text-sky-100', badgeIconContainerColor: 'bg-sky-400', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-300', progressBarTrackColor: 'bg-sky-800' },
 ];
 
 interface TipInfo {
@@ -109,7 +109,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
   },
   plasticPete: {
     title: "Plastic - PETE (#1)",
-    icon: Recycle,
+    icon: Recycle, // Or a specific icon for PETE like a water bottle
     fiveRs: {
       reduce: "Opt for larger beverage containers or make drinks at home. Choose products in glass or aluminum.",
       reuse: "PETE bottles can be refilled a few times if cleaned well, but avoid long-term reuse for food/drink due to potential leaching or bacterial growth. Can be used for non-food storage.",
@@ -120,7 +120,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
   },
   plasticHdpe: {
     title: "Plastic - HDPE (#2)",
-    icon: Recycle,
+    icon: Recycle, // Or a specific icon for HDPE like a milk jug
     fiveRs: {
       reduce: "Buy concentrated detergents or cleaners to reduce bottle size. Use bar soap instead of liquid in plastic bottles.",
       reuse: "Sturdy HDPE containers (e.g., milk jugs, detergent bottles) can be cut and used as scoops, funnels, or for organizing.",
@@ -164,7 +164,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
   },
   glass: {
     title: "Glass",
-    icon: Lightbulb,
+    icon: Lightbulb, // Placeholder, consider an icon like 'GlassWater' if available or a custom SVG
     fiveRs: {
       reduce: "Buy products in larger glass containers. Opt for refillable options where available.",
       reuse: "Glass jars and bottles are excellent for food storage, preserving, vases, or organizing.",
@@ -186,7 +186,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
   },
   biowaste: {
     title: "Bio-Waste",
-    icon: Apple,
+    icon: Apple, // Or Leaf
     fiveRs: {
       reduce: "Plan meals to reduce food scraps. Store food properly to prevent spoilage. Compost fruit/veg peels instead of trashing.",
       reuse: "Use vegetable scraps to make broth. Regrow some vegetables from scraps (e.g., green onions).",
@@ -197,7 +197,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
   },
   metal: {
     title: "Metal",
-    icon: Settings2,
+    icon: Settings2, // Placeholder, consider a more relevant icon for metal cans/items
     fiveRs: {
       reduce: "Choose products with less metal packaging if alternatives are more sustainable overall. Use reusable containers instead of foil.",
       reuse: "Metal cans can be used for storage, planters, or DIY projects. Reuse aluminum foil if clean.",
@@ -206,7 +206,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: { 
+  other: { // This corresponds to "Trash"
     title: "Trash / Other",
     icon: Trash2,
     fiveRs: {
@@ -753,7 +753,14 @@ export default function HomePage() {
                 </p>
               </div>
               <div className={cn("p-1.5 sm:p-2 rounded-full", currentLevel.badgeIconContainerColor)}>
-                <Award className={cn("h-5 w-5 sm:h-8 sm:w-8", currentLevel.badgeIconColor)} />
+                <Image
+                  src={currentLevel.badgeImageUrl}
+                  alt={`${currentLevel.name} Badge`}
+                  width={40} 
+                  height={40} 
+                  className="h-6 w-6 sm:h-10 sm:w-10" 
+                  data-ai-hint={`${currentLevel.name.toLowerCase()} badge icon`}
+                />
               </div>
             </div>
             <Progress 
@@ -954,5 +961,7 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
 
     
