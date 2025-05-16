@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, History, LayoutDashboard, Trophy, MapPin, Store, Bot, Users, LogIn, UserPlus, LogOut, UserCircle, Menu, ChevronDown, Leaf, Server } from 'lucide-react'; // Added Leaf and Server
+import { Home, History, LayoutDashboard, Trophy, MapPin, Store, Bot, Users, LogIn, UserPlus, LogOut, UserCircle, Menu, ChevronDown, Leaf } from 'lucide-react'; // Removed Server icon
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -64,7 +64,7 @@ export function AppHeader() {
   ];
 
   const secondaryNavLinks = [
-    { href: "/dashboard/ewaste", label: "E-Waste Dashboard", icon: Server },
+    // { href: "/dashboard/ewaste", label: "E-Waste Dashboard", icon: Server }, // Removed this link
     { href: "/challenges", label: "Challenges", icon: Trophy },
     { href: "/recycling-centers", label: "Recycling Hub", icon: MapPin },
     { href: "/marketplace", label: "Marketplace", icon: Store },
@@ -95,7 +95,6 @@ export function AppHeader() {
           <span className="font-bold text-lg">EcoSnap</span>
         </Link>
         
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-1 flex-grow">
           {primaryNavLinks.map((link) => (
             <Button variant="ghost" asChild key={link.href} className="text-sm px-3">
@@ -126,7 +125,6 @@ export function AppHeader() {
           )}
         </nav>
 
-        {/* Auth buttons for desktop */}
         <div className="hidden md:flex items-center space-x-2 ml-auto shrink-0">
            {isLoggedIn ? (
              <DropdownMenu>
@@ -165,8 +163,6 @@ export function AppHeader() {
           )}
         </div>
 
-
-        {/* Mobile Navigation Trigger */}
         <div className="md:hidden ml-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
