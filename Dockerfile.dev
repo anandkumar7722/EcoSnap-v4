@@ -1,0 +1,32 @@
+# Dockerfile for Next.js Development Environment
+
+# Use an official Node.js runtime as a parent image
+FROM node:18-alpine
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy package.json and lock files
+COPY package.json ./
+# Choose the appropriate lock file based on your package manager
+COPY yarn.lock* ./
+# COPY package-lock.json* ./
+# COPY pnpm-lock.yaml* ./
+
+# Install dependencies
+# If you're using yarn:
+RUN yarn install --frozen-lockfile
+# If you're using npm:
+# RUN npm ci
+# If you're using pnpm:
+# RUN yarn global add pnpm && pnpm i --frozen-lockfile
+
+# Copy the rest of the application code
+COPY . .
+
+# Expose the port the app runs on (default for this project is 9002)
+EXPOSE 9002
+
+# Command to run the Next.js development server
+# The --hostname 0.0.0.0 is important to allow access from outside the container
+CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0"]

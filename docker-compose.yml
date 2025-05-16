@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "9002:9002" # Map host port 9002 to container port 9002
+    volumes:
+      # Mounts for live code reloading
+      # Keep node_modules in the container to avoid OS-specific binary issues
+      - .:/app
+      - /app/node_modules 
+      - /app/.next
+    environment:
+      # Ensures Next.js recompiles on file changes in the mounted volumes
+      - WATCHPACK_POLLING=true 
+    # Load environment variables from a .env file in the project root
+    env_file:
+      - .env
+    # Ensure the dev server can be accessed
+    command: npm run dev -- --hostname 0.0.0.0
