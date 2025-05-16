@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { History, Leaf, LayoutDashboard, Trophy, MapPin, Store, Bot, Users, Home, LogIn, UserPlus, LogOut, UserCircle } from 'lucide-react';
+import { Home, History, LayoutDashboard, Trophy, MapPin, Store, Bot, Users, LogIn, UserPlus, LogOut, UserCircle, Menu, ChevronDown, Leaf } from 'lucide-react'; // Added Leaf here
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,7 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -36,9 +35,7 @@ export function AppHeader() {
       }
     };
     checkLoginStatus();
-    // Listen to storage changes to update login status across tabs/windows
     window.addEventListener('storage', checkLoginStatus);
-    // Listen to custom event for login/logout
     window.addEventListener('authChange', checkLoginStatus);
     return () => {
       window.removeEventListener('storage', checkLoginStatus);
@@ -56,22 +53,26 @@ export function AppHeader() {
       title: 'Logged Out',
       description: 'You have been successfully logged out.',
     });
-    window.dispatchEvent(new Event('authChange')); // Notify other components
+    window.dispatchEvent(new Event('authChange'));
     router.push('/login');
   };
 
-
-  const navLinks = [
+  const primaryNavLinks = [
     { href: "/", label: "Home", icon: Home },
     { href: "/history", label: "History", icon: History },
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  ];
+
+  const secondaryNavLinks = [
     { href: "/challenges", label: "Challenges", icon: Trophy },
-    { href: "/recycling-centers", label: "Recycling Centers & Schedules", icon: MapPin },
-    // { href: "/recycling-schedules", label: "Schedules & Alerts", icon: CalendarClock }, // Removed
+    { href: "/recycling-centers", label: "Recycling Hub", icon: MapPin },
     { href: "/marketplace", label: "Marketplace", icon: Store },
     { href: "/assistant", label: "AI Assistant", icon: Bot },
     { href: "/leaderboard", label: "Leaderboard", icon: Users },
   ];
+
+  const allNavLinks = [...primaryNavLinks, ...secondaryNavLinks];
+
 
   const getAvatarFallback = (name: string | null) => {
     if (!name) return 'U';
@@ -88,25 +89,48 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <Link href="/" className="mr-auto flex items-center gap-2">
+        <Link href="/" className="mr-6 flex items-center gap-2 shrink-0">
           <Leaf className="h-6 w-6 text-primary" />
           <span className="font-bold text-lg">EcoSnap</span>
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-1">
-          {navLinks.map((link) => (
-            <Button variant="ghost" asChild key={link.href}>
-              <Link href={link.href} className="text-sm px-2 lg:px-3"> {/* Adjusted padding */}
-                <link.icon className="mr-1.5 h-4 w-4" /> {/* Slightly reduced margin */}
+        <nav className="hidden md:flex items-center space-x-1 flex-grow">
+          {primaryNavLinks.map((link) => (
+            <Button variant="ghost" asChild key={link.href} className="text-sm px-3">
+              <Link href={link.href}>
+                <link.icon className="mr-1.5 h-4 w-4" />
                 {link.label}
               </Link>
             </Button>
           ))}
+          {secondaryNavLinks.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-sm px-3">
+                  More <ChevronDown className="ml-1 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                {secondaryNavLinks.map((link) => (
+                  <DropdownMenuItem key={link.href} asChild>
+                    <Link href={link.href} className="flex items-center">
+                      <link.icon className="mr-2 h-4 w-4" />
+                      {link.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </nav>
+
+        {/* Auth buttons for desktop */}
+        <div className="hidden md:flex items-center space-x-2 ml-auto shrink-0">
            {isLoggedIn ? (
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full ml-2">
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={`https://placehold.co/40x40.png?text=${getAvatarFallback(userName)}`} alt={userName || 'User'} data-ai-hint="avatar person" />
                       <AvatarFallback>{getAvatarFallback(userName)}</AvatarFallback>
@@ -124,24 +148,25 @@ export function AppHeader() {
               </DropdownMenu>
           ) : (
             <>
-              <Button variant="ghost" asChild>
-                <Link href="/login" className="text-sm">
-                  <LogIn className="mr-2 h-4 w-4" />
+              <Button variant="ghost" asChild className="text-sm">
+                <Link href="/login">
+                  <LogIn className="mr-1.5 h-4 w-4" />
                   Login
                 </Link>
               </Button>
-              <Button variant="default" asChild size="sm">
-                <Link href="/signup" className="text-sm">
-                  <UserPlus className="mr-2 h-4 w-4" />
+              <Button variant="default" asChild size="sm" className="text-sm">
+                <Link href="/signup">
+                  <UserPlus className="mr-1.5 h-4 w-4" />
                   Sign Up
                 </Link>
               </Button>
             </>
           )}
-        </nav>
+        </div>
 
-        {/* Mobile Navigation */}
-        <div className="md:hidden">
+
+        {/* Mobile Navigation Trigger */}
+        <div className="md:hidden ml-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -149,44 +174,44 @@ export function AppHeader() {
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-56">
               {isLoggedIn && userName && (
                 <>
                    <DropdownMenuLabel className="flex items-center gap-2">
-                     <Avatar className="h-6 w-6">
+                     <Avatar className="h-7 w-7">
                        <AvatarImage src={`https://placehold.co/30x30.png?text=${getAvatarFallback(userName)}`} alt={userName} data-ai-hint="avatar person" />
                        <AvatarFallback>{getAvatarFallback(userName)}</AvatarFallback>
                      </Avatar>
-                     <span className="truncate max-w-[120px]">{userName}</span>
+                     <span className="truncate max-w-[120px] font-medium">{userName}</span>
                    </DropdownMenuLabel>
                    <DropdownMenuSeparator />
                 </>
               )}
-              {navLinks.map((link) => (
+              {allNavLinks.map((link, index) => (
                 <DropdownMenuItem key={link.href} asChild>
-                  <Link href={link.href} className="flex items-center">
-                    <link.icon className="mr-2 h-4 w-4" />
+                  <Link href={link.href} className="flex items-center text-sm py-2">
+                    <link.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                     {link.label}
                   </Link>
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
               {isLoggedIn ? (
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 flex items-center text-sm py-2">
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
                   </DropdownMenuItem>
               ) : (
                 <>
                   <DropdownMenuItem asChild>
-                    <Link href="/login" className="flex items-center">
-                      <LogIn className="mr-2 h-4 w-4" />
+                    <Link href="/login" className="flex items-center text-sm py-2">
+                      <LogIn className="mr-2 h-4 w-4 text-muted-foreground" />
                       Login
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/signup" className="flex items-center">
-                      <UserPlus className="mr-2 h-4 w-4" />
+                    <Link href="/signup" className="flex items-center text-sm py-2">
+                      <UserPlus className="mr-2 h-4 w-4 text-muted-foreground" />
                       Sign Up
                     </Link>
                   </DropdownMenuItem>
@@ -199,3 +224,5 @@ export function AppHeader() {
     </header>
   );
 }
+
+    
