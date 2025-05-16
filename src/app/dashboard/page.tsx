@@ -27,7 +27,7 @@ import {
 } from "recharts";
 import { useEffect, useState } from 'react';
 import type { WasteEntry, WasteCategory } from '@/lib/types';
-import { DateRange } from "react-day-picker";
+import type { DateRange } from "react-day-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -64,33 +64,35 @@ export default function DetailedDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -90), // Default to last 90 days for more data
-    to: new Date(),
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedWasteType, setSelectedWasteType] = useState<WasteCategory | 'all'>('all');
+
+  // Client-side effect to set initial date range to prevent hydration mismatch
+  useEffect(() => {
+    setDateRange({
+      from: addDays(new Date(), -90),
+      to: new Date(),
+    });
+  }, []);
+
 
   // Real-time data fetching from Firestore
   useEffect(() => {
     setIsLoading(true);
     // Placeholder userId. In a real app, get this from your auth context.
     const userId = 'user1'; 
-    // If you don't have a user logged in for testing, you might want to remove the 'where' clause
-    // or ensure 'user1' has data in your 'wasteEntries' collection.
 
     if (!firestore) {
         toast({ variant: "destructive", title: "Firebase Error", description: "Firestore is not initialized." });
         setIsLoading(false);
         return;
     }
-    if (!userId) { // Or if you have a proper auth check, use that.
+    if (!userId) { 
         toast({ variant: "destructive", title: "Auth Error", description: "User ID not available." });
         setIsLoading(false);
-        // Potentially clear data or show login prompt. For now, we just stop.
         setLiveWasteData([]); 
         return;
     }
-
 
     const wasteEntriesRef = collection(firestore, 'wasteEntries');
     const q = query(
@@ -106,7 +108,6 @@ export default function DetailedDashboardPage() {
         entries.push({
           id: doc.id,
           ...data,
-          // Firestore Timestamps need to be converted to milliseconds (number)
           timestamp: (data.timestamp instanceof Timestamp) ? data.timestamp.toMillis() : Number(data.timestamp),
         } as WasteEntry);
       });
@@ -118,15 +119,16 @@ export default function DetailedDashboardPage() {
       setIsLoading(false);
     });
 
-    // Cleanup listener on unmount
     return () => unsubscribe();
-  }, [toast]); // Removed userId from deps for now as it's hardcoded
+  }, [toast]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobileView(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    if (typeof window !== 'undefined') {
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }
   }, []);
 
   // Effect to filter data when liveWasteData, dateRange, or selectedWasteType changes
@@ -144,14 +146,12 @@ export default function DetailedDashboardPage() {
     setFilteredData(data);
   }, [liveWasteData, dateRange, selectedWasteType]);
 
-  // Chart data calculations (derived from filteredData)
   const monthlyData = filteredData.reduce((acc, entry) => {
     const month = format(new Date(entry.timestamp), "MMM");
     if (!acc[month]) {
       acc[month] = { month };
       allWasteCategories.forEach(cat => acc[month][cat] = 0);
     }
-    // Ensure quantity is a number
     const quantity = typeof entry.quantity === 'number' ? entry.quantity : 0;
     acc[month][entry.type] = (acc[month][entry.type] || 0) + quantity;
     return acc;
