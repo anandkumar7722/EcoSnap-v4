@@ -644,7 +644,7 @@ export default function HomePage() {
       .filter(item => item.tip); 
   }, [selectedCategoryTips]);
   
-  console.log("HomePage is about to render. Current Upload Category:", currentUploadCategory, "Friendly Name:", currentUploadCategoryFriendlyName);
+  console.log("HomePage render. Dialog open:", isUploadModalOpen, "Current Category:", currentUploadCategoryFriendlyName);
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
@@ -783,11 +783,11 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className="mt-2 sm:mt-4 w-3/4 mx-auto">
+            <div className="mt-2 sm:mt-4 w-full mx-auto">
               <Progress
                 value={scorePercentage}
                 className={cn(
-                  "relative w-full overflow-hidden rounded-full h-3 sm:h-4",
+                  "relative w-full overflow-hidden rounded-full h-4 sm:h-5",
                   currentLevel.progressBarTrackColor,
                   `[&>div]:${currentLevel.progressBarIndicatorColor}`
                 )}
