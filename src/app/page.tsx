@@ -58,7 +58,7 @@ interface LevelInfo {
 }
 
 const LEVELS: LevelInfo[] = [
-  { name: 'Bronze', minScore: 0, targetForNext: 500, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/bronze-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
+  { name: 'Bronze', minScore: 0, targetForNext: 500, cardColor: 'bg-amber-700', textColor: 'text-amber-100', badgeIconContainerColor: 'bg-amber-500', badgeImageUrl: '/assets/images/bronze-badge.png', progressBarIndicatorColor: 'bg-amber-400', progressBarTrackColor: 'bg-amber-900' },
   { name: 'Silver', minScore: 500, targetForNext: 1500, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/silver-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
   { name: 'Gold', minScore: 1500, targetForNext: 3000, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/gold-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
@@ -235,7 +235,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   organic: { 
     title: "Organic Waste",
-    icon: Apple,
+    icon: Apple, // Typically covered by biowaste, but if distinct
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
     fiveRs: {
       reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
@@ -635,7 +635,7 @@ export default function HomePage() {
   }
 
   const selectedCategoryForDialog = useMemo(() => currentUploadCategory || 'general', [currentUploadCategory]);
-  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog]);
+  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog, wasteCategoryFiveRTips]); // Added wasteCategoryFiveRTips to dependency array
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
 
   const fiveRTipsArray = useMemo(() => {
@@ -648,7 +648,8 @@ export default function HomePage() {
 
   console.log("HomePage rendering. Is logged in:", isLoggedIn, "User name:", userData.displayName);
   console.log("Current Upload Category for Dialog:", currentUploadCategoryFriendlyName);
-
+  // Add a console log right before the return statement
+  console.log("All JavaScript processing in HomePage complete, preparing to render JSX.");
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
@@ -991,3 +992,5 @@ export default function HomePage() {
   );
 }
 
+
+    
