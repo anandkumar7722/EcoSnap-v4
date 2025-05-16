@@ -34,7 +34,7 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
   paper: 70,
   glass: 30,
   metal: 40,
-  organic: 60,
+  organic: 60, // Same as biowaste
   other: 10,
   plasticOther: 20,
   plasticPete: 55,
@@ -221,7 +221,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: { 
+  other: { // Corresponds to "Trash"
     title: "Trash / Other Non-Recyclables",
     icon: Trash2,
     definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
@@ -233,9 +233,9 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { 
+  organic: { // For completeness, if 'organic' is distinct from 'biowaste' in your data
     title: "Organic Waste",
-    icon: Apple, 
+    icon: Apple, // Example icon
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
     fiveRs: {
       reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
@@ -614,8 +614,7 @@ export default function HomePage() {
     setCurrentUploadCategoryFriendlyName(categoryName);
     setIsUploadModalOpen(true);
   };
-  console.log("HomePage rendering logic is starting.");
-
+  
   const currentLevel = useMemo(() => getCurrentLevel(userData.score), [userData.score]);
 
   let scorePercentage = 0;
@@ -645,7 +644,8 @@ export default function HomePage() {
       .filter(item => item.tip); 
   }, [selectedCategoryTips]);
   
-  console.log("HomePage preparing to return JSX.");
+  console.log("HomePage is about to render. Current Upload Category:", currentUploadCategory, "Friendly Name:", currentUploadCategoryFriendlyName);
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
       <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
@@ -783,15 +783,16 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            {/* New UI Component replacing the progress bar */}
-            <div className="mt-2 sm:mt-4">
-              <div className="w-full bg-secondary p-4 sm:p-6 rounded-lg shadow-md flex justify-end">
-                <div className="w-3/4 bg-blue-500 rounded-md p-4 shadow-sm">
-                  <p className="text-white text-sm sm:text-base">
-                    This box takes up 75% width and is aligned to the end (right side).
-                  </p>
-                </div>
-              </div>
+            <div className="mt-2 sm:mt-4 w-3/4 mx-auto">
+              <Progress
+                value={scorePercentage}
+                className={cn(
+                  "relative w-full overflow-hidden rounded-full h-3 sm:h-4",
+                  currentLevel.progressBarTrackColor,
+                  `[&>div]:${currentLevel.progressBarIndicatorColor}`
+                )}
+                aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
+              />
             </div>
           </Card>
         </section>
