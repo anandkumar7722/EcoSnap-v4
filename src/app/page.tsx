@@ -13,7 +13,11 @@ import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
 import type { ClassificationRecord, UserProfile, WasteCategory, TipInfo } from '@/lib/types';
 import { ImageUpload } from '@/components/image-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Award, ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, UserPlus as SignupIcon, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple, Wind, Droplets, Lightbulb, Info, Loader2, Recycle, HelpCircle, Star as StarIcon, BookOpen, Users, ShoppingBag, CheckCircle, Settings2, Search, PackageSearch as PackageSearchIcon } from 'lucide-react';
+import { 
+    Award, ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, UserPlus as SignupIcon, Trash2, Leaf, 
+    Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple, Wind, Lightbulb, Info, Loader2, 
+    Recycle, HelpCircle, Star as StarIcon, BookOpen, Users, CheckCircle, PackageSearch as PackageSearchIcon 
+} from 'lucide-react'; // Removed ShoppingBag, Settings2, Search as they are not used
 import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from '@/lib/utils';
@@ -62,7 +66,6 @@ const LEVELS: LevelInfo[] = [
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-sky-600', textColor: 'text-sky-100', badgeIconContainerColor: 'bg-sky-400', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-300', progressBarTrackColor: 'bg-sky-800' },
 ];
 
-// SIMPLIFIED VERSION FOR DEBUGGING PARSING ERROR
 const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   general: {
     title: "General Waste Item",
@@ -88,7 +91,6 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Buy products made from recycled cardboard. Support companies using sustainable packaging."
     }
   },
-  // Simplified: Other categories removed for debugging
   paper: {
     title: "Paper",
     icon: BookOpen,
@@ -103,7 +105,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   plastic: {
     title: "Plastic",
-    icon: Recycle, // Using Recycle icon for general plastic
+    icon: Recycle,
     definition: "A wide range of synthetic or semi-synthetic materials, often found in packaging, bottles, and containers.",
     fiveRs: {
       reduce: "Avoid single-use plastics (bags, straws, cutlery, bottles). Choose items with less plastic packaging.",
@@ -123,7 +125,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       recycle: "Empty and rinse. Most curbside programs accept PETE bottles. Lids on or off depends on local rules.",
       educate: "Explain that PETE is one of the most commonly recycled plastics. Encourage proper preparation.",
       support: "Look for products made with recycled PETE (rPET).",
-    },
+    }
   },
   plasticHdpe: {
     title: "Plastic - HDPE (#2)",
@@ -135,11 +137,11 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       recycle: "Empty and rinse. Commonly accepted in curbside recycling.",
       educate: "Highlight that HDPE is a valuable recyclable plastic.",
       support: "Choose products packaged in HDPE when possible if you need plastic.",
-    },
+    }
   },
   plasticPp: {
     title: "Plastic - PP (#5)",
-    icon: PackageIcon, // More generic package icon for tubs/containers
+    icon: PackageIcon, 
     definition: "Polypropylene. Used for yogurt containers, bottle caps, some tubs. Increasingly recyclable.",
     fiveRs: {
       reduce: "Buy yogurt in larger tubs. Consider making some items (like sauces) at home.",
@@ -147,11 +149,11 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       recycle: "Check local guidelines; PP acceptance is growing but not universal. Clean items thoroughly.",
       educate: "Advocate for PP recycling in your community if it's not yet available.",
       support: "Support brands using easily recyclable PP packaging or offering PP take-back.",
-    },
+    }
   },
   plasticPs: {
     title: "Plastic - PS (#6)",
-    icon: AlertTriangle, // Indicates caution due to low recyclability
+    icon: AlertTriangle, 
     definition: "Polystyrene. Found in disposable foam cups/plates, some food containers, packing peanuts. Rarely recycled.",
     fiveRs: {
       reduce: "AVOID PS whenever possible. Use reusable cups and containers. Ask restaurants for non-PS takeout containers.",
@@ -159,11 +161,11 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       recycle: "Very difficult to recycle and rarely accepted. Check for specialized drop-off locations, but they are uncommon.",
       educate: "Inform others about the environmental issues with PS and the lack of recycling options. Encourage alternatives.",
       support: "Actively choose businesses that do not use PS packaging. Support bans on single-use polystyrene.",
-    },
+    }
   },
   plasticOther: {
     title: "Plastic - Other (#7)",
-    icon: HelpCircle,
+    icon: HelpCircle, 
     definition: "Miscellaneous plastics, including multi-layer materials or newer bioplastics. Recyclability varies greatly.",
     fiveRs: {
       reduce: "Be cautious with items marked #7; try to find alternatives if unsure about recyclability. Avoid products with excessive or mixed-material plastic packaging.",
@@ -171,11 +173,11 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       recycle: "Generally NOT recyclable in curbside programs unless specifically stated by your local facility. Check local guidelines meticulously.",
       educate: "Highlight that #7 is a catch-all category and often means non-recyclable. Emphasize looking for known recyclable plastics (#1, #2, sometimes #5).",
       support: "Support innovation in sustainable packaging. Ask companies about the recyclability of their #7 plastics.",
-    },
+    }
   },
   glass: {
     title: "Glass",
-    icon: Lightbulb, // Re-using Lightbulb as a generic icon
+    icon: Lightbulb, 
     definition: "Made from sand, soda ash, and limestone. Infinitely recyclable without loss of quality.",
     fiveRs: {
       reduce: "Buy items in glass when it's a good alternative to plastic. Consider products with refill options.",
@@ -187,7 +189,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   ewaste: {
     title: "E-Waste",
-    icon: Tv2, // More specific e-waste icon
+    icon: Tv2, 
     definition: "Electronic waste like old phones, computers, TVs, batteries, cables. Contains valuable and hazardous materials.",
     fiveRs: {
       reduce: "Repair electronics instead of replacing them. Buy durable, high-quality products. Resist upgrading too frequently.",
@@ -211,7 +213,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   metal: {
     title: "Metal",
-    icon: Wind, // Using Wind as a placeholder, could be more specific like Magnet
+    icon: Wind, 
     definition: "Includes aluminum cans, steel/tin cans, and sometimes other metal items. Highly recyclable.",
     fiveRs: {
       reduce: "Choose reusable containers over single-use cans where possible.",
@@ -221,7 +223,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: { // This is for 'trash'
+  other: { 
     title: "Trash / Other Non-Recyclables",
     icon: Trash2,
     definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
@@ -233,9 +235,9 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { // Typically same as biowaste, but if treated separately
+  organic: { // Duplicating 'biowaste' as 'organic' for completeness if needed, but they are often interchangeable.
     title: "Organic Waste",
-    icon: Apple,
+    icon: Apple, 
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
     fiveRs: {
       reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
@@ -244,7 +246,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       educate: "Share composting benefits and how-to guides. Raise awareness about food waste impact.",
       support: "Local farms using compost, community gardens, businesses with organic waste programs."
     }
-  },
+  }
 };
 
 
@@ -278,14 +280,14 @@ const verticalLogCategories: Array<{
   { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.png', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box', quantityKey: 'totalCardboard' },
   { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stack paper', quantityKey: 'totalPaper' },
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar', quantityKey: 'totalGlass' },
-  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle', quantityKey: 'totalPlastic' },
+  { id: 'plastic', name: 'Plastic (General)', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle general', quantityKey: 'totalPlastic' },
   { id: 'plasticPete', name: 'Plastic - PETE', imageUrl: '/assets/images/plastic-pete.png', points: WASTE_POINTS.plasticPete, dataAiHint: 'PETE plastic bottle', quantityKey: 'totalPlasticPete', placeholderText: 'PETE' },
   { id: 'plasticHdpe', name: 'Plastic - HDPE', imageUrl: '/assets/images/plastic-hdpe.png', points: WASTE_POINTS.plasticHdpe, dataAiHint: 'HDPE plastic container', quantityKey: 'totalPlasticHdpe', placeholderText: 'HDPE' },
   { id: 'plasticPp', name: 'Plastic - PP', imageUrl: '/assets/images/plastic-pp.png', points: WASTE_POINTS.plasticPp, dataAiHint: 'PP plastic tub', quantityKey: 'totalPlasticPp', placeholderText: 'PP' },
   { id: 'plasticPs', name: 'Plastic - PS', imageUrl: '/assets/images/plastic-ps.png', points: WASTE_POINTS.plasticPs, dataAiHint: 'PS plastic foam', quantityKey: 'totalPlasticPs', placeholderText: 'PS' },
   { id: 'plasticOther', name: 'Plastic - Other', imageUrl: '/assets/images/plastic-other.png', points: WASTE_POINTS.plasticOther, dataAiHint: 'other plastic items', quantityKey: 'totalPlasticOther', placeholderText: 'OTHER' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic device', quantityKey: 'totalEwaste' },
-  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/bio-waste.png', points: WASTE_POINTS.biowaste, dataAiHint: 'food scraps', quantityKey: 'totalBiowaste' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/bio-waste.png', points: WASTE_POINTS.biowaste, dataAiHint: 'food waste', quantityKey: 'totalBiowaste' },
   { id: 'metal', name: 'Metal', imageUrl: '/assets/images/metal.png', points: WASTE_POINTS.metal, dataAiHint: 'metal can', quantityKey: 'totalMetal'},
   { id: 'other', name: 'Trash', imageUrl: '/assets/images/trash.png', points: WASTE_POINTS.other, dataAiHint: 'general trash', quantityKey: 'totalOther' },
 ];
@@ -325,7 +327,7 @@ const ImageWithFallback = ({
   sizes = "(max-width: 639px) 94px, 114px",
   className = "rounded-md object-cover",
   wrapperClassName = "relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center",
-  icon,
+  icon: IconComponent,
   placeholderText
 }: {
   src: string | null | undefined;
@@ -335,12 +337,12 @@ const ImageWithFallback = ({
   sizes?: string;
   className?: string;
   wrapperClassName?: string;
-  icon?: React.ReactNode;
+  icon?: React.ElementType;
   placeholderText?: string;
 }) => {
   const validatedInitialSrc = initialSrcProp === "" || initialSrcProp === undefined ? null : initialSrcProp;
   const [currentSrc, setCurrentSrc] = useState(validatedInitialSrc);
-  const [isError, setIsError] = useState(!validatedInitialSrc && !icon);
+  const [isError, setIsError] = useState(!validatedInitialSrc && !IconComponent);
   const [isLoading, setIsLoading] = useState(!!validatedInitialSrc);
 
   useEffect(() => {
@@ -351,10 +353,10 @@ const ImageWithFallback = ({
       setIsLoading(true);
     } else {
       setCurrentSrc(null);
-      setIsError(true);
+      setIsError(!IconComponent); 
       setIsLoading(false);
     }
-  }, [initialSrcProp]);
+  }, [initialSrcProp, IconComponent]);
 
   const handleError = () => {
     if (!isError) setIsError(true);
@@ -368,15 +370,15 @@ const ImageWithFallback = ({
 
   const placeholderBaseUrl = "https://placehold.co";
 
-  if (icon && (!currentSrc || isError)) {
+  if (IconComponent && (!currentSrc || isError)) {
     return (
       <div className={wrapperClassName.replace('bg-muted', 'bg-transparent')}>
-        {icon}
+        <IconComponent />
       </div>
     );
   }
 
-  if (!icon && (!currentSrc || isError)) {
+  if (!IconComponent && (!currentSrc || isError)) {
     const placeholderUrl = placeholderText
       ? `${placeholderBaseUrl}/${placeholderSize}.png?text=${encodeURIComponent(placeholderText)}`
       : `${placeholderBaseUrl}/${placeholderSize}.png`;
@@ -389,12 +391,12 @@ const ImageWithFallback = ({
           className={className}
           sizes={sizes}
           data-ai-hint={`placeholder ${dataAiHint || ''}`.trim()}
-          unoptimized={true}
+          unoptimized={true} 
         />
       </div>
     );
   }
-
+  
   if (currentSrc) {
     const isPlaceholderSrc = currentSrc.startsWith(placeholderBaseUrl);
     return (
@@ -409,7 +411,7 @@ const ImageWithFallback = ({
           data-ai-hint={(isError || isPlaceholderSrc) ? `placeholder ${dataAiHint}`.trim() : dataAiHint}
           onError={handleError}
           onLoad={handleLoad}
-          unoptimized={isPlaceholderSrc}
+          unoptimized={isPlaceholderSrc} 
         />
       </div>
     );
@@ -446,21 +448,21 @@ export default function HomePage() {
         if (userEmail && storedUserData.email !== userEmail) {
            const displayName = userName || userEmail.split('@')[0];
            storedUserData = {
-            ...defaultUserProfile,
-            id: userEmail,
+            ...defaultUserProfile, 
+            id: userEmail, 
             displayName: displayName,
             email: userEmail,
             avatar: `https://placehold.co/100x100.png?text=${displayName.substring(0,2).toUpperCase()}`,
            };
-        } else if (!userEmail && storedUserData.email) {
-            storedUserData = defaultUserProfile;
-        } else if (userEmail && userName && storedUserData.displayName !== userName) {
+        } else if (!userEmail && storedUserData.email) { 
+            storedUserData = defaultUserProfile; 
+        } else if (userEmail && userName && storedUserData.displayName !== userName) { 
             storedUserData.displayName = userName;
             storedUserData.avatar = `https://placehold.co/100x100.png?text=${userName.substring(0,2).toUpperCase()}`;
         }
-      } else {
+      } else { 
         if (storedUserData.id !== 'localUser' || storedUserData.email) {
-            storedUserData = defaultUserProfile;
+            storedUserData = defaultUserProfile; 
         }
       }
 
@@ -470,21 +472,22 @@ export default function HomePage() {
       }
 
       const history = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
+      const sortedHistory = history.sort((a,b) => b.timestamp - a.timestamp);
       const uniqueRecentItems = Object.values(
-        history.reduce((acc, item) => {
-          if (!acc[item.category] || acc[item.category].timestamp < item.timestamp) {
+        sortedHistory.reduce((acc, item) => {
+          if (!acc[item.category]) {
             acc[item.category] = item;
           }
           return acc;
         }, {} as Record<string, ClassificationRecord>)
-      ).sort((a,b) => b.timestamp - a.timestamp)
-      .slice(0, MAX_HISTORY_DISPLAY_ITEMS);
+      )
+      .slice(0, MAX_HISTORY_DISPLAY_ITEMS); 
       setRecentClassifications(uniqueRecentItems);
     };
 
-    checkLoginStatus();
-    window.addEventListener('storage', checkLoginStatus);
-    window.addEventListener('authChange', checkLoginStatus);
+    checkLoginStatus(); 
+    window.addEventListener('storage', checkLoginStatus); 
+    window.addEventListener('authChange', checkLoginStatus); 
     return () => {
         window.removeEventListener('storage', checkLoginStatus);
         window.removeEventListener('authChange', checkLoginStatus);
@@ -511,7 +514,7 @@ export default function HomePage() {
 
     try {
       let classificationResultCategory: WasteCategory;
-      let classificationConfidence = 1.0;
+      let classificationConfidence = 1.0; 
 
       if (currentUploadCategory && currentUploadCategory !== 'general') {
         classificationResultCategory = currentUploadCategory;
@@ -534,7 +537,7 @@ export default function HomePage() {
       const pointsEarned = WASTE_POINTS[classificationResultCategory] || WASTE_POINTS.other;
       const newRecord: ClassificationRecord = {
         id: Date.now().toString(),
-        imageDataUri,
+        imageDataUri, 
         category: classificationResultCategory,
         confidence: classificationConfidence,
         timestamp: Date.now(),
@@ -542,24 +545,26 @@ export default function HomePage() {
       };
 
       const currentHistory = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
-      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50);
+      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); 
       saveToLocalStorage(HISTORY_STORAGE_KEY, updatedHistory);
-
+      
+      const sortedHistoryForRecent = updatedHistory.sort((a,b) => b.timestamp - a.timestamp);
       const uniqueRecentItems = Object.values(
-        updatedHistory.reduce((acc, item) => {
-          if (!acc[item.category] || acc[item.category].timestamp < item.timestamp) {
+        sortedHistoryForRecent.reduce((acc, item) => {
+          if (!acc[item.category]) { 
             acc[item.category] = item;
           }
           return acc;
         }, {} as Record<string, ClassificationRecord>)
-      ).sort((a,b) => b.timestamp - a.timestamp)
-        .slice(0, MAX_HISTORY_DISPLAY_ITEMS);
+      ).slice(0, MAX_HISTORY_DISPLAY_ITEMS);
       setRecentClassifications(uniqueRecentItems);
 
       setUserData(prevData => {
         const newScore = prevData.score + pointsEarned;
         const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
+        
         let categoryKeyToUpdate: keyof UserProfile = `total${classificationResultCategory.charAt(0).toUpperCase() + classificationResultCategory.slice(1)}` as keyof UserProfile;
+        
         const specificPlasticKeys: Partial<Record<WasteCategory, keyof UserProfile>> = {
             plasticPete: 'totalPlasticPete',
             plasticHdpe: 'totalPlasticHdpe',
@@ -569,13 +574,17 @@ export default function HomePage() {
         };
         if (specificPlasticKeys[classificationResultCategory]) {
             categoryKeyToUpdate = specificPlasticKeys[classificationResultCategory]!;
-        } else if (!(categoryKeyToUpdate in defaultUserProfile) && classificationResultCategory.startsWith('plastic')) {
-            categoryKeyToUpdate = 'totalPlastic';
+        } else if (classificationResultCategory === 'plastic' && !specificPlasticKeys[classificationResultCategory]) {
+            categoryKeyToUpdate = 'totalPlastic'; 
+        } else if (classificationResultCategory === 'biowaste' || classificationResultCategory === 'organic') {
+            categoryKeyToUpdate = 'totalBiowaste'; 
         } else if (!(categoryKeyToUpdate in defaultUserProfile)) {
             categoryKeyToUpdate = 'totalOther';
         }
+
         const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
-        const updatedCategoryCount = currentCategoryCount + 1;
+        const updatedCategoryCount = currentCategoryCount + 1; 
+        
         const newUserData: UserProfile = {
           ...prevData,
           score: newScore,
@@ -617,11 +626,11 @@ export default function HomePage() {
         return LEVELS[i];
       }
     }
-    return LEVELS[0];
+    return LEVELS[0]; 
   };
 
   const openUploadModalForCategory = (categoryId: WasteCategory | 'general' | undefined, categoryName: string) => {
-    setClassificationError(null);
+    setClassificationError(null); 
     setCurrentUploadCategory(categoryId);
     setCurrentUploadCategoryFriendlyName(categoryName);
     setIsUploadModalOpen(true);
@@ -637,10 +646,10 @@ export default function HomePage() {
     const pointsToNextLevelRange = currentLevel.targetForNext - currentLevel.minScore;
     if (pointsToNextLevelRange > 0) {
       scorePercentage = Math.min((pointsEarnedInLevel / pointsToNextLevelRange) * 100, 100);
-    } else {
+    } else { 
       scorePercentage = userData.score >= currentLevel.minScore ? 100 : 0;
     }
-  } else {
+  } else { 
     scorePercentage = 100;
     pointsForNextLevelDisplay = "Max";
   }
@@ -653,7 +662,7 @@ export default function HomePage() {
     if (!selectedCategoryTips || !selectedCategoryTips.fiveRs) return [];
     return (Object.keys(selectedCategoryTips.fiveRs) as Array<keyof TipInfo['fiveRs']>)
       .map(key => ({ key, tip: selectedCategoryTips.fiveRs[key] }))
-      .filter(item => item.tip);
+      .filter(item => item.tip); 
   }, [selectedCategoryTips]);
   
   console.log("HomePage: JavaScript logic parsed. About to render JSX.");
@@ -696,7 +705,7 @@ export default function HomePage() {
                   if(currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name) {
                     setCurrentUploadCategory(undefined);
                     setCurrentUploadCategoryFriendlyName(undefined);
-                    setIsUploadModalOpen(false);
+                    setIsUploadModalOpen(false); 
                   }
                 }
               }}>
@@ -705,23 +714,16 @@ export default function HomePage() {
                     onClick={() => openUploadModalForCategory(category.id, category.name)}
                     className="p-3 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm w-[90px] sm:w-[100px] flex-shrink-0"
                   >
-                     <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
-                      {category.imageUrl ? (
-                        <ImageWithFallback
-                          src={category.imageUrl}
-                          alt={category.name}
-                          dataAiHint={category.dataAiHint}
-                          placeholderSize="48x48"
-                          sizes="48px"
-                          wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-transparent flex items-center justify-center"
-                          className="rounded-md object-contain"
-                        />
-                      ) : CategoryIconComponent ? (
-                        <CategoryIconComponent className="w-7 h-7 sm:w-8 sm:w-8 text-primary" />
-                      ) : (
-                        <PackageIcon className="w-7 h-7 sm:w-8 sm:w-8 text-muted-foreground" />
-                      )}
-                    </div>
+                     <ImageWithFallback
+                        src={category.imageUrl}
+                        alt={category.name}
+                        dataAiHint={category.dataAiHint}
+                        placeholderSize="48x48"
+                        sizes="48px"
+                        wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
+                        className="rounded-md object-contain"
+                        icon={CategoryIconComponent ? <CategoryIconComponent className="w-7 h-7 sm:w-8 sm:w-8 text-primary" /> : undefined}
+                      />
                     <p className="font-medium text-xs sm:text-sm text-center truncate w-full">{category.name}</p>
                   </Card>
                 </DialogTrigger>
@@ -744,7 +746,7 @@ export default function HomePage() {
                  if(currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name) {
                     setCurrentUploadCategory(undefined);
                     setCurrentUploadCategoryFriendlyName(undefined);
-                    setIsUploadModalOpen(false);
+                    setIsUploadModalOpen(false); 
                  }
               }
             }}>
@@ -837,10 +839,8 @@ export default function HomePage() {
 
                   if (specificPlasticKeys[item.category]) {
                       categoryKeyForQuantity = specificPlasticKeys[item.category]!;
-                  } else if (item.category === 'organic' && !('totalOrganic' in defaultUserProfile) && ('totalBiowaste' in defaultUserProfile)) {
+                  } else if ((item.category === 'biowaste' || item.category === 'organic') && ('totalBiowaste' in defaultUserProfile)) {
                     categoryKeyForQuantity = 'totalBiowaste';
-                  } else if (item.category === 'biowaste' && !('totalBiowaste' in defaultUserProfile) && ('totalOrganic' in defaultUserProfile)) {
-                    categoryKeyForQuantity = 'totalOrganic';
                   } else if (!(categoryKeyForQuantity in defaultUserProfile)) {
                       categoryKeyForQuantity = 'totalOther';
                   }
@@ -938,8 +938,8 @@ export default function HomePage() {
       </section>
 
       <Dialog open={isUploadModalOpen} onOpenChange={open => {
-          if(!open) {
-            setClassificationError(null);
+          if(!open) { 
+            setClassificationError(null); 
             if (!isClassifying) {
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
@@ -949,8 +949,8 @@ export default function HomePage() {
       }}>
         <DialogTrigger asChild>
            <Button
-             onClick={() => openUploadModalForCategory('general', 'General Waste Item')}
-             className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl text-2xl p-0"
+             onClick={() => openUploadModalForCategory('general', 'General Waste Item')} 
+             className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl text-2xl p-0 z-50"
              aria-label="Upload image for general classification"
            >
             <ImagePlus className="h-6 w-6 sm:h-7 sm:w-7" />
@@ -958,8 +958,8 @@ export default function HomePage() {
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <SelectedCategoryIcon className="h-5 w-5 text-primary" />
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <SelectedCategoryIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               {currentUploadCategoryFriendlyName || "Classify Waste Item"}
             </DialogTitle>
           </DialogHeader>
