@@ -3,11 +3,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { 
-    BarChart as BarChartIconGeneral, PieChart as PieChartIconLucideGeneral, Info, Edit, Filter, CalendarDays as CalendarIcon, 
-    SmartBinIconGeneral, Loader2, LineChart as LineChartIcon, PieChart as PieChartIconLucideEWaste, BarChart as BarChartIconEWaste, 
+import {
+    BarChart as BarChartIconGeneral, PieChart as PieChartIconLucideGeneral, Info, Edit, Filter, CalendarDays as CalendarIcon,
+    Loader2, LineChart as LineChartIcon, PieChart as PieChartIconLucideEWaste, BarChart as BarChartIconEWaste,
     Clock, Server, Smartphone, Laptop, Battery as BatteryIcon, Package as EWastePackageIcon, WifiOff, AlertCircleIcon, CheckCircle2Icon, TrashIcon,
-    BatteryWarning, Box, CircleGauge, BatteryFull, PackageCheck, PackageX, Trash2 // Added Trash2 here
+    BatteryWarning, Box, CircleGauge, BatteryFull, PackageCheck, PackageX, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -18,12 +18,12 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { 
-  Bar, 
-  Pie, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
+import {
+  Bar,
+  Pie,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   BarChart as RechartsBarChart,
   PieChart as RechartsPieChart,
   LineChart as RechartsLineChart,
@@ -54,12 +54,12 @@ const generalChartConfig = {
   items: { label: "Items/Kg" },
   ewaste: { label: "E-Waste", color: "hsl(var(--chart-1))" },
   plastic: { label: "Plastic", color: "hsl(var(--chart-2))" },
-  biowaste: { label: "Bio-Waste", color: "hsl(var(--chart-3))" }, 
+  biowaste: { label: "Bio-Waste", color: "hsl(var(--chart-3))" },
   organic: { label: "Organic", color: "hsl(var(--chart-3))" },
   cardboard: { label: "Cardboard", color: "hsl(var(--chart-4))" },
   paper: { label: "Paper", color: "hsl(var(--chart-5))" },
-  glass: { label: "Glass", color: "hsl(var(--chart-1))" }, 
-  metal: { label: "Metal", color: "hsl(var(--chart-2))" },  
+  glass: { label: "Glass", color: "hsl(var(--chart-1))" },
+  metal: { label: "Metal", color: "hsl(var(--chart-2))" },
   other: { label: "Other", color: "hsl(var(--muted))" },
   plasticPete: { label: "Plastic PETE", color: "hsl(var(--chart-2))" },
   plasticHdpe: { label: "Plastic HDPE", color: "hsl(var(--chart-2))" },
@@ -69,13 +69,13 @@ const generalChartConfig = {
 } satisfies import("@/components/ui/chart").ChartConfig;
 
 const MAX_REAL_TIME_EWASTE_POINTS = 20;
-const REAL_TIME_EWASTE_UPDATE_INTERVAL = 3000; 
+const REAL_TIME_EWASTE_UPDATE_INTERVAL = 3000;
 
 const eWasteCategoryColors: Record<EWasteType | 'others', string> = {
-  batteries: 'hsl(var(--chart-1))', 
-  mobiles: 'hsl(var(--chart-3))',   
-  laptops: 'hsl(var(--accent))',    
-  others: 'hsl(var(--chart-5))',    
+  batteries: 'hsl(var(--chart-1))',
+  mobiles: 'hsl(var(--chart-3))',
+  laptops: 'hsl(var(--accent))',
+  others: 'hsl(var(--chart-5))',
 };
 
 const eWasteCategoryConfig = {
@@ -95,7 +95,7 @@ export default function DetailedDashboardPage() {
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedWasteType, setSelectedWasteType] = useState<WasteCategory | 'all'>('all');
-  
+
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [realTimeEWasteData, setRealTimeEWasteData] = useState<RealTimeEWasteDataPoint[]>([]);
   const [eWasteDistributionData, setEWasteDistributionData] = useState<EWasteCategoryDistributionPoint[]>([]);
@@ -121,7 +121,7 @@ export default function DetailedDashboardPage() {
   }, []);
 
   useEffect(() => {
-    setCurrentTime(new Date()); 
+    setCurrentTime(new Date());
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -133,7 +133,7 @@ export default function DetailedDashboardPage() {
       volume: Math.floor(Math.random() * 20) + 5,
     })).slice(-MAX_REAL_TIME_EWASTE_POINTS);
     setRealTimeEWasteData(initialData);
-    
+
     const interval = setInterval(() => {
       setRealTimeEWasteData((prevData) => {
         const newPoint = {
@@ -181,24 +181,24 @@ export default function DetailedDashboardPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    const userId = 'user1'; 
+    const userId = 'user1';
 
     if (!firestore) {
         toast({ variant: "destructive", title: "Firebase Error", description: "Firestore is not initialized." });
         setIsLoading(false);
         return;
     }
-    if (!userId) { 
+    if (!userId) {
         toast({ variant: "destructive", title: "Auth Error", description: "User ID not available." });
         setIsLoading(false);
-        setLiveWasteData([]); 
+        setLiveWasteData([]);
         return;
     }
 
     const wasteEntriesRef = collection(firestore, 'wasteEntries');
     const q = query(
-      wasteEntriesRef, 
-      where('userId', '==', userId), 
+      wasteEntriesRef,
+      where('userId', '==', userId),
       orderBy('timestamp', 'desc')
     );
 
@@ -303,14 +303,14 @@ export default function DetailedDashboardPage() {
   const totalWaste = useMemo(() => {
     return filteredData.reduce((sum, entry) => {
       const quantity = typeof entry.quantity === 'number' ? entry.quantity : 0;
-      return sum + (entry.unit === 'items' ? quantity * 0.1 : quantity); 
+      return sum + (entry.unit === 'items' ? quantity * 0.1 : quantity);
     }, 0).toFixed(1);
   }, [filteredData]);
-  
+
   const recycledPercentage = useMemo(() => {
     const totalValueForRecycledPercentage = categoryDistribution.reduce((sum, cat) => sum + cat.value, 0);
-    return totalValueForRecycledPercentage > 0 ? 
-      ((categoryDistribution.filter(cat => cat.name !== 'other' && cat.name !== 'organic' && cat.name !== 'biowaste').reduce((sum, cat) => sum + cat.value, 0) / 
+    return totalValueForRecycledPercentage > 0 ?
+      ((categoryDistribution.filter(cat => cat.name !== 'other' && cat.name !== 'organic' && cat.name !== 'biowaste').reduce((sum, cat) => sum + cat.value, 0) /
       totalValueForRecycledPercentage) * 100).toFixed(0) : '0';
   }, [categoryDistribution]);
 
@@ -325,7 +325,7 @@ export default function DetailedDashboardPage() {
     const lx = x + radius * Math.cos(-midAngle * RADIAN);
     const ly = y + radius * Math.sin(-midAngle * RADIAN);
     const textAnchor = lx > x ? 'start' : 'end';
-    if ((isMobileView && percent * 100 < 7) || percent * 100 < 5) return null; 
+    if ((isMobileView && percent * 100 < 7) || percent * 100 < 5) return null;
     return (
       <text x={lx} y={ly} fill="currentColor" textAnchor={textAnchor} dominantBaseline="central" className="text-[9px] sm:text-xs fill-foreground">
         {generalChartConfig[name as WasteCategory]?.label || name} (${(percent * 100).toFixed(0)}%)
@@ -340,7 +340,7 @@ export default function DetailedDashboardPage() {
     if (bin.fill_level >= 20) return "Filling";
     return "Empty";
   };
-  
+
   const getBinStatusColor = (bin: BinData): string => {
     if (bin.notify || bin.fill_level >= 90) return "hsl(var(--destructive))"; // Red
     if (bin.fill_level >= 70) return "hsl(var(--chart-2))"; // Yellow/Orange
@@ -360,7 +360,7 @@ export default function DetailedDashboardPage() {
             <Link href="/"><Edit className="mr-2 h-4 w-4" /> Back to Main Page</Link>
         </Button>
       </div>
-      
+
       <Alert>
         <Info className="h-4 w-4" />
         <AlertTitle>Track Your Impact!</AlertTitle>
@@ -423,7 +423,7 @@ export default function DetailedDashboardPage() {
           </Select>
         </CardContent>
       </Card>
-      
+
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
           <Loader2 className="h-12 w-12 text-primary animate-spin" />
@@ -491,7 +491,7 @@ export default function DetailedDashboardPage() {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        outerRadius={pieOuterRadius} 
+                        outerRadius={pieOuterRadius}
                         labelLine={false}
                         label={renderPieLabel}
                       />
@@ -632,9 +632,9 @@ export default function DetailedDashboardPage() {
                     ))}
                   </Pie>
                   <RechartsLegend
-                    content={<ChartLegendContent 
-                        nameKey="name" 
-                        className="text-xs sm:text-sm [&>div]:gap-1 [&>div>svg]:size-3 mt-2" 
+                    content={<ChartLegendContent
+                        nameKey="name"
+                        className="text-xs sm:text-sm [&>div]:gap-1 [&>div>svg]:size-3 mt-2"
                         payload={eWasteDistributionData.map(entry => ({
                             value: entry.name,
                             type: 'square',
@@ -697,7 +697,7 @@ export default function DetailedDashboardPage() {
       <Card className="mt-8 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary">
-            <SmartBinIconGeneral className="h-5 w-5 sm:h-6 sm:w-6" />
+            <Trash2 className="h-5 w-5 sm:h-6 sm:w-6" />
             General Smart Bin Monitoring
           </CardTitle>
           <CardDescription className="text-xs sm:text-sm">
@@ -762,7 +762,7 @@ export default function DetailedDashboardPage() {
                   {smartBinsData.map((bin) => {
                     const binStatusText = getBinStatusText(bin);
                     const isOffline = bin.last_updated && differenceInHours(new Date(), new Date(bin.last_updated)) > 24; // Example: offline if not updated in 24h
-                    
+
                     let statusIcon;
                     let statusColorClass;
                     let progressColorClass;
@@ -790,13 +790,13 @@ export default function DetailedDashboardPage() {
                     }
 
                     return (
-                        <Card 
-                        key={bin.id} 
+                        <Card
+                        key={bin.id}
                         className={cn(
-                            "p-3 sm:p-4 shadow-sm transition-all duration-300 ease-in-out border-l-4", 
+                            "p-3 sm:p-4 shadow-sm transition-all duration-300 ease-in-out border-l-4",
                             isOffline ? "border-muted" :
-                            bin.notify || bin.fill_level >= 90 ? "border-destructive" : 
-                            bin.fill_level >= 70 ? "border-orange-500" : 
+                            bin.notify || bin.fill_level >= 90 ? "border-destructive" :
+                            bin.fill_level >= 70 ? "border-orange-500" :
                             "border-green-500",
                             isOffline ? "bg-muted/30" : "bg-card hover:shadow-md"
                         )}
@@ -821,24 +821,24 @@ export default function DetailedDashboardPage() {
                                     {bin.fill_level}%
                                 </span>
                                 </div>
-                                <Progress 
-                                value={bin.fill_level} 
-                                className={cn("h-2 sm:h-2.5 rounded-full", progressColorClass)} 
+                                <Progress
+                                value={bin.fill_level}
+                                className={cn("h-2 sm:h-2.5 rounded-full", progressColorClass)}
                                 aria-label={`Bin ${bin.id} fill level ${bin.fill_level}%`}
                                 />
                             </div>
 
                             {typeof bin.battery_level === 'number' && (
                                 <div className={cn("text-xs flex items-center", bin.battery_level < 20 ? "text-orange-500" : "text-muted-foreground")}>
-                                {bin.battery_level < 20 ? 
-                                    <BatteryWarning className="h-3.5 w-3.5 mr-1 shrink-0" /> : 
+                                {bin.battery_level < 20 ?
+                                    <BatteryWarning className="h-3.5 w-3.5 mr-1 shrink-0" /> :
                                     <BatteryFull className="h-3.5 w-3.5 mr-1 shrink-0" />
                                 }
                                 Battery: {bin.battery_level}%
                                 </div>
                             )}
 
-                            <div className={cn("text-xs sm:text-sm font-medium flex items-center px-2 py-0.5 rounded-md shadow-xs", 
+                            <div className={cn("text-xs sm:text-sm font-medium flex items-center px-2 py-0.5 rounded-md shadow-xs",
                                 isOffline ? "bg-muted text-muted-foreground" :
                                 bin.notify || bin.fill_level >= 90 ? "bg-destructive/10 text-destructive" :
                                 bin.fill_level >= 70 ? "bg-orange-500/10 text-orange-600" :
@@ -870,6 +870,3 @@ export default function DetailedDashboardPage() {
     </div>
   );
 }
-
-
-    
