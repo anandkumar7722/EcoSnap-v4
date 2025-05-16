@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { History, Leaf, LayoutDashboard, Trophy, MapPin, Store, Bot, Users, Home, LogIn, UserPlus, LogOut, UserCircle, CalendarClock } from 'lucide-react';
+import { History, Leaf, LayoutDashboard, Trophy, MapPin, Store, Bot, Users, Home, LogIn, UserPlus, LogOut, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -66,8 +66,8 @@ export function AppHeader() {
     { href: "/history", label: "History", icon: History },
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/challenges", label: "Challenges", icon: Trophy },
-    { href: "/recycling-centers", label: "Recycling Centers", icon: MapPin },
-    { href: "/recycling-schedules", label: "Schedules & Alerts", icon: CalendarClock },
+    { href: "/recycling-centers", label: "Recycling Centers & Schedules", icon: MapPin },
+    // { href: "/recycling-schedules", label: "Schedules & Alerts", icon: CalendarClock }, // Removed
     { href: "/marketplace", label: "Marketplace", icon: Store },
     { href: "/assistant", label: "AI Assistant", icon: Bot },
     { href: "/leaderboard", label: "Leaderboard", icon: Users },
@@ -97,8 +97,8 @@ export function AppHeader() {
         <nav className="hidden md:flex items-center space-x-1">
           {navLinks.map((link) => (
             <Button variant="ghost" asChild key={link.href}>
-              <Link href={link.href} className="text-sm">
-                <link.icon className="mr-2 h-4 w-4" />
+              <Link href={link.href} className="text-sm px-2 lg:px-3"> {/* Adjusted padding */}
+                <link.icon className="mr-1.5 h-4 w-4" /> {/* Slightly reduced margin */}
                 {link.label}
               </Link>
             </Button>
