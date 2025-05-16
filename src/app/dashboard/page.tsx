@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { 
     BarChart as BarChartIconGeneral, PieChart as PieChartIconLucideGeneral, Info, Edit, Filter, CalendarDays as CalendarIcon, 
-    Trash2 as SmartBinIconGeneral, Loader2, LineChart as LineChartIcon, PieChart as PieChartIconLucideEWaste, BarChart as BarChartIconEWaste, 
+    SmartBinIconGeneral, Loader2, LineChart as LineChartIcon, PieChart as PieChartIconLucideEWaste, BarChart as BarChartIconEWaste, 
     Clock, Server, Smartphone, Laptop, Battery as BatteryIcon, Package as EWastePackageIcon, WifiOff, AlertCircleIcon, CheckCircle2Icon, TrashIcon,
-    BatteryWarning, Box, CircleGauge, BatteryFull, PackageCheck, PackageX
+    BatteryWarning, Box, CircleGauge, BatteryFull, PackageCheck, PackageX, Trash2 // Added Trash2 here
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -106,11 +106,13 @@ export default function DetailedDashboardPage() {
   const [smartBinsError, setSmartBinsError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Initialize dateRange on client-side only
+    setDateRange({
+        from: addDays(new Date(), -90),
+        to: new Date(),
+    });
+
     if (typeof window !== 'undefined') {
-        setDateRange({
-            from: addDays(new Date(), -90),
-            to: new Date(),
-        });
         const checkMobile = () => setIsMobileView(window.innerWidth < 768);
         checkMobile();
         window.addEventListener('resize', checkMobile);
@@ -869,3 +871,5 @@ export default function DetailedDashboardPage() {
   );
 }
 
+
+    
