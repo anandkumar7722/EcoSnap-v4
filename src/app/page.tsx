@@ -34,7 +34,7 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
   paper: 70,
   glass: 30,
   metal: 40,
-  organic: 60, // Same as biowaste
+  organic: 60,
   other: 10,
   plasticOther: 20,
   plasticPete: 55,
@@ -102,7 +102,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
     }
   },
   plastic: {
-    title: "Plastic",
+    title: "Plastic (General)",
     icon: Recycle,
     definition: "A wide range of synthetic or semi-synthetic materials, often found in packaging, bottles, and containers.",
     fiveRs: {
@@ -555,14 +555,14 @@ export default function HomePage() {
         } else if (classificationResultCategory === 'plastic' && !specificPlasticKeys[classificationResultCategory]) {
             categoryKeyToUpdate = 'totalPlastic';
         } else if (classificationResultCategory === 'biowaste' || classificationResultCategory === 'organic') {
-            categoryKeyToUpdate = 'totalBiowaste';
+            categoryKeyToUpdate = 'totalBiowaste'; // Assuming biowaste and organic map to the same counter
         } else if (!(categoryKeyToUpdate in defaultUserProfile)) {
             console.warn(`Unknown category key derived: ${categoryKeyToUpdate}. Logging to totalOther.`);
             categoryKeyToUpdate = 'totalOther';
         }
-
+        
         const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
-        const updatedCategoryCount = currentCategoryCount + 1; 
+        const updatedCategoryCount = currentCategoryCount + 1;
 
         const newUserData: UserProfile = {
           ...prevData,
@@ -922,7 +922,7 @@ export default function HomePage() {
       <Dialog open={isUploadModalOpen} onOpenChange={open => {
           if(!open) {
             setClassificationError(null);
-            if (!isClassifying) {
+            if (!isClassifying) { // Only clear category if not currently classifying
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
             }
