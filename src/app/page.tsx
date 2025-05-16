@@ -233,9 +233,9 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { 
+  organic: { // Ensure 'organic' has an entry if it's a distinct WasteCategory
     title: "Organic Waste",
-    icon: Apple,
+    icon: Apple, // Assuming Apple is a distinct icon for general organic vs specific biowaste
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
     fiveRs: {
       reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
@@ -337,13 +337,13 @@ const ImageWithFallback = ({
   icon?: React.ElementType;
   placeholderText?: string;
 }) => {
-  const validatedInitialSrc = initialSrcProp === "" || initialSrcProp === undefined ? null : initialSrcProp;
+  const validatedInitialSrc = initialSrcProp === "" || initialSrcProp === undefined || initialSrcProp === null ? null : initialSrcProp;
   const [currentSrc, setCurrentSrc] = useState(validatedInitialSrc);
   const [isError, setIsError] = useState(!validatedInitialSrc && !IconComponent && !placeholderText);
   const [isLoading, setIsLoading] = useState(!!validatedInitialSrc);
 
   useEffect(() => {
-    const validatedSrcPropOnUpdate = initialSrcProp === "" || initialSrcProp === undefined ? null : initialSrcProp;
+    const validatedSrcPropOnUpdate = initialSrcProp === "" || initialSrcProp === undefined || initialSrcProp === null ? null : initialSrcProp;
     if (validatedSrcPropOnUpdate) {
       setCurrentSrc(validatedSrcPropOnUpdate);
       setIsError(false);
@@ -412,7 +412,6 @@ export default function HomePage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    console.log("HomePage useEffect triggered for login/data sync.");
     const checkLoginStatus = () => {
       const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
       setIsLoggedIn(loggedIn);
@@ -645,12 +644,6 @@ export default function HomePage() {
       .filter(item => item.tip); 
   }, [selectedCategoryTips]);
 
-
-  console.log("HomePage rendering. Is logged in:", isLoggedIn, "User name:", userData.displayName);
-  console.log("Current Upload Category for Dialog:", currentUploadCategoryFriendlyName);
-  // Add a console log right before the return statement
-  console.log("All JavaScript processing in HomePage complete, preparing to render JSX.");
-
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
       <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
@@ -788,15 +781,17 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <Progress
-                value={scorePercentage}
-                className={cn(
-                    "mt-2 sm:mt-4 h-1 sm:h-1.5", 
-                    currentLevel.progressBarTrackColor,
-                    "[&>div]:transition-all [&>div]:duration-500",
-                    `[&>div]:${currentLevel.progressBarIndicatorColor}`
-                 )}
-            />
+            <div className="w-3/4 mx-auto">
+                <Progress
+                    value={scorePercentage}
+                    className={cn(
+                        "mt-2 sm:mt-4 h-1 sm:h-1.5", 
+                        currentLevel.progressBarTrackColor,
+                        "[&>div]:transition-all [&>div]:duration-500",
+                        `[&>div]:${currentLevel.progressBarIndicatorColor}`
+                     )}
+                />
+            </div>
           </Card>
         </section>
       )}
@@ -991,4 +986,3 @@ export default function HomePage() {
     </div>
   );
 }
-
