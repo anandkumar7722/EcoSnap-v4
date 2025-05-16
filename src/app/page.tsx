@@ -783,11 +783,11 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className="w-11/12 mx-auto">
+            <div className="w-full">
                 <Progress
                     value={scorePercentage}
                     className={cn(
-                        "mt-2 sm:mt-4 h-2.5 sm:h-3", 
+                        "mt-2 sm:mt-4 h-3 sm:h-4", 
                         currentLevel.progressBarTrackColor,
                         "[&>div]:transition-all [&>div]:duration-500",
                         `[&>div]:${currentLevel.progressBarIndicatorColor}`
