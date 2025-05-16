@@ -614,6 +614,7 @@ export default function HomePage() {
     setCurrentUploadCategoryFriendlyName(categoryName);
     setIsUploadModalOpen(true);
   };
+  console.log("Current script is evaluating completely.");
 
   const currentLevel = useMemo(() => getCurrentLevel(userData.score), [userData.score]);
 
@@ -634,7 +635,7 @@ export default function HomePage() {
   }
 
   const selectedCategoryForDialog = useMemo(() => currentUploadCategory || 'general', [currentUploadCategory]);
-  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog, wasteCategoryFiveRTips]);
+  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog]);
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
 
   const fiveRTipsArray = useMemo(() => {
@@ -644,8 +645,6 @@ export default function HomePage() {
       .filter(item => item.tip); 
   }, [selectedCategoryTips]);
   
-  console.log("HomePage rendering. CurrentUploadCategory:", currentUploadCategory, "FriendlyName:", currentUploadCategoryFriendlyName, "ModalOpen:", isUploadModalOpen);
-
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
       <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
@@ -783,7 +782,7 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className="w-3/4 mx-auto">
+            <div className="w-1/2 mx-auto">
                 <Progress
                     value={scorePercentage}
                     className={cn(
@@ -988,5 +987,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
