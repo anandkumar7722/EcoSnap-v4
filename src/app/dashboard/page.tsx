@@ -3,7 +3,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { BarChart as BarChartIconGeneral, PieChart as PieChartIconLucideGeneral, Info, Edit, Filter, CalendarDays as CalendarIcon, Trash2 as SmartBinIconGeneral, Loader2, LineChart as LineChartIcon, PieChart as PieChartIconLucideEWaste, BarChart as BarChartIconEWaste, Clock, Server, Smartphone, Laptop, Battery, Package as EWastePackageIcon, WifiOff, AlertCircleIcon, CheckCircle2Icon, TrashIcon } from 'lucide-react';
+import { 
+    BarChart as BarChartIconGeneral, PieChart as PieChartIconLucideGeneral, Info, Edit, Filter, CalendarDays as CalendarIcon, 
+    Trash2 as SmartBinIconGeneral, Loader2, LineChart as LineChartIcon, PieChart as PieChartIconLucideEWaste, BarChart as BarChartIconEWaste, 
+    Clock, Server, Smartphone, Laptop, Battery as BatteryIcon, Package as EWastePackageIcon, WifiOff, AlertCircleIcon, CheckCircle2Icon, TrashIcon,
+    BatteryWarning, Box, CircleGauge, BatteryFull, PackageCheck, PackageX
+} from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,10 +39,10 @@ import type { DateRange } from "react-day-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { addDays, format, subMonths, addSeconds } from "date-fns";
-import { firestore, database } from '@/lib/firebase'; // Added database
+import { addDays, format, subMonths, addSeconds, differenceInHours } from "date-fns";
+import { firestore, database } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
-import { ref, onValue, off } from 'firebase/database'; // Added ref, onValue, off
+import { ref, onValue, off } from 'firebase/database';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
@@ -53,8 +58,8 @@ const generalChartConfig = {
   organic: { label: "Organic", color: "hsl(var(--chart-3))" },
   cardboard: { label: "Cardboard", color: "hsl(var(--chart-4))" },
   paper: { label: "Paper", color: "hsl(var(--chart-5))" },
-  glass: { label: "Glass", color: "hsl(var(--chart-1))" }, // Re-using color for demo
-  metal: { label: "Metal", color: "hsl(var(--chart-2))" },  // Re-using color for demo
+  glass: { label: "Glass", color: "hsl(var(--chart-1))" }, 
+  metal: { label: "Metal", color: "hsl(var(--chart-2))" },  
   other: { label: "Other", color: "hsl(var(--muted))" },
   plasticPete: { label: "Plastic PETE", color: "hsl(var(--chart-2))" },
   plasticHdpe: { label: "Plastic HDPE", color: "hsl(var(--chart-2))" },
@@ -63,9 +68,8 @@ const generalChartConfig = {
   plasticOther: { label: "Plastic Other", color: "hsl(var(--chart-2))" },
 } satisfies import("@/components/ui/chart").ChartConfig;
 
-// E-Waste Specific Chart Constants
 const MAX_REAL_TIME_EWASTE_POINTS = 20;
-const REAL_TIME_EWASTE_UPDATE_INTERVAL = 3000; // Milliseconds
+const REAL_TIME_EWASTE_UPDATE_INTERVAL = 3000; 
 
 const eWasteCategoryColors: Record<EWasteType | 'others', string> = {
   batteries: 'hsl(var(--chart-1))', 
@@ -75,7 +79,7 @@ const eWasteCategoryColors: Record<EWasteType | 'others', string> = {
 };
 
 const eWasteCategoryConfig = {
-  batteries: { label: "Batteries", color: eWasteCategoryColors.batteries, icon: Battery },
+  batteries: { label: "Batteries", color: eWasteCategoryColors.batteries, icon: BatteryIcon },
   mobiles: { label: "Mobiles", color: eWasteCategoryColors.mobiles, icon: Smartphone },
   laptops: { label: "Laptops", color: eWasteCategoryColors.laptops, icon: Laptop },
   others: { label: "Other E-Waste", color: eWasteCategoryColors.others, icon: EWastePackageIcon },
@@ -92,33 +96,34 @@ export default function DetailedDashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedWasteType, setSelectedWasteType] = useState<WasteCategory | 'all'>('all');
   
-  // State for E-Waste Charts
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [realTimeEWasteData, setRealTimeEWasteData] = useState<RealTimeEWasteDataPoint[]>([]);
   const [eWasteDistributionData, setEWasteDistributionData] = useState<EWasteCategoryDistributionPoint[]>([]);
   const [monthlyEWasteVolume, setMonthlyEWasteVolume] = useState<MonthlyEWasteDataPoint[]>([]);
 
-  // State for General Smart Bins
   const [smartBinsData, setSmartBinsData] = useState<BinData[]>([]);
   const [isLoadingSmartBins, setIsLoadingSmartBins] = useState(true);
   const [smartBinsError, setSmartBinsError] = useState<string | null>(null);
 
-  // Client-side effect to set initial date range
   useEffect(() => {
-    setDateRange({
-      from: addDays(new Date(), -90),
-      to: new Date(),
-    });
+    if (typeof window !== 'undefined') {
+        setDateRange({
+            from: addDays(new Date(), -90),
+            to: new Date(),
+        });
+        const checkMobile = () => setIsMobileView(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }
   }, []);
 
-  // Update current time every second for E-Waste header
   useEffect(() => {
-    setCurrentTime(new Date()); // Set initial time on mount
+    setCurrentTime(new Date()); 
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Simulate real-time E-Waste volume updates
   useEffect(() => {
     const initialTimestamp = new Date();
     const initialData: RealTimeEWasteDataPoint[] = Array.from({ length: 5 }, (_, i) => ({
@@ -140,7 +145,6 @@ export default function DetailedDashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Simulate E-Waste category distribution
   useEffect(() => {
     const generateDistribution = () => {
       const data: EWasteCategoryDistributionPoint[] = (Object.keys(eWasteCategoryColors) as Array<EWasteType | 'others'>).map(key => ({
@@ -153,7 +157,6 @@ export default function DetailedDashboardPage() {
     generateDistribution();
   }, []);
 
-  // Generate static data for monthly E-Waste volume
   useEffect(() => {
     const now = new Date();
     const data: MonthlyEWasteDataPoint[] = Array.from({ length: 6 }).map((_, i) => {
@@ -174,8 +177,6 @@ export default function DetailedDashboardPage() {
     }, {} as import("@/components/ui/chart").ChartConfig);
   }, [eWasteDistributionData]);
 
-
-  // Real-time data fetching from Firestore for general waste
   useEffect(() => {
     setIsLoading(true);
     const userId = 'user1'; 
@@ -220,7 +221,6 @@ export default function DetailedDashboardPage() {
     return () => unsubscribeFirestore();
   }, [toast]);
 
-  // Real-time data fetching from Firebase Realtime Database for smart bins
   useEffect(() => {
     if (!database) {
       setSmartBinsError("Firebase Realtime Database is not initialized.");
@@ -250,19 +250,10 @@ export default function DetailedDashboardPage() {
     });
 
     return () => {
-      off(binsRef, 'value', listener); // Detach listener
+      off(binsRef, 'value', listener);
     };
   }, [toast]);
 
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobileView(window.innerWidth < 768);
-    if (typeof window !== 'undefined') {
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }
-  }, []);
 
   useEffect(() => {
     let data = liveWasteData;
@@ -310,7 +301,7 @@ export default function DetailedDashboardPage() {
   const totalWaste = useMemo(() => {
     return filteredData.reduce((sum, entry) => {
       const quantity = typeof entry.quantity === 'number' ? entry.quantity : 0;
-      return sum + (entry.unit === 'items' ? quantity * 0.1 : quantity); // Assuming 0.1kg per item for simplicity
+      return sum + (entry.unit === 'items' ? quantity * 0.1 : quantity); 
     }, 0).toFixed(1);
   }, [filteredData]);
   
@@ -339,6 +330,25 @@ export default function DetailedDashboardPage() {
       </text>
     );
   };
+
+  const getBinStatusText = (bin: BinData): string => {
+    if (bin.notify) return "Notify";
+    if (bin.fill_level >= 90) return "Full";
+    if (bin.fill_level >= 70) return "Near Full";
+    if (bin.fill_level >= 20) return "Filling";
+    return "Empty";
+  };
+  
+  const getBinStatusColor = (bin: BinData): string => {
+    if (bin.notify || bin.fill_level >= 90) return "hsl(var(--destructive))"; // Red
+    if (bin.fill_level >= 70) return "hsl(var(--chart-2))"; // Yellow/Orange
+    return "hsl(var(--chart-1))"; // Green
+  };
+
+  const totalSmartBins = smartBinsData.length;
+  const fullSmartBins = smartBinsData.filter(bin => bin.notify || bin.fill_level >= 90).length;
+  const lowBatterySmartBins = smartBinsData.filter(bin => typeof bin.battery_level === 'number' && bin.battery_level < 20).length;
+
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -681,14 +691,16 @@ export default function DetailedDashboardPage() {
         </Card>
       </div>
 
-      <Card className="mt-8">
+      {/* General Smart Bin Monitoring Section */}
+      <Card className="mt-8 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <SmartBinIconGeneral className="h-5 w-5 text-primary" />
-            General Smart Bin Monitoring (IoT)
+          <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary">
+            <SmartBinIconGeneral className="h-5 w-5 sm:h-6 sm:w-6" />
+            General Smart Bin Monitoring
           </CardTitle>
           <CardDescription className="text-xs sm:text-sm">
-            Overview of connected smart bin statuses for general waste. Backend logic to update bin 'notify' status is handled by a Cloud Function.
+            Overview of connected smart bin statuses for general waste. Real-time data from IoT-enabled smart bins.
+            The 'notify' status is updated by a Cloud Function.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -703,74 +715,152 @@ export default function DetailedDashboardPage() {
               <AlertTitle>Error Loading Smart Bins</AlertTitle>
               <AlertDescription>{smartBinsError}</AlertDescription>
             </Alert>
-          ) : smartBinsData.length === 0 ? (
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertTitle>No Smart Bins Found</AlertTitle>
-              <AlertDescription>No general smart bin data available in the Realtime Database at the moment.</AlertDescription>
-            </Alert>
           ) : (
-            <div className="space-y-4">
-              {smartBinsData.map((bin) => (
-                <Card 
-                  key={bin.id} 
-                  className={cn(
-                    "p-4 shadow-sm transition-all duration-300 ease-in-out", 
-                    bin.notify 
-                      ? "border-destructive bg-destructive/5 hover:shadow-md" 
-                      : "border-green-500 bg-green-500/5 hover:shadow-md"
-                  )}
-                >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <div className="flex-grow">
-                      <h4 className="font-semibold text-base sm:text-lg flex items-center">
-                        <TrashIcon className={cn("h-5 w-5 mr-2 shrink-0", bin.notify ? "text-destructive" : "text-green-600")} />
-                        <span className="truncate" title={`Bin ID: ${bin.id}`}>Bin ID: {bin.id}</span>
-                      </h4>
-                       {bin.location && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Location: Lat {bin.location.latitude.toFixed(4)}, Lon {bin.location.longitude.toFixed(4)}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-start sm:items-end w-full sm:w-auto mt-2 sm:mt-0 space-y-1.5">
-                      <div className="text-sm w-full min-w-[120px] sm:min-w-[150px]">
-                        <div className="flex justify-between items-baseline mb-1">
-                          <span className="font-medium text-muted-foreground">Fill Level:</span>
-                          <span className={cn("font-bold text-lg", bin.fill_level >= 90 ? "text-destructive" : bin.fill_level > 70 ? "text-orange-600" : "text-green-600")}>
-                            {bin.fill_level}%
-                          </span>
-                        </div>
-                        <Progress 
-                          value={bin.fill_level} 
-                          className={cn(
-                            "h-2.5 rounded-full", 
-                            bin.fill_level >= 90 ? "[&>div]:bg-destructive" : 
-                            bin.fill_level > 70 ? "[&>div]:bg-orange-500" : 
-                            "[&>div]:bg-green-500"
-                          )} 
-                          aria-label={`Bin ${bin.id} fill level ${bin.fill_level}%`}
-                        />
-                      </div>
-                       <div className={cn(
-                         "mt-2 text-xs sm:text-sm font-medium flex items-center px-2.5 py-1 rounded-md shadow-xs", 
-                         bin.notify 
-                           ? "bg-destructive/10 text-destructive" 
-                           : "bg-green-600/10 text-green-700"
-                        )}>
-                        {bin.notify ? <AlertCircleIcon className="h-4 w-4 mr-1.5 shrink-0" /> : <CheckCircle2Icon className="h-4 w-4 mr-1.5 shrink-0" />}
-                        Status: {bin.notify ? 'Needs Attention' : 'OK'}
-                      </div>
-                    </div>
-                  </div>
-                   {typeof bin.lastEmptied === 'number' && bin.lastEmptied > 0 && (
-                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-muted/20">
-                      Last Emptied: {format(new Date(bin.lastEmptied), 'PPpp')}
-                    </p>
-                  )}
+            <>
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <Card className="shadow-sm">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Bins</CardTitle>
+                    <Box className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{totalSmartBins}</div>
+                  </CardContent>
                 </Card>
-              ))}
-            </div>
+                <Card className="shadow-sm">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Full / Needs Attention</CardTitle>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{fullSmartBins}</div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Low Battery</CardTitle>
+                    <BatteryWarning className="h-4 w-4 text-orange-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{lowBatterySmartBins}</div>
+                    <p className="text-xs text-muted-foreground">(Battery data if available)</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {smartBinsData.length === 0 ? (
+                 <Alert>
+                    <PackageX className="h-4 w-4" />
+                    <AlertTitle>No Smart Bins Found</AlertTitle>
+                    <AlertDescription>No general smart bin data available in the Realtime Database at the moment.</AlertDescription>
+                </Alert>
+              ) : (
+                <div className="space-y-4">
+                  {smartBinsData.map((bin) => {
+                    const binStatusText = getBinStatusText(bin);
+                    const isOffline = bin.last_updated && differenceInHours(new Date(), new Date(bin.last_updated)) > 24; // Example: offline if not updated in 24h
+                    
+                    let statusIcon;
+                    let statusColorClass;
+                    let progressColorClass;
+
+                    if (isOffline) {
+                        statusIcon = <WifiOff className="h-4 w-4 text-muted-foreground" />;
+                        statusColorClass = "text-muted-foreground";
+                        progressColorClass = "[&>div]:bg-muted";
+                    } else if (bin.notify) {
+                        statusIcon = <AlertCircleIcon className="h-4 w-4 text-destructive" />;
+                        statusColorClass = "text-destructive";
+                        progressColorClass = "[&>div]:bg-destructive";
+                    } else if (bin.fill_level >= 90) {
+                        statusIcon = <TrashIcon className="h-4 w-4 text-destructive" />;
+                        statusColorClass = "text-destructive";
+                        progressColorClass = "[&>div]:bg-destructive";
+                    } else if (bin.fill_level >= 70) {
+                        statusIcon = <CircleGauge className="h-4 w-4 text-orange-500" />;
+                        statusColorClass = "text-orange-500";
+                        progressColorClass = "[&>div]:bg-orange-500";
+                    } else {
+                        statusIcon = <PackageCheck className="h-4 w-4 text-green-600" />;
+                        statusColorClass = "text-green-600";
+                        progressColorClass = "[&>div]:bg-green-500";
+                    }
+
+                    return (
+                        <Card 
+                        key={bin.id} 
+                        className={cn(
+                            "p-3 sm:p-4 shadow-sm transition-all duration-300 ease-in-out border-l-4", 
+                            isOffline ? "border-muted" :
+                            bin.notify || bin.fill_level >= 90 ? "border-destructive" : 
+                            bin.fill_level >= 70 ? "border-orange-500" : 
+                            "border-green-500",
+                            isOffline ? "bg-muted/30" : "bg-card hover:shadow-md"
+                        )}
+                        >
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                            <div className="flex-grow">
+                            <h4 className="font-semibold text-base sm:text-lg flex items-center gap-2">
+                                <TrashIcon className={cn("h-5 w-5 shrink-0", statusColorClass)} />
+                                <span className="truncate" title={`Bin ID: ${bin.id}`}>Bin: {bin.id}</span>
+                            </h4>
+                            {bin.location && (
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                Lat: {bin.location.latitude.toFixed(3)}, Lon: {bin.location.longitude.toFixed(3)}
+                                </p>
+                            )}
+                            </div>
+                            <div className="flex flex-col items-start sm:items-end w-full sm:w-auto space-y-1.5 sm:space-y-2">
+                            <div className="text-sm w-full min-w-[130px] sm:min-w-[160px]">
+                                <div className="flex justify-between items-baseline mb-1">
+                                <span className="font-medium text-muted-foreground text-xs">Fill Level:</span>
+                                <span className={cn("font-bold text-base sm:text-lg", statusColorClass)}>
+                                    {bin.fill_level}%
+                                </span>
+                                </div>
+                                <Progress 
+                                value={bin.fill_level} 
+                                className={cn("h-2 sm:h-2.5 rounded-full", progressColorClass)} 
+                                aria-label={`Bin ${bin.id} fill level ${bin.fill_level}%`}
+                                />
+                            </div>
+
+                            {typeof bin.battery_level === 'number' && (
+                                <div className={cn("text-xs flex items-center", bin.battery_level < 20 ? "text-orange-500" : "text-muted-foreground")}>
+                                {bin.battery_level < 20 ? 
+                                    <BatteryWarning className="h-3.5 w-3.5 mr-1 shrink-0" /> : 
+                                    <BatteryFull className="h-3.5 w-3.5 mr-1 shrink-0" />
+                                }
+                                Battery: {bin.battery_level}%
+                                </div>
+                            )}
+
+                            <div className={cn("text-xs sm:text-sm font-medium flex items-center px-2 py-0.5 rounded-md shadow-xs", 
+                                isOffline ? "bg-muted text-muted-foreground" :
+                                bin.notify || bin.fill_level >= 90 ? "bg-destructive/10 text-destructive" :
+                                bin.fill_level >= 70 ? "bg-orange-500/10 text-orange-600" :
+                                "bg-green-600/10 text-green-700"
+                            )}>
+                                {statusIcon}
+                                Status: {isOffline ? "Offline" : binStatusText}
+                            </div>
+                            </div>
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-muted/20 text-xs text-muted-foreground space-y-0.5">
+                            {typeof bin.lastEmptied === 'number' && bin.lastEmptied > 0 && (
+                                <p>Last Emptied: {format(new Date(bin.lastEmptied), 'PP p')}</p>
+                            )}
+                            {typeof bin.last_updated === 'number' && bin.last_updated > 0 && (
+                                <p>Last Updated: {format(new Date(bin.last_updated), 'PP p')} {isOffline ? "(Offline)" : ""}</p>
+                            )}
+                        </div>
+                        </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

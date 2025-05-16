@@ -167,6 +167,8 @@ export interface BinData {
   fill_level: number; // 0-100
   lastEmptied: number; // timestamp
   notify: boolean;
+  battery_level?: number; // Optional: 0-100
+  last_updated?: number; // Optional: timestamp of last data sync from bin
 }
 
 // For Recycling Schedules
