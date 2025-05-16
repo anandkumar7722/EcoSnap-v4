@@ -784,14 +784,14 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-full")}> {/* Container for the Progress bar, set to full width */}
+            <div className={cn("mt-2 sm:mt-4 w-full")}>
                 <Progress
                     value={scorePercentage}
                     className={cn(
                         currentLevel.progressBarTrackColor, 
                         `[&>div]:${currentLevel.progressBarIndicatorColor}`,
-                        "h-3 sm:h-4", // Height of the progress bar
-                        "w-[105%]" // Width of the progress bar set to 105%
+                        "h-3 sm:h-4",
+                        "w-[70%]"
                     )}
                     aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
                 />
