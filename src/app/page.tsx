@@ -64,6 +64,7 @@ const LEVELS: LevelInfo[] = [
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
 ];
 
+// Simplified for debugging, expand as needed
 const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   general: {
     title: "General Waste Item",
@@ -784,18 +785,18 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-full")}>
+            <div className={cn("mt-2 sm:mt-4 w-full")}> {/* Container for progress bar */}
                 <Progress
                     value={scorePercentage}
                     className={cn(
                         currentLevel.progressBarTrackColor, 
                         `[&>div]:${currentLevel.progressBarIndicatorColor}`,
-                        "h-3 sm:h-4",
-                        "w-[70%]"
+                        "h-3 sm:h-4", // Progress bar height
+                        "w-[80%]" // Progress bar width
                     )}
                     aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
                 />
-              </div>
+            </div>
           </Card>
         </section>
       )}
@@ -990,3 +991,4 @@ export default function HomePage() {
     </div>
   );
 }
+
