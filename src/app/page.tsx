@@ -115,7 +115,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   plasticPete: {
     title: "Plastic - PETE (#1)",
-    icon: Recycle,
+    icon: Recycle, // Consistent icon for recyclable plastics
     definition: "Polyethylene Terephthalate. Common in beverage bottles, food containers. Widely recyclable.",
     fiveRs: {
       reduce: "Choose reusable bottles. Buy beverages in larger containers or from concentrate.",
@@ -127,7 +127,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   plasticHdpe: {
     title: "Plastic - HDPE (#2)",
-    icon: Recycle,
+    icon: Recycle, // Consistent icon
     definition: "High-Density Polyethylene. Found in milk jugs, detergent bottles. Often recyclable.",
     fiveRs: {
       reduce: "Buy concentrated detergents. Opt for bar soap over liquid soap in plastic bottles.",
@@ -139,7 +139,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   plasticPp: {
     title: "Plastic - PP (#5)",
-    icon: PackageIcon,
+    icon: PackageIcon, // Using PackageIcon as it often relates to tubs/containers
     definition: "Polypropylene. Used for yogurt containers, bottle caps, some tubs. Increasingly recyclable.",
     fiveRs: {
       reduce: "Buy yogurt in larger tubs. Consider making some items (like sauces) at home.",
@@ -151,7 +151,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   plasticPs: {
     title: "Plastic - PS (#6)",
-    icon: AlertTriangle,
+    icon: AlertTriangle, // Indicates caution due to low recyclability
     definition: "Polystyrene. Found in disposable foam cups/plates, some food containers, packing peanuts. Rarely recycled.",
     fiveRs: {
       reduce: "AVOID PS whenever possible. Use reusable cups and containers. Ask restaurants for non-PS takeout containers.",
@@ -163,7 +163,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   plasticOther: {
     title: "Plastic - Other (#7)",
-    icon: HelpCircle,
+    icon: HelpCircle, // General help/question icon
     definition: "Miscellaneous plastics, including multi-layer materials or newer bioplastics. Recyclability varies greatly.",
     fiveRs: {
       reduce: "Be cautious with items marked #7; try to find alternatives if unsure about recyclability. Avoid products with excessive or mixed-material plastic packaging.",
@@ -175,7 +175,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   glass: {
     title: "Glass",
-    icon: Lightbulb, 
+    icon: Lightbulb, // Using Lightbulb as a generic 'idea/tip' icon for Glass
     definition: "Made from sand, soda ash, and limestone. Infinitely recyclable without loss of quality.",
     fiveRs: {
       reduce: "Buy items in glass when it's a good alternative to plastic. Consider products with refill options.",
@@ -187,7 +187,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   ewaste: {
     title: "E-Waste",
-    icon: Tv2,
+    icon: Tv2, // Icon for electronics
     definition: "Electronic waste like old phones, computers, TVs, batteries, cables. Contains valuable and hazardous materials.",
     fiveRs: {
       reduce: "Repair electronics instead of replacing them. Buy durable, high-quality products. Resist upgrading too frequently.",
@@ -199,7 +199,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   biowaste: {
     title: "Bio-Waste / Organic",
-    icon: Leaf,
+    icon: Leaf, // Standard icon for organic/bio waste
     definition: "Organic matter like food scraps (fruit, vegetables, coffee grounds), yard trimmings, and some paper products (if not waxy or coated).",
     fiveRs: {
       reduce: "Plan meals to reduce food waste. Store food properly to extend its life. Only buy what you need.",
@@ -211,7 +211,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   metal: {
     title: "Metal",
-    icon: Wind, 
+    icon: Wind, // Using Wind as a placeholder, could be a more specific metal icon
     definition: "Includes aluminum cans, steel/tin cans, and sometimes other metal items. Highly recyclable.",
     fiveRs: {
       reduce: "Choose reusable containers over single-use cans where possible.",
@@ -221,7 +221,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: { 
+  other: { // This corresponds to "Trash" in the UI
     title: "Trash / Other Non-Recyclables",
     icon: Trash2,
     definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
@@ -233,9 +233,9 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { 
+  organic: { // Could be merged with biowaste, but defined separately if distinct tracking is needed
     title: "Organic Waste",
-    icon: Apple, 
+    icon: Apple, // Specific icon for food-related organic
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
     fiveRs: {
       reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
@@ -781,11 +781,11 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className="w-1/2 mx-auto">
+            <div className="w-5/6 mx-auto">
                 <Progress
                     value={scorePercentage}
                     className={cn(
-                        "mt-2 sm:mt-4 h-1 sm:h-1.5", 
+                        "mt-2 sm:mt-4 h-2 sm:h-2.5", 
                         currentLevel.progressBarTrackColor,
                         "[&>div]:transition-all [&>div]:duration-500",
                         `[&>div]:${currentLevel.progressBarIndicatorColor}`
@@ -986,6 +986,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-
-    
