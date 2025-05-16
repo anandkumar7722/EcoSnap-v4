@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, ChangeEvent } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
 import { classifyWaste, type ClassifyWasteOutput } from '@/ai/flows/classify-waste';
 import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
-import type { ClassificationRecord, UserProfile, WasteCategory } from '@/lib/types';
+import type { ClassificationRecord, UserProfile, WasteCategory, TipInfo } from '@/lib/types';
 import { ImageUpload } from '@/components/image-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Award, ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, UserPlus as SignupIcon, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple, Wind, Droplets, Lightbulb, Info, Loader2, Recycle, HelpCircle, Star as StarIcon, BookOpen, Users, ShoppingBag, CheckCircle, Settings2, Search, PackageSearch as PackageSearchIcon } from 'lucide-react';
@@ -62,173 +62,189 @@ const LEVELS: LevelInfo[] = [
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-sky-600', textColor: 'text-sky-100', badgeIconContainerColor: 'bg-sky-400', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-300', progressBarTrackColor: 'bg-sky-800' },
 ];
 
-interface TipInfo {
-  title: string;
-  icon: React.ElementType;
-  fiveRs: {
-    reduce: string;
-    reuse: string;
-    recycle: string;
-    educate: string;
-    support: string;
-  };
-}
-
+// SIMPLIFIED VERSION FOR DEBUGGING PARSING ERROR
 const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
+  general: {
+    title: "General Waste Item",
+    icon: HelpCircle,
+    definition: "Items that don't fit into specific recycling or compost streams, often destined for landfill.",
+    fiveRs: {
+      reduce: "Minimize purchases of single-use or non-recyclable items. Opt for products with less packaging.",
+      reuse: "Before discarding, think if the item can be repurposed for another use.",
+      recycle: "Check local guidelines carefully. Some 'other' items might have special drop-off locations.",
+      educate: "Understand what makes items non-recyclable in your area and share this knowledge.",
+      support: "Choose products designed for durability and recyclability. Support businesses with take-back programs for hard-to-recycle items."
+    }
+  },
   cardboard: {
     title: "Cardboard",
     icon: PackageIcon,
+    definition: "Paper-based material, commonly corrugated for boxes or flat for cereal boxes and shoe boxes.",
     fiveRs: {
-      reduce: "Opt for digital subscriptions. Choose products with minimal packaging. Buy in bulk.",
-      reuse: "Use boxes for storage, moving, or shipping. Create DIY crafts, organizers, or pet toys.",
-      recycle: "Flatten ALL boxes. Keep them clean and dry. Remove excessive plastic tape if possible. Pizza boxes: discard if greasy.",
-      educate: "Teach family/friends to flatten boxes. Explain why clean cardboard is vital for recycling quality.",
-      support: "Buy products made from recycled cardboard. Choose companies with sustainable packaging initiatives."
+      reduce: "Opt for digital subscriptions and statements. Choose products with minimal packaging.",
+      reuse: "Use cardboard boxes for storage, moving, or as a base for art projects and gardening.",
+      recycle: "Flatten ALL boxes. Keep them clean and dry. Remove excessive plastic tape if possible.",
+      educate: "Teach family and friends to flatten boxes to save space in recycling bins and collection trucks.",
+      support: "Buy products made from recycled cardboard. Support companies using sustainable packaging."
     }
   },
+  // Simplified: Other categories removed for debugging
   paper: {
     title: "Paper",
     icon: BookOpen,
+    definition: "Items like newspapers, magazines, office paper, and mail (not contaminated with food or wax).",
     fiveRs: {
       reduce: "Go paperless with bills and statements. Print double-sided. Use digital notebooks.",
-      reuse: "Use scrap paper for notes or drafts. Use old newspapers for packing or cleaning.",
-      recycle: "Keep paper clean and dry. Most paper (newspaper, office paper, magazines, mail) is recyclable. Shredded paper may need special handling (check local rules, often bagged). Avoid soiled paper (e.g., greasy food wrappers).",
-      educate: "Share benefits of paper recycling. Label recycling bins clearly in offices/homes.",
-      support: "Buy recycled paper products. Support sustainable forestry practices (e.g., FSC certified products)."
+      reuse: "Use scrap paper for notes or drafts. Use the back of printed sheets for non-official printing.",
+      recycle: "Keep paper clean and dry. Most paper types are recyclable. Check local guidelines for specifics (e.g., shredded paper).",
+      educate: "Promote paperless options at work or school. Explain the benefits of recycling paper.",
+      support: "Purchase recycled paper products. Support businesses that use sustainable paper sourcing."
     }
   },
   plastic: {
-    title: "Plastic (General)",
-    icon: Recycle,
+    title: "Plastic",
+    icon: Recycle, // Using Recycle icon for general plastic
+    definition: "A wide range of synthetic or semi-synthetic materials, often found in packaging, bottles, and containers.",
     fiveRs: {
-      reduce: "Carry reusable water bottles, coffee cups, and shopping bags. Avoid single-use plastics like straws and cutlery. Choose products with less plastic packaging.",
-      reuse: "Repurpose plastic containers for food storage or organizing small items. Use durable plastic items multiple times.",
-      recycle: "Check local guidelines for accepted plastic types (numbers 1-7). Rinse containers. Lids on or off depends on local rules.",
-      educate: "Highlight issues of plastic pollution. Teach how to identify recyclable plastics.",
-      support: "Choose products made from recycled plastic. Support businesses with plastic reduction or take-back programs."
+      reduce: "Avoid single-use plastics (bags, straws, cutlery, bottles). Choose items with less plastic packaging.",
+      reuse: "Use reusable water bottles, coffee cups, and shopping bags. Repurpose plastic containers for storage.",
+      recycle: "Check local recycling guidelines for accepted plastic types (resin codes #1-#7). Rinse containers. Remove lids if required locally.",
+      educate: "Share information about plastic pollution and local recycling programs. Lead by example.",
+      support: "Choose products made from recycled plastic. Support businesses with plastic reduction initiatives or take-back programs."
     }
   },
   plasticPete: {
     title: "Plastic - PETE (#1)",
-    icon: Droplets,
+    icon: Recycle,
+    definition: "Polyethylene Terephthalate. Common in beverage bottles, food containers. Widely recyclable.",
     fiveRs: {
-      reduce: "Opt for larger beverage containers or make drinks at home. Choose products in glass or aluminum.",
-      reuse: "PETE bottles can be refilled a few times if cleaned well, but avoid long-term reuse for food/drink due to potential leaching or bacterial growth. Can be used for non-food storage.",
-      recycle: "Widely recycled. Empty and rinse bottles. Check if caps should be on or off locally.",
-      educate: "Explain that PETE is one of the most commonly recycled plastics. Encourage proper rinsing.",
-      support: "Look for products made with recycled PET (rPET). Support deposit return schemes."
-    }
+      reduce: "Choose reusable bottles. Buy beverages in larger containers or from concentrate.",
+      reuse: "PETE bottles can be refilled (check for safety) or used for DIY projects if clean.",
+      recycle: "Empty and rinse. Most curbside programs accept PETE bottles. Lids on or off depends on local rules.",
+      educate: "Explain that PETE is one of the most commonly recycled plastics. Encourage proper preparation.",
+      support: "Look for products made with recycled PETE (rPET).",
+    },
   },
   plasticHdpe: {
     title: "Plastic - HDPE (#2)",
-    icon: PackageIcon, 
+    icon: Recycle,
+    definition: "High-Density Polyethylene. Found in milk jugs, detergent bottles. Often recyclable.",
     fiveRs: {
-      reduce: "Buy concentrated detergents or cleaners to reduce bottle size. Use bar soap instead of liquid in plastic bottles.",
-      reuse: "Sturdy HDPE containers (e.g., milk jugs, detergent bottles) can be cut and used as scoops, funnels, or for organizing.",
-      recycle: "Widely recycled. Empty and rinse. Check local rules for caps (usually okay to leave on).",
-      educate: "Inform that HDPE is a valuable recyclable material for new bottles, pipes, and lumber.",
-      support: "Choose products packaged in HDPE where alternatives are less sustainable. Support community recycling programs."
-    }
+      reduce: "Buy concentrated detergents. Opt for bar soap over liquid soap in plastic bottles.",
+      reuse: "HDPE containers are sturdy and can be reused for storage or gardening.",
+      recycle: "Empty and rinse. Commonly accepted in curbside recycling.",
+      educate: "Highlight that HDPE is a valuable recyclable plastic.",
+      support: "Choose products packaged in HDPE when possible if you need plastic.",
+    },
   },
   plasticPp: {
     title: "Plastic - PP (#5)",
-    icon: PackageIcon, 
+    icon: PackageIcon, // More generic package icon for tubs/containers
+    definition: "Polypropylene. Used for yogurt containers, bottle caps, some tubs. Increasingly recyclable.",
     fiveRs: {
-      reduce: "Choose larger tubs of yogurt/butter. Use reusable food containers instead of single-use PP tubs.",
-      reuse: "PP containers (yogurt cups, margarine tubs) are often good for storing leftovers, craft supplies, or starting seeds.",
-      recycle: "Recyclability is increasing but varies by location. Check local guidelines. Often needs to be clean.",
-      educate: "Raise awareness about whether PP is accepted locally. Emphasize cleaning before recycling.",
-      support: "If PP is recycled locally, prioritize it. Some companies are now using recycled PP."
-    }
+      reduce: "Buy yogurt in larger tubs. Consider making some items (like sauces) at home.",
+      reuse: "PP containers are good for food storage or organizing small items.",
+      recycle: "Check local guidelines; PP acceptance is growing but not universal. Clean items thoroughly.",
+      educate: "Advocate for PP recycling in your community if it's not yet available.",
+      support: "Support brands using easily recyclable PP packaging or offering PP take-back.",
+    },
   },
   plasticPs: {
     title: "Plastic - PS (#6)",
-    icon: AlertTriangle, 
+    icon: AlertTriangle, // Indicates caution due to low recyclability
+    definition: "Polystyrene. Found in disposable foam cups/plates, some food containers, packing peanuts. Rarely recycled.",
     fiveRs: {
-      reduce: "AVOID Polystyrene wherever possible. Use reusable cups and containers. Ask restaurants for non-PS takeout containers.",
-      reuse: "Limited reuse. Packing peanuts can be reused for shipping. Clean PS containers might be used for non-food storage, but it's generally brittle.",
-      recycle: "RARELY recycled curbside due to low density and contamination. Some specialized drop-off locations might exist for clean, foam-free PS.",
-      educate: "Inform about the environmental problems of PS and its low recyclability. Promote alternatives.",
-      support: "Support businesses that avoid PS packaging. Advocate for bans on single-use PS items."
-    }
+      reduce: "AVOID PS whenever possible. Use reusable cups and containers. Ask restaurants for non-PS takeout containers.",
+      reuse: "Packing peanuts can be reused for shipping. Clean PS containers could be used for non-food storage, but prioritize reduction.",
+      recycle: "Very difficult to recycle and rarely accepted. Check for specialized drop-off locations, but they are uncommon.",
+      educate: "Inform others about the environmental issues with PS and the lack of recycling options. Encourage alternatives.",
+      support: "Actively choose businesses that do not use PS packaging. Support bans on single-use polystyrene.",
+    },
   },
   plasticOther: {
     title: "Plastic - Other (#7)",
-    icon: HelpCircle, 
+    icon: HelpCircle,
+    definition: "Miscellaneous plastics, including multi-layer materials or newer bioplastics. Recyclability varies greatly.",
     fiveRs: {
-      reduce: "This is a catch-all; try to identify and reduce specific #7 items if possible. Focus on avoiding multi-layer packaging or items made from mixed/unidentified plastics.",
-      reuse: "Reuse depends heavily on the specific item. Some #7 plastics are durable and reusable (e.g., some reusable water bottles).",
-      recycle: "Generally NOT recyclable in curbside programs. Some specific #7 items (like PLA compostables) have their own disposal routes, but are not typical recycling. Check item-specific instructions.",
-      educate: "Explain that #7 is complex. Encourage checking packaging for specific disposal info. Highlight the difficulty in recycling these.",
-      support: "Choose products made from more easily recyclable plastics (#1, #2, sometimes #5). Support innovation in bio-based or truly compostable plastics."
-    }
+      reduce: "Be cautious with items marked #7; try to find alternatives if unsure about recyclability. Avoid products with excessive or mixed-material plastic packaging.",
+      reuse: "Reuse depends heavily on the specific item. Some #7 containers might be durable enough for storage.",
+      recycle: "Generally NOT recyclable in curbside programs unless specifically stated by your local facility. Check local guidelines meticulously.",
+      educate: "Highlight that #7 is a catch-all category and often means non-recyclable. Emphasize looking for known recyclable plastics (#1, #2, sometimes #5).",
+      support: "Support innovation in sustainable packaging. Ask companies about the recyclability of their #7 plastics.",
+    },
   },
   glass: {
     title: "Glass",
-    icon: Lightbulb, 
+    icon: Lightbulb, // Re-using Lightbulb as a generic icon
+    definition: "Made from sand, soda ash, and limestone. Infinitely recyclable without loss of quality.",
     fiveRs: {
-      reduce: "Buy products in larger glass containers. Opt for refillable options where available.",
-      reuse: "Glass jars and bottles are excellent for food storage, preserving, vases, or organizing.",
-      recycle: "Widely recyclable and can be recycled endlessly without loss of quality. Rinse clean. Check if different colors need tobe separated locally. Metal lids often recycled separately.",
-      educate: "Emphasize the benefits of glass recycling (saves energy, resources). Caution about non-recyclable glass (Pyrex, ceramics, window glass).",
-      support: "Choose products packaged in glass. Support local recycling programs for glass."
+      reduce: "Buy items in glass when it's a good alternative to plastic. Consider products with refill options.",
+      reuse: "Glass jars and bottles are excellent for food storage, preserving, or DIY crafts.",
+      recycle: "Rinse clean. Most curbside programs accept glass bottles and jars. Some areas require color sorting (clear, brown, green).",
+      educate: "Promote glass as a highly recyclable material. Remind others to rinse items.",
+      support: "Choose products packaged in glass. Support local bottle return schemes if available."
     }
   },
   ewaste: {
     title: "E-Waste",
-    icon: Tv2,
+    icon: Tv2, // More specific e-waste icon
+    definition: "Electronic waste like old phones, computers, TVs, batteries, cables. Contains valuable and hazardous materials.",
     fiveRs: {
-      reduce: "Extend the life of electronics. Repair instead of replacing. Avoid unnecessary upgrades.",
-      reuse: "Donate working electronics to charities or schools. Sell used electronics. Use old phones/tablets for dedicated tasks (e.g., music player).",
-      recycle: "NEVER put in regular trash/recycling. Find dedicated e-waste collection events or drop-off locations. Many retailers offer take-back programs.",
-      educate: "Inform about hazardous materials in e-waste and the importance of special disposal. Share local e-waste recycling options.",
-      support: "Support companies with good repair policies and take-back programs. Look for eco-certified electronics (e.g., EPEAT)."
+      reduce: "Repair electronics instead of replacing them. Buy durable, high-quality products. Resist upgrading too frequently.",
+      reuse: "Donate working electronics to charities or schools. Sell or give away usable items.",
+      recycle: "NEVER put e-waste in regular trash or recycling bins. Find designated e-waste collection events or drop-off locations (e.g., some retailers, municipal sites).",
+      educate: "Inform others about the hazards of improper e-waste disposal and the importance of specialized recycling.",
+      support: "Support companies with take-back programs for old electronics or those that design for repairability and recyclability."
     }
   },
   biowaste: {
-    title: "Bio-Waste",
-    icon: Apple,
+    title: "Bio-Waste / Organic",
+    icon: Leaf,
+    definition: "Organic matter like food scraps (fruit, vegetables, coffee grounds), yard trimmings, and some paper products (if not waxy or coated).",
     fiveRs: {
-      reduce: "Plan meals to reduce food scraps. Store food properly to prevent spoilage. Compost fruit/veg peels instead of trashing.",
-      reuse: "Use vegetable scraps to make broth. Regrow some vegetables from scraps (e.g., green onions).",
-      recycle: "Compost at home (yard trimmings, fruit/veg scraps, coffee grounds). Use municipal green bin programs if available. Avoid meat, dairy, oily foods in home compost unless experienced.",
-      educate: "Teach benefits of composting (reduces landfill, creates soil enricher). Explain what can/cannot be composted.",
-      support: "Support community composting initiatives. Use compost in your garden."
+      reduce: "Plan meals to reduce food waste. Store food properly to extend its life. Only buy what you need.",
+      reuse: "Use vegetable scraps to make broth. Regrow some vegetables from scraps.",
+      recycle: "Compost at home (backyard bin or worm farm). Use municipal green bin programs if available. Check local rules for what's accepted (e.g., meat, dairy).",
+      educate: "Teach others about composting benefits. Share tips for reducing food waste in the kitchen.",
+      support: "Support community composting initiatives. Choose businesses that compost their organic waste."
     }
   },
   metal: {
     title: "Metal",
-    icon: Settings2, 
+    icon: Wind, // Using Wind as a placeholder, could be more specific like Magnet
+    definition: "Includes aluminum cans, steel/tin cans, and sometimes other metal items. Highly recyclable.",
     fiveRs: {
-      reduce: "Choose products with less metal packaging if alternatives are more sustainable overall. Use reusable containers instead of foil.",
-      reuse: "Metal cans can be used for storage, planters, or DIY projects. Reuse aluminum foil if clean.",
-      recycle: "Most metal cans (aluminum, steel) are highly recyclable. Rinse clean. Aerosol cans usually accepted if empty. Check local rules for scrap metal.",
-      educate: "Highlight that metal can be recycled repeatedly. Explain the importance of rinsing cans.",
+      reduce: "Choose reusable containers over single-use cans where possible.",
+      reuse: "Metal cans can be used for storage, planters, or DIY projects.",
+      recycle: "Empty and rinse cans. Most curbside programs accept aluminum and steel cans. Check locally for other metal items (e.g., scrap metal).",
+      educate: "Highlight that metals are valuable and can be recycled repeatedly. Encourage proper preparation.",
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: { 
-    title: "Trash / Other",
+  other: { // This is for 'trash'
+    title: "Trash / Other Non-Recyclables",
     icon: Trash2,
+    definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
     fiveRs: {
-      reduce: "The ultimate goal! Conduct a waste audit to see what you throw away most and find alternatives. Prioritize items with no or minimal packaging. Refuse single-use items.",
-      reuse: "Before trashing, think: can this be repaired? Can someone else use it? Can it be upcycled into something new?",
-      recycle: "Double-check if any component of the 'other' item might be recyclable through special programs (e.g., textiles, soft plastics at store drop-offs). This category is for what's truly non-recyclable locally.",
-      educate: "Raise awareness about waste reduction hierarchies (Reduce is best!). Share info on hard-to-recycle items and their alternatives.",
-      support: "Support businesses that offer durable, repairable products or circular economy models. Advocate for better waste management infrastructure and producer responsibility."
+      reduce: "The most important 'R' for trash! Choose products with less packaging, opt for reusables, and repair items instead of discarding.",
+      reuse: "Before trashing, double-check if any part can be repurposed or if there's a specialized, albeit less common, recycling stream (e.g., Terracycle for specific items).",
+      recycle: "Ensure you're not accidentally trashing items that ARE recyclable or compostable in your area. When in doubt, check local guidelines.",
+      educate: "Understand what truly belongs in the trash in your municipality and why. Share this knowledge to reduce contamination in recycling/compost bins.",
+      support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  general: { 
-    title: "General Waste Item",
-    icon: Search,
+  organic: { // Typically same as biowaste, but if treated separately
+    title: "Organic Waste",
+    icon: Apple,
+    definition: "Primarily food scraps and plant matter that can decompose naturally.",
     fiveRs: {
-      reduce: "Think before you buy: Do I really need this? Can I borrow or buy used? Choose items with less packaging or durable alternatives.",
-      reuse: "Can this item be repaired? Can it be used for something else? Can it be donated or sold?",
-      recycle: "Check for recycling symbols. Know your local recycling rules – what's accepted and what's not? Clean items before recycling.",
-      educate: "Learn about your local waste management system. Share tips with friends and family. Understand the lifecycle of products.",
-      support: "Buy from companies with sustainable practices. Support local repair shops and secondhand stores. Advocate for better recycling infrastructure."
+      reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
+      reuse: "Vegetable scraps for broth, coffee grounds for garden.",
+      recycle: "Home composting (bin, pile, worms) or municipal green bin collection.",
+      educate: "Share composting benefits and how-to guides. Raise awareness about food waste impact.",
+      support: "Local farms using compost, community gardens, businesses with organic waste programs."
     }
-  }
+  },
 };
 
 
@@ -248,7 +264,6 @@ const topHorizontalCategories: Array<{
   { id: 'metal', name: 'Metal', imageUrl: '/assets/images/metal.png', dataAiHint: 'metal items' },
   { id: 'other', name: 'Trash', imageUrl: '/assets/images/trash.png', dataAiHint: 'trash bag' },
 ];
-
 
 const verticalLogCategories: Array<{
   id: WasteCategory;
@@ -299,6 +314,7 @@ const defaultUserProfile: UserProfile = {
   totalPlasticPs: 0,
   itemsClassified: 0,
   challengesCompleted: 0,
+  badges: [],
 };
 
 const ImageWithFallback = ({
@@ -373,7 +389,7 @@ const ImageWithFallback = ({
           className={className}
           sizes={sizes}
           data-ai-hint={`placeholder ${dataAiHint || ''}`.trim()}
-          unoptimized={true} 
+          unoptimized={true}
         />
       </div>
     );
@@ -393,7 +409,7 @@ const ImageWithFallback = ({
           data-ai-hint={(isError || isPlaceholderSrc) ? `placeholder ${dataAiHint}`.trim() : dataAiHint}
           onError={handleError}
           onLoad={handleLoad}
-          unoptimized={isPlaceholderSrc} 
+          unoptimized={isPlaceholderSrc}
         />
       </div>
     );
@@ -405,7 +421,6 @@ const ImageWithFallback = ({
     </div>
   );
 };
-
 
 export default function HomePage() {
   const [userData, setUserData] = useState<UserProfile>(defaultUserProfile);
@@ -454,7 +469,6 @@ export default function HomePage() {
           saveToLocalStorage(USER_DATA_KEY, storedUserData);
       }
 
-
       const history = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
       const uniqueRecentItems = Object.values(
         history.reduce((acc, item) => {
@@ -469,14 +483,13 @@ export default function HomePage() {
     };
 
     checkLoginStatus();
-    window.addEventListener('storage', checkLoginStatus); 
-    window.addEventListener('authChange', checkLoginStatus); 
+    window.addEventListener('storage', checkLoginStatus);
+    window.addEventListener('authChange', checkLoginStatus);
     return () => {
         window.removeEventListener('storage', checkLoginStatus);
         window.removeEventListener('authChange', checkLoginStatus);
     };
   }, []);
-
 
   const handleClassify = async (imageDataUri: string): Promise<ClassifyWasteOutput | null> => {
     if (!isLoggedIn) {
@@ -498,7 +511,7 @@ export default function HomePage() {
 
     try {
       let classificationResultCategory: WasteCategory;
-      let classificationConfidence = 1;
+      let classificationConfidence = 1.0;
 
       if (currentUploadCategory && currentUploadCategory !== 'general') {
         classificationResultCategory = currentUploadCategory;
@@ -508,7 +521,7 @@ export default function HomePage() {
           setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
           toast({
             title: "Classification Failed",
-            description: "The AI could not process the image correctly.",
+            description: "The AI could not process the image correctly. Please try a different image or manually log.",
             variant: "destructive",
           });
           setIsClassifying(false);
@@ -529,7 +542,7 @@ export default function HomePage() {
       };
 
       const currentHistory = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
-      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); 
+      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50);
       saveToLocalStorage(HISTORY_STORAGE_KEY, updatedHistory);
 
       const uniqueRecentItems = Object.values(
@@ -546,9 +559,7 @@ export default function HomePage() {
       setUserData(prevData => {
         const newScore = prevData.score + pointsEarned;
         const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
-        
         let categoryKeyToUpdate: keyof UserProfile = `total${classificationResultCategory.charAt(0).toUpperCase() + classificationResultCategory.slice(1)}` as keyof UserProfile;
-        
         const specificPlasticKeys: Partial<Record<WasteCategory, keyof UserProfile>> = {
             plasticPete: 'totalPlasticPete',
             plasticHdpe: 'totalPlasticHdpe',
@@ -556,7 +567,6 @@ export default function HomePage() {
             plasticPs: 'totalPlasticPs',
             plasticOther: 'totalPlasticOther',
         };
-
         if (specificPlasticKeys[classificationResultCategory]) {
             categoryKeyToUpdate = specificPlasticKeys[classificationResultCategory]!;
         } else if (!(categoryKeyToUpdate in defaultUserProfile) && classificationResultCategory.startsWith('plastic')) {
@@ -564,10 +574,8 @@ export default function HomePage() {
         } else if (!(categoryKeyToUpdate in defaultUserProfile)) {
             categoryKeyToUpdate = 'totalOther';
         }
-
         const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
         const updatedCategoryCount = currentCategoryCount + 1;
-
         const newUserData: UserProfile = {
           ...prevData,
           score: newScore,
@@ -613,13 +621,14 @@ export default function HomePage() {
   };
 
   const openUploadModalForCategory = (categoryId: WasteCategory | 'general' | undefined, categoryName: string) => {
-    setClassificationError(null); 
+    setClassificationError(null);
     setCurrentUploadCategory(categoryId);
     setCurrentUploadCategoryFriendlyName(categoryName);
     setIsUploadModalOpen(true);
   };
 
-  const currentLevel = getCurrentLevel(userData.score);
+  const currentLevel = useMemo(() => getCurrentLevel(userData.score), [userData.score]);
+  
   let scorePercentage = 0;
   let pointsForNextLevelDisplay: string | number = currentLevel.targetForNext;
 
@@ -636,9 +645,18 @@ export default function HomePage() {
     pointsForNextLevelDisplay = "Max";
   }
 
-  const selectedCategoryForDialog = currentUploadCategory || 'general';
-  const selectedCategoryTips = wasteCategoryFiveRTips[selectedCategoryForDialog];
-  const SelectedCategoryIcon = selectedCategoryTips?.icon || HelpCircle;
+  const selectedCategoryForDialog = useMemo(() => currentUploadCategory || 'general', [currentUploadCategory]);
+  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog, wasteCategoryFiveRTips]);
+  const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
+
+  const fiveRTipsArray = useMemo(() => {
+    if (!selectedCategoryTips || !selectedCategoryTips.fiveRs) return [];
+    return (Object.keys(selectedCategoryTips.fiveRs) as Array<keyof TipInfo['fiveRs']>)
+      .map(key => ({ key, tip: selectedCategoryTips.fiveRs[key] }))
+      .filter(item => item.tip);
+  }, [selectedCategoryTips]);
+  
+  console.log("HomePage: JavaScript logic parsed. About to render JSX.");
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
@@ -670,7 +688,7 @@ export default function HomePage() {
         <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Quick Classify</h2>
         <div className="flex overflow-x-auto space-x-3 pb-2 no-scrollbar">
           {topHorizontalCategories.map(category => {
-            const CategoryIcon = category.icon;
+            const CategoryIconComponent = category.icon;
             return (
               <Dialog key={`top-${category.id}`} open={isUploadModalOpen && currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name} onOpenChange={ open => {
                 if(open) { openUploadModalForCategory(category.id, category.name); }
@@ -683,7 +701,10 @@ export default function HomePage() {
                 }
               }}>
                 <DialogTrigger asChild>
-                  <Card className="p-3 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm w-[90px] sm:w-[100px] flex-shrink-0">
+                  <Card
+                    onClick={() => openUploadModalForCategory(category.id, category.name)}
+                    className="p-3 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm w-[90px] sm:w-[100px] flex-shrink-0"
+                  >
                      <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
                       {category.imageUrl ? (
                         <ImageWithFallback
@@ -695,8 +716,8 @@ export default function HomePage() {
                           wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-transparent flex items-center justify-center"
                           className="rounded-md object-contain"
                         />
-                      ) : CategoryIcon ? (
-                        <CategoryIcon className="w-7 h-7 sm:w-8 sm:w-8 text-primary" />
+                      ) : CategoryIconComponent ? (
+                        <CategoryIconComponent className="w-7 h-7 sm:w-8 sm:w-8 text-primary" />
                       ) : (
                         <PackageIcon className="w-7 h-7 sm:w-8 sm:w-8 text-muted-foreground" />
                       )}
@@ -715,26 +736,30 @@ export default function HomePage() {
         <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Log Items by Category</h2>
         {verticalLogCategories.map(item => {
           const quantity = (userData && typeof userData[item.quantityKey] === 'number') ? userData[item.quantityKey] as number : 0;
+          const ItemIconComponent = item.icon;
           return (
             <Dialog key={item.id} open={isUploadModalOpen && currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name} onOpenChange={ open => {
               if(open) { openUploadModalForCategory(item.id, item.name); }
               else {
-                if(currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name) {
-                  setCurrentUploadCategory(undefined);
-                  setCurrentUploadCategoryFriendlyName(undefined);
-                  setIsUploadModalOpen(false);
-                }
+                 if(currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name) {
+                    setCurrentUploadCategory(undefined);
+                    setCurrentUploadCategoryFriendlyName(undefined);
+                    setIsUploadModalOpen(false);
+                 }
               }
             }}>
               <DialogTrigger asChild>
-                <Card className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm">
+                <Card
+                  onClick={() => openUploadModalForCategory(item.id, item.name)}
+                  className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm"
+                >
                   <ImageWithFallback
                     src={item.imageUrl}
                     alt={item.name}
                     dataAiHint={item.dataAiHint}
                     placeholderSize="114x50"
                     sizes="(max-width: 639px) 94px, 114px"
-                    icon={item.icon ? <item.icon className="w-6 h-6 sm:w-7 sm:w-7 text-primary" /> : undefined}
+                    icon={ItemIconComponent ? <ItemIconComponent className="w-6 h-6 sm:w-7 sm:w-7 text-primary" /> : undefined}
                     wrapperClassName="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
                     className="rounded-md object-contain"
                     placeholderText={item.placeholderText}
@@ -817,7 +842,7 @@ export default function HomePage() {
                   } else if (item.category === 'biowaste' && !('totalBiowaste' in defaultUserProfile) && ('totalOrganic' in defaultUserProfile)) {
                     categoryKeyForQuantity = 'totalOrganic';
                   } else if (!(categoryKeyForQuantity in defaultUserProfile)) {
-                      categoryKeyForQuantity = 'totalOther'; 
+                      categoryKeyForQuantity = 'totalOther';
                   }
                 const quantity = (userData && typeof userData[categoryKeyForQuantity] === 'number') ? userData[categoryKeyForQuantity] as number : 0;
 
@@ -914,7 +939,7 @@ export default function HomePage() {
 
       <Dialog open={isUploadModalOpen} onOpenChange={open => {
           if(!open) {
-            setClassificationError(null); 
+            setClassificationError(null);
             if (!isClassifying) {
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
@@ -938,22 +963,25 @@ export default function HomePage() {
               {currentUploadCategoryFriendlyName || "Classify Waste Item"}
             </DialogTitle>
           </DialogHeader>
+          
+          {selectedCategoryTips && selectedCategoryTips.definition && (
+            <p className="text-sm text-muted-foreground my-3 italic">{selectedCategoryTips.definition}</p>
+          )}
 
-          {selectedCategoryTips && (
-            <div className="my-4 space-y-3 text-sm max-h-[200px] sm:max-h-[250px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-              <h3 className="font-semibold text-base text-primary mb-1">5 Rs of Waste Management:</h3>
-              {(Object.keys(selectedCategoryTips.fiveRs) as Array<keyof TipInfo['fiveRs']>).map((key) => (
-                selectedCategoryTips.fiveRs[key] && (
-                  <div key={key}>
-                    <p className="font-medium capitalize text-primary/90">{key}:</p>
-                    <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">{selectedCategoryTips.fiveRs[key]}</p>
-                  </div>
-                )
+          {fiveRTipsArray.length > 0 && (
+            <div className="my-2 sm:my-3 space-y-2 text-sm max-h-[180px] sm:max-h-[220px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+              <h3 className="font-semibold text-base text-primary mb-1.5">5 Rs of Waste Management:</h3>
+              {fiveRTipsArray.map((tipItem) => (
+                <div key={tipItem.key}>
+                  <p className="font-medium capitalize text-primary/90">{tipItem.key}:</p>
+                  <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">{tipItem.tip}</p>
+                </div>
               ))}
             </div>
           )}
+            
             {currentUploadCategory && ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory) && (
-                <Alert variant="default" className="mt-2">
+                <Alert variant="default" className="my-2">
                     <Lightbulb className="h-4 w-4" />
                     <AlertTitle>Plastic Tip</AlertTitle>
                     <AlertDescription>
@@ -962,7 +990,7 @@ export default function HomePage() {
                 </Alert>
             )}
 
-          <Separator className={cn((selectedCategoryTips || (currentUploadCategory && ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory)))) ? "my-4" : "my-0")} />
+          <Separator className={cn((selectedCategoryTips || (currentUploadCategory && ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory)))) ? "my-3" : "my-0")} />
 
           <ImageUpload
             onClassify={handleClassify}
@@ -975,5 +1003,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    

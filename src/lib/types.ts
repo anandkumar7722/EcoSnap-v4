@@ -1,5 +1,6 @@
 
 import type { z } from 'zod';
+import type React from 'react';
 
 export type WasteCategory =
   'ewaste' |
@@ -179,4 +180,18 @@ export interface UserScheduleSettings {
   notificationsEnabled: boolean;
   lastFetched?: number; // timestamp
   schedules?: RecyclingScheduleItem[];
+}
+
+// For 5 Rs Tips
+export interface TipInfo {
+  title: string;
+  icon: React.ElementType;
+  definition?: string;
+  fiveRs: {
+    reduce: string;
+    reuse: string;
+    recycle: string;
+    educate: string;
+    support: string;
+  };
 }
