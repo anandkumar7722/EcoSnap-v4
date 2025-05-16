@@ -635,7 +635,7 @@ export default function HomePage() {
   }
 
   const selectedCategoryForDialog = useMemo(() => currentUploadCategory || 'general', [currentUploadCategory]);
-  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog, wasteCategoryFiveRTips]);
+  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog]);
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
 
   const fiveRTipsArray = useMemo(() => {
@@ -790,7 +790,7 @@ export default function HomePage() {
             <Progress
                 value={scorePercentage}
                 className={cn(
-                    "mt-2 sm:mt-4 h-2 sm:h-2.5", 
+                    "mt-2 sm:mt-4 h-1.5 sm:h-2", 
                     currentLevel.progressBarTrackColor,
                     "[&>div]:transition-all [&>div]:duration-500",
                     `[&>div]:${currentLevel.progressBarIndicatorColor}`
@@ -835,9 +835,9 @@ export default function HomePage() {
                         src={item.imageDataUri}
                         alt={item.category}
                         dataAiHint={`${item.category} item`}
-                        placeholderSize="48x48"
-                        sizes="(max-width: 639px) 40px, 48px"
-                        wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0"
+                        placeholderSize="64x64"
+                        sizes="(max-width: 639px) 48px, 64px"
+                        wrapperClassName="relative w-12 h-12 sm:w-16 sm:h-16 rounded-md overflow-hidden bg-muted flex-shrink-0"
                         className="rounded-md object-cover"
                     />
                     <div className="flex-grow overflow-hidden">
