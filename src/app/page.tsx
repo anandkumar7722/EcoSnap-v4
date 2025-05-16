@@ -97,7 +97,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
     }
   },
   plastic: {
-    title: "Plastic",
+    title: "Plastic (General)",
     icon: Recycle,
     fiveRs: {
       reduce: "Carry reusable water bottles, coffee cups, and shopping bags. Avoid single-use plastics like straws and cutlery. Choose products with less plastic packaging.",
@@ -131,7 +131,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
   },
   plasticPp: {
     title: "Plastic - PP (#5)",
-    icon: PackageIcon, // Or Recycle
+    icon: PackageIcon, 
     fiveRs: {
       reduce: "Choose larger tubs of yogurt/butter. Use reusable food containers instead of single-use PP tubs.",
       reuse: "PP containers (yogurt cups, margarine tubs) are often good for storing leftovers, craft supplies, or starting seeds.",
@@ -142,7 +142,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
   },
   plasticPs: {
     title: "Plastic - PS (#6)",
-    icon: AlertTriangle, // To signify difficulty
+    icon: AlertTriangle, 
     fiveRs: {
       reduce: "AVOID Polystyrene wherever possible. Use reusable cups and containers. Ask restaurants for non-PS takeout containers.",
       reuse: "Limited reuse. Packing peanuts can be reused for shipping. Clean PS containers might be used for non-food storage, but it's generally brittle.",
@@ -164,7 +164,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
   },
   glass: {
     title: "Glass",
-    icon: Lightbulb, // Using Lightbulb for generic 'tip'
+    icon: Lightbulb,
     fiveRs: {
       reduce: "Buy products in larger glass containers. Opt for refillable options where available.",
       reuse: "Glass jars and bottles are excellent for food storage, preserving, vases, or organizing.",
@@ -197,7 +197,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
   },
   metal: {
     title: "Metal",
-    icon: Settings2, // Example, could be a can icon if available
+    icon: Settings2,
     fiveRs: {
       reduce: "Choose products with less metal packaging if alternatives are more sustainable overall. Use reusable containers instead of foil.",
       reuse: "Metal cans can be used for storage, planters, or DIY projects. Reuse aluminum foil if clean.",
@@ -206,7 +206,7 @@ const wasteCategoryFiveRTips: Partial<Record<WasteCategory, TipInfo>> = {
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: { // Trash
+  other: { 
     title: "Trash / Other",
     icon: Trash2,
     fiveRs: {
@@ -367,15 +367,15 @@ const verticalLogCategories: Array<{
   { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stack paper', quantityKey: 'totalPaper' },
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar', quantityKey: 'totalGlass' },
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle', quantityKey: 'totalPlastic' },
-  { id: 'plasticPete', name: 'Plastic - PETE', imageUrl: `https://placehold.co/114x50.png?text=PETE`, points: WASTE_POINTS.plasticPete, dataAiHint: 'PETE plastic', quantityKey: 'totalPlasticPete', placeholderText: 'PETE' },
-  { id: 'plasticHdpe', name: 'Plastic - HDPE', imageUrl: `https://placehold.co/114x50.png?text=HDPE`, points: WASTE_POINTS.plasticHdpe, dataAiHint: 'HDPE plastic', quantityKey: 'totalPlasticHdpe', placeholderText: 'HDPE' },
-  { id: 'plasticPp', name: 'Plastic - PP', imageUrl: `https://placehold.co/114x50.png?text=PP`, points: WASTE_POINTS.plasticPp, dataAiHint: 'PP plastic', quantityKey: 'totalPlasticPp', placeholderText: 'PP' },
-  { id: 'plasticPs', name: 'Plastic - PS', imageUrl: `https://placehold.co/114x50.png?text=PS`, points: WASTE_POINTS.plasticPs, dataAiHint: 'PS plastic', quantityKey: 'totalPlasticPs', placeholderText: 'PS' },
-  { id: 'plasticOther', name: 'Plastic - Other', imageUrl: `https://placehold.co/114x50.png?text=OTHER`, points: WASTE_POINTS.plasticOther, dataAiHint: 'other plastic', quantityKey: 'totalPlasticOther', placeholderText: 'OTHER' },
-  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste', quantityKey: 'totalEwaste' },
-  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/bio-waste.png', points: WASTE_POINTS.biowaste, dataAiHint: 'food waste', quantityKey: 'totalBiowaste' },
-  { id: 'metal', name: 'Metal', imageUrl: '/assets/images/metal.png', points: WASTE_POINTS.metal, dataAiHint: 'metal items', quantityKey: 'totalMetal'}, 
-  { id: 'other', name: 'Trash', imageUrl: '/assets/images/trash.png', points: WASTE_POINTS.other, dataAiHint: 'trash bag', quantityKey: 'totalOther' },
+  { id: 'plasticPete', name: 'Plastic - PETE', imageUrl: '/assets/images/plastic-pete.png', points: WASTE_POINTS.plasticPete, dataAiHint: 'PETE plastic bottle', quantityKey: 'totalPlasticPete', placeholderText: 'PETE' },
+  { id: 'plasticHdpe', name: 'Plastic - HDPE', imageUrl: '/assets/images/plastic-hdpe.png', points: WASTE_POINTS.plasticHdpe, dataAiHint: 'HDPE plastic container', quantityKey: 'totalPlasticHdpe', placeholderText: 'HDPE' },
+  { id: 'plasticPp', name: 'Plastic - PP', imageUrl: '/assets/images/plastic-pp.png', points: WASTE_POINTS.plasticPp, dataAiHint: 'PP plastic tub', quantityKey: 'totalPlasticPp', placeholderText: 'PP' },
+  { id: 'plasticPs', name: 'Plastic - PS', imageUrl: '/assets/images/plastic-ps.png', points: WASTE_POINTS.plasticPs, dataAiHint: 'PS plastic foam', quantityKey: 'totalPlasticPs', placeholderText: 'PS' },
+  { id: 'plasticOther', name: 'Plastic - Other', imageUrl: '/assets/images/plastic-other.png', points: WASTE_POINTS.plasticOther, dataAiHint: 'other plastic items', quantityKey: 'totalPlasticOther', placeholderText: 'OTHER' },
+  { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic device', quantityKey: 'totalEwaste' },
+  { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/bio-waste.png', points: WASTE_POINTS.biowaste, dataAiHint: 'food scraps', quantityKey: 'totalBiowaste' },
+  { id: 'metal', name: 'Metal', imageUrl: '/assets/images/metal.png', points: WASTE_POINTS.metal, dataAiHint: 'metal can', quantityKey: 'totalMetal'}, 
+  { id: 'other', name: 'Trash', imageUrl: '/assets/images/trash.png', points: WASTE_POINTS.other, dataAiHint: 'general trash', quantityKey: 'totalOther' },
 ];
 
 
@@ -486,8 +486,6 @@ export default function HomePage() {
           </Button>
         )
       });
-      // Keep modal open for tips, but don't proceed with classification.
-      // User needs to login first.
       return null; 
     }
 
@@ -545,11 +543,23 @@ export default function HomePage() {
         const newScore = prevData.score + pointsEarned;
         const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
         let categoryKeyToUpdate = `total${classificationResultCategory.charAt(0).toUpperCase() + classificationResultCategory.slice(1)}` as keyof UserProfile;
-        if (!(categoryKeyToUpdate in defaultUserProfile) && classificationResultCategory.startsWith('plastic')) {
+        
+        const specificPlasticKeys: Record<string, keyof UserProfile> = {
+            plasticPete: 'totalPlasticPete',
+            plasticHdpe: 'totalPlasticHdpe',
+            plasticPp: 'totalPlasticPp',
+            plasticPs: 'totalPlasticPs',
+            plasticOther: 'totalPlasticOther',
+        };
+
+        if (specificPlasticKeys[classificationResultCategory]) {
+            categoryKeyToUpdate = specificPlasticKeys[classificationResultCategory];
+        } else if (!(categoryKeyToUpdate in defaultUserProfile) && classificationResultCategory.startsWith('plastic')) {
             categoryKeyToUpdate = 'totalPlastic'; 
         } else if (!(categoryKeyToUpdate in defaultUserProfile)) {
             categoryKeyToUpdate = 'totalOther';
         }
+
         const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
         const updatedCategoryCount = currentCategoryCount + 1; 
         
@@ -568,7 +578,7 @@ export default function HomePage() {
         title: "Classification Successful!",
         description: `Item classified as ${currentUploadCategoryFriendlyName || classificationResultCategory}. You earned ${pointsEarned} points!`,
       });
-      setIsUploadModalOpen(false); // Close modal on successful classification
+      setIsUploadModalOpen(false); 
       setCurrentUploadCategory(undefined);
       setCurrentUploadCategoryFriendlyName(undefined);
       return { category: classificationResultCategory, confidence: classificationConfidence };
@@ -770,19 +780,23 @@ export default function HomePage() {
             <div className="flex overflow-x-auto space-x-3 pb-3 no-scrollbar">
               {recentClassifications.map(item => {
                  let categoryKeyForQuantity = `total${item.category.charAt(0).toUpperCase() + item.category.slice(1)}` as keyof UserProfile;
-                  if (item.category === 'organic' && !('totalOrganic' in defaultUserProfile) && ('totalBiowaste' in defaultUserProfile)) {
+                  
+                  const specificPlasticKeys: Record<string, keyof UserProfile> = {
+                      plasticPete: 'totalPlasticPete',
+                      plasticHdpe: 'totalPlasticHdpe',
+                      plasticPp: 'totalPlasticPp',
+                      plasticPs: 'totalPlasticPs',
+                      plasticOther: 'totalPlasticOther',
+                  };
+                  
+                  if (specificPlasticKeys[item.category]) {
+                      categoryKeyForQuantity = specificPlasticKeys[item.category];
+                  } else if (item.category === 'organic' && !('totalOrganic' in defaultUserProfile) && ('totalBiowaste' in defaultUserProfile)) {
                     categoryKeyForQuantity = 'totalBiowaste';
                   } else if (item.category === 'biowaste' && !('totalBiowaste' in defaultUserProfile) && ('totalOrganic' in defaultUserProfile)) {
                     categoryKeyForQuantity = 'totalOrganic';
                   } else if (!(categoryKeyForQuantity in defaultUserProfile)) {
-                     if (item.category.startsWith('plastic') && item.category !== 'plastic') {
-                         categoryKeyForQuantity = `total${item.category.charAt(0).toUpperCase() + item.category.slice(1)}` as keyof UserProfile;
-                         if (!(categoryKeyForQuantity in defaultUserProfile)){ 
-                            categoryKeyForQuantity = 'totalPlastic';
-                         }
-                     } else {
-                         categoryKeyForQuantity = 'totalOther'; 
-                     }
+                      categoryKeyForQuantity = 'totalOther'; 
                   }
                 const quantity = (userData && typeof userData[categoryKeyForQuantity] === 'number') ? userData[categoryKeyForQuantity] as number : 0;
 
@@ -900,7 +914,7 @@ export default function HomePage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <SelectedCategoryIcon className="h-5 w-5 text-primary" />
-              {selectedCategoryTips?.title || currentUploadCategoryFriendlyName || "Classify Waste"}
+              {currentUploadCategoryFriendlyName || "Classify Waste Item"}
             </DialogTitle>
           </DialogHeader>
           
@@ -917,8 +931,17 @@ export default function HomePage() {
               ))}
             </div>
           )}
+            {currentUploadCategory && ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory) && (
+                <Alert variant="default" className="mt-2">
+                    <Lightbulb className="h-4 w-4" />
+                    <AlertTitle>Plastic Tip</AlertTitle>
+                    <AlertDescription>
+                        Always check your local recycling guidelines for specific plastic types. Clean and empty plastics are more likely to be recycled!
+                    </AlertDescription>
+                </Alert>
+            )}
 
-          <Separator className={cn(selectedCategoryTips ? "my-4" : "my-0")}/>
+          <Separator className={cn(selectedCategoryTips || ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory || '') ? "my-4" : "my-0")} />
 
           <ImageUpload 
             onClassify={handleClassify}
