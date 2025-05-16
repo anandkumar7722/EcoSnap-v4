@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { BarChart as BarChartIconGeneral, PieChart as PieChartIconLucideGeneral, Info, Edit, Filter, CalendarDays as CalendarIcon, Trash2 as SmartBinIconGeneral, Loader2, LineChart as LineChartIcon, PieChart as PieChartIconLucideEWaste, BarChart as BarChartIconEWaste, Clock, Server, Smartphone, Laptop, Battery, Package as EWastePackageIcon } from 'lucide-react';
+import { BarChart as BarChartIconGeneral, PieChart as PieChartIconLucideGeneral, Info, Edit, Filter, CalendarDays as CalendarIcon, Trash2 as SmartBinIconGeneral, Loader2, LineChart as LineChartIcon, PieChart as PieChartIconLucideEWaste, BarChart as BarChartIconEWaste, Clock, Server, Smartphone, Laptop, Battery, Package as EWastePackageIcon, WifiOff, AlertCircleIcon, CheckCircle2Icon, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,16 +29,19 @@ import {
   Cell
 } from "recharts";
 import { useEffect, useState, useMemo } from 'react';
-import type { WasteEntry, WasteCategory, RealTimeEWasteDataPoint, EWasteCategoryDistributionPoint, MonthlyEWasteDataPoint, EWasteCategory as EWasteType } from '@/lib/types';
+import type { WasteEntry, WasteCategory, RealTimeEWasteDataPoint, EWasteCategoryDistributionPoint, MonthlyEWasteDataPoint, EWasteCategory as EWasteType, BinData } from '@/lib/types';
 import type { DateRange } from "react-day-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addDays, format, subMonths, addSeconds } from "date-fns";
-import { firestore } from '@/lib/firebase';
+import { firestore, database } from '@/lib/firebase'; // Added database
 import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
+import { ref, onValue, off } from 'firebase/database'; // Added ref, onValue, off
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
+
 
 const allWasteCategories: WasteCategory[] = ['ewaste', 'plastic', 'biowaste', 'cardboard', 'paper', 'glass', 'metal', 'organic', 'other', 'plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'];
 
@@ -94,6 +97,11 @@ export default function DetailedDashboardPage() {
   const [realTimeEWasteData, setRealTimeEWasteData] = useState<RealTimeEWasteDataPoint[]>([]);
   const [eWasteDistributionData, setEWasteDistributionData] = useState<EWasteCategoryDistributionPoint[]>([]);
   const [monthlyEWasteVolume, setMonthlyEWasteVolume] = useState<MonthlyEWasteDataPoint[]>([]);
+
+  // State for General Smart Bins
+  const [smartBinsData, setSmartBinsData] = useState<BinData[]>([]);
+  const [isLoadingSmartBins, setIsLoadingSmartBins] = useState(true);
+  const [smartBinsError, setSmartBinsError] = useState<string | null>(null);
 
   // Client-side effect to set initial date range
   useEffect(() => {
@@ -191,7 +199,7 @@ export default function DetailedDashboardPage() {
       orderBy('timestamp', 'desc')
     );
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const unsubscribeFirestore = onSnapshot(q, (querySnapshot) => {
       const entries: WasteEntry[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -209,8 +217,43 @@ export default function DetailedDashboardPage() {
       setIsLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeFirestore();
   }, [toast]);
+
+  // Real-time data fetching from Firebase Realtime Database for smart bins
+  useEffect(() => {
+    if (!database) {
+      setSmartBinsError("Firebase Realtime Database is not initialized.");
+      setIsLoadingSmartBins(false);
+      return;
+    }
+
+    const binsRef = ref(database, 'bins');
+    const listener = onValue(binsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const binsArray: BinData[] = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        setSmartBinsData(binsArray);
+        setSmartBinsError(null);
+      } else {
+        setSmartBinsData([]);
+      }
+      setIsLoadingSmartBins(false);
+    }, (error) => {
+      console.error("Error fetching smart bins data:", error);
+      setSmartBinsError("Could not load smart bin data. " + error.message);
+      setIsLoadingSmartBins(false);
+      toast({ variant: "destructive", title: "Smart Bin Error", description: "Failed to load data from Realtime Database." });
+    });
+
+    return () => {
+      off(binsRef, 'value', listener); // Detach listener
+    };
+  }, [toast]);
+
 
   useEffect(() => {
     const checkMobile = () => setIsMobileView(window.innerWidth < 768);
@@ -645,17 +688,68 @@ export default function DetailedDashboardPage() {
             General Smart Bin Monitoring (IoT)
           </CardTitle>
           <CardDescription className="text-xs sm:text-sm">
-            Overview of connected smart bin statuses for general waste. (Feature in development)
+            Overview of connected smart bin statuses for general waste. Backend logic to update bin 'notify' status is handled by a Cloud Function.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-sm">
-            This section will display real-time data from IoT-enabled smart bins for general waste.
-            Backend logic to update bin 'notify' status is handled by a Cloud Function.
-          </p>
-          <div className="mt-4 p-4 border border-dashed rounded-md text-center text-muted-foreground">
-            General Smart Bin data will appear here.
-          </div>
+          {isLoadingSmartBins ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-8 w-8 text-primary animate-spin mr-2" />
+              <p className="text-muted-foreground">Loading smart bin data...</p>
+            </div>
+          ) : smartBinsError ? (
+            <Alert variant="destructive">
+              <WifiOff className="h-4 w-4" />
+              <AlertTitle>Error Loading Smart Bins</AlertTitle>
+              <AlertDescription>{smartBinsError}</AlertDescription>
+            </Alert>
+          ) : smartBinsData.length === 0 ? (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>No Smart Bins Found</AlertTitle>
+              <AlertDescription>No general smart bin data available in the Realtime Database at the moment.</AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-4">
+              {smartBinsData.map((bin) => (
+                <Card key={bin.id} className={cn("p-4", bin.notify ? "border-orange-500 bg-orange-500/5" : "border-green-500 bg-green-500/5")}>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div className="flex-grow">
+                      <h4 className="font-semibold text-base sm:text-lg flex items-center">
+                        <TrashIcon className={cn("h-5 w-5 mr-2", bin.notify ? "text-orange-600" : "text-green-600")} />
+                        Bin ID: {bin.id}
+                      </h4>
+                       {bin.location && (
+                        <p className="text-xs text-muted-foreground">
+                          Location: Lat {bin.location.latitude.toFixed(4)}, Lon {bin.location.longitude.toFixed(4)}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-start sm:items-end w-full sm:w-auto mt-2 sm:mt-0">
+                      <div className="text-sm w-full">
+                        <div className="flex justify-between mb-1">
+                          <span className="font-medium">Fill Level:</span>
+                          <span className={cn("font-semibold", bin.fill_level >= 90 ? "text-destructive" : bin.fill_level > 70 ? "text-orange-600" : "text-green-600")}>
+                            {bin.fill_level}%
+                          </span>
+                        </div>
+                        <Progress value={bin.fill_level} className={cn("h-2.5", bin.fill_level >= 90 ? "[&>div]:bg-destructive" : bin.fill_level > 70 ? "[&>div]:bg-orange-500" : "[&>div]:bg-green-500")} />
+                      </div>
+                       <div className={cn("mt-2 text-xs sm:text-sm font-medium flex items-center px-2 py-1 rounded-md", bin.notify ? "bg-destructive/10 text-destructive" : "bg-green-600/10 text-green-700")}>
+                        {bin.notify ? <AlertCircleIcon className="h-4 w-4 mr-1.5" /> : <CheckCircle2Icon className="h-4 w-4 mr-1.5" />}
+                        Status: {bin.notify ? 'Needs Attention' : 'OK'}
+                      </div>
+                    </div>
+                  </div>
+                   {typeof bin.lastEmptied === 'number' && (
+                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-muted/50">
+                      Last Emptied: {format(new Date(bin.lastEmptied), 'PPpp')}
+                    </p>
+                  )}
+                </Card>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
