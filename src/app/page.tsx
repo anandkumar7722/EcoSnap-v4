@@ -13,7 +13,7 @@ import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
 import type { ClassificationRecord, UserProfile, WasteCategory } from '@/lib/types';
 import { ImageUpload } from '@/components/image-upload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Award, ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, UserPlus as SignupIcon, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple, Wind, Droplets, Lightbulb, Info, Loader2 } from 'lucide-react'; 
+import { Award, ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, UserPlus as SignupIcon, Trash2, Leaf, Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple, Wind, Droplets, Lightbulb, Info, Loader2, Recycle } from 'lucide-react'; 
 import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from '@/lib/utils';
@@ -33,6 +33,11 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
   metal: 40,
   organic: 60, 
   other: 10,
+  plasticOther: 20,
+  plasticPete: 55,
+  plasticHdpe: 55,
+  plasticPp: 45,
+  plasticPs: 15,
 };
 
 const CO2_SAVED_PER_POINT = 0.1; 
@@ -65,7 +70,6 @@ const getCurrentLevel = (score: number): LevelInfo => {
   return LEVELS[0]; // Default to Bronze
 };
 
-
 const ImageWithFallback = ({
   src: initialSrcProp, 
   alt,
@@ -74,7 +78,8 @@ const ImageWithFallback = ({
   sizes = "(max-width: 639px) 94px, 114px",
   className = "rounded-md object-cover",
   wrapperClassName = "relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center",
-  icon 
+  icon,
+  placeholderText
 }: {
   src: string | null | undefined;
   alt: string;
@@ -84,6 +89,7 @@ const ImageWithFallback = ({
   className?: string;
   wrapperClassName?: string;
   icon?: React.ReactNode;
+  placeholderText?: string;
 }) => {
   const validatedInitialSrc = initialSrcProp === "" || initialSrcProp === undefined ? null : initialSrcProp;
 
@@ -128,10 +134,13 @@ const ImageWithFallback = ({
   }
 
   if (!icon && (!currentSrc || isError)) {
+    const placeholderUrl = placeholderText 
+      ? `https://placehold.co/${placeholderSize}.png?text=${encodeURIComponent(placeholderText)}`
+      : `https://placehold.co/${placeholderSize}.png`;
     return (
       <div className={wrapperClassName}>
         <Image
-          src={`https://placehold.co/${placeholderSize}.png`}
+          src={placeholderUrl}
           alt={alt || "Placeholder"}
           fill
           className={className}
@@ -184,7 +193,7 @@ const topHorizontalCategories: Array<{
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', dataAiHint: 'glass jar' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', dataAiHint: 'electronic waste' },
   { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/bio-waste.png', dataAiHint: 'food waste' },
-  { id: 'metal', name: 'Metal', imageUrl: '/assets/images/metal.png', dataAiHint: 'metal scrap' }, 
+  { id: 'metal', name: 'Metal', imageUrl: '/assets/images/metal.png', dataAiHint: 'metal items' }, 
   { id: 'other', name: 'Trash', imageUrl: '/assets/images/trash.png', dataAiHint: 'trash bag' },
 ];
 
@@ -196,12 +205,18 @@ const verticalLogCategories: Array<{
   icon?: React.ElementType;
   points: number;
   dataAiHint: string;
-  quantityKey: keyof Pick<UserProfile, 'totalCardboard' | 'totalPaper' | 'totalGlass' | 'totalPlastic' | 'totalOther' | 'totalEwaste' | 'totalBiowaste' | 'totalMetal' | 'totalOrganic'>;
+  quantityKey: keyof Pick<UserProfile, 'totalCardboard' | 'totalPaper' | 'totalGlass' | 'totalPlastic' | 'totalOther' | 'totalEwaste' | 'totalBiowaste' | 'totalMetal' | 'totalOrganic' | 'totalPlasticOther' | 'totalPlasticPete' | 'totalPlasticHdpe' | 'totalPlasticPp' | 'totalPlasticPs'>;
+  placeholderText?: string;
 }> = [
   { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.png', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box', quantityKey: 'totalCardboard' },
   { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', points: WASTE_POINTS.paper, dataAiHint: 'stack paper', quantityKey: 'totalPaper' },
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', points: WASTE_POINTS.glass, dataAiHint: 'glass jar', quantityKey: 'totalGlass' },
   { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', points: WASTE_POINTS.plastic, dataAiHint: 'plastic bottle', quantityKey: 'totalPlastic' },
+  { id: 'plasticPete', name: 'Plastic - PETE', imageUrl: `https://placehold.co/114x50.png?text=PETE`, points: WASTE_POINTS.plasticPete, dataAiHint: 'PETE plastic', quantityKey: 'totalPlasticPete', placeholderText: 'PETE' },
+  { id: 'plasticHdpe', name: 'Plastic - HDPE', imageUrl: `https://placehold.co/114x50.png?text=HDPE`, points: WASTE_POINTS.plasticHdpe, dataAiHint: 'HDPE plastic', quantityKey: 'totalPlasticHdpe', placeholderText: 'HDPE' },
+  { id: 'plasticPp', name: 'Plastic - PP', imageUrl: `https://placehold.co/114x50.png?text=PP`, points: WASTE_POINTS.plasticPp, dataAiHint: 'PP plastic', quantityKey: 'totalPlasticPp', placeholderText: 'PP' },
+  { id: 'plasticPs', name: 'Plastic - PS', imageUrl: `https://placehold.co/114x50.png?text=PS`, points: WASTE_POINTS.plasticPs, dataAiHint: 'PS plastic', quantityKey: 'totalPlasticPs', placeholderText: 'PS' },
+  { id: 'plasticOther', name: 'Plastic - Other', imageUrl: `https://placehold.co/114x50.png?text=OTHER`, points: WASTE_POINTS.plasticOther, dataAiHint: 'other plastic', quantityKey: 'totalPlasticOther', placeholderText: 'OTHER' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', points: WASTE_POINTS.ewaste, dataAiHint: 'electronic waste', quantityKey: 'totalEwaste' },
   { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/bio-waste.png', points: WASTE_POINTS.biowaste, dataAiHint: 'food waste', quantityKey: 'totalBiowaste' },
   { id: 'metal', name: 'Metal', imageUrl: '/assets/images/metal.png', points: WASTE_POINTS.metal, dataAiHint: 'metal items', quantityKey: 'totalMetal'}, 
@@ -225,6 +240,11 @@ const defaultUserProfile: UserProfile = {
   totalMetal: 0,
   totalOrganic: 0,
   totalOther: 0,
+  totalPlasticOther: 0,
+  totalPlasticPete: 0,
+  totalPlasticHdpe: 0,
+  totalPlasticPp: 0,
+  totalPlasticPs: 0,
   itemsClassified: 0,
   challengesCompleted: 0,
 };
@@ -320,75 +340,92 @@ export default function HomePage() {
     setClassificationError(null);
 
     try {
-      const result = await classifyWaste({ photoDataUri: imageDataUri });
-      if (result && result.category) {
-        const pointsEarned = WASTE_POINTS[result.category] || WASTE_POINTS.other;
-        const newRecord: ClassificationRecord = {
-          id: Date.now().toString(),
-          imageDataUri,
-          category: result.category,
-          confidence: result.confidence,
-          timestamp: Date.now(),
-          points: pointsEarned,
-        };
+      // If a specific category was pre-selected (e.g. "plasticPete"), we use it.
+      // Otherwise, AI classifies it.
+      let classificationResultCategory: WasteCategory;
+      let classificationConfidence = 1; // Assume 100% confidence for manual categorization
 
-        const currentHistory = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
-        const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); 
-        saveToLocalStorage(HISTORY_STORAGE_KEY, updatedHistory);
-        
-        const uniqueRecentItems = Object.values(
-          updatedHistory.reduce((acc, item) => {
-            if (!acc[item.category] || acc[item.category].timestamp < item.timestamp) {
-              acc[item.category] = item;
-            }
-            return acc;
-          }, {} as Record<string, ClassificationRecord>)
-        ).sort((a,b) => b.timestamp - a.timestamp)
-         .slice(0, MAX_HISTORY_DISPLAY_ITEMS);
-        setRecentClassifications(uniqueRecentItems);
-
-        setUserData(prevData => {
-          const newScore = prevData.score + pointsEarned;
-          const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
-          
-          let categoryKeyToUpdate = `total${result.category.charAt(0).toUpperCase() + result.category.slice(1)}` as keyof UserProfile;
-          if (result.category === 'organic' && !('totalOrganic' in defaultUserProfile) && ('totalBiowaste' in defaultUserProfile)) {
-            categoryKeyToUpdate = 'totalBiowaste';
-          } else if (result.category === 'biowaste' && !('totalBiowaste' in defaultUserProfile) && ('totalOrganic' in defaultUserProfile)) {
-             categoryKeyToUpdate = 'totalOrganic';
-          }
-
-          const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
-          const updatedCategoryCount = currentCategoryCount + 1; 
-          
-          const newUserData: UserProfile = {
-            ...prevData,
-            score: newScore,
-            co2Managed: parseFloat(newCo2Managed.toFixed(1)),
-            itemsClassified: prevData.itemsClassified + 1,
-            [categoryKeyToUpdate]: updatedCategoryCount, 
-          };
-          saveToLocalStorage(USER_DATA_KEY, newUserData);
-          return newUserData;
-        });
-        
-        toast({
-          title: "Classification Successful!",
-          description: `Item classified as ${result.category}. You earned ${pointsEarned} points!`,
-        });
-        setIsUploadModalOpen(false);
-        setCurrentUploadCategory(undefined);
-        setCurrentUploadCategoryFriendlyName(undefined);
-        return result;
+      if (currentUploadCategory) {
+        classificationResultCategory = currentUploadCategory;
       } else {
-        setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
-        toast({
-          title: "Classification Failed",
-          description: "The AI could not process the image correctly.",
-          variant: "destructive",
-        });
-        return null;
+        const result = await classifyWaste({ photoDataUri: imageDataUri });
+        if (!result || !result.category) {
+          setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
+          toast({
+            title: "Classification Failed",
+            description: "The AI could not process the image correctly.",
+            variant: "destructive",
+          });
+          setIsClassifying(false);
+          return null;
+        }
+        classificationResultCategory = result.category;
+        classificationConfidence = result.confidence;
       }
+      
+      const pointsEarned = WASTE_POINTS[classificationResultCategory] || WASTE_POINTS.other;
+      const newRecord: ClassificationRecord = {
+        id: Date.now().toString(),
+        imageDataUri,
+        category: classificationResultCategory,
+        confidence: classificationConfidence,
+        timestamp: Date.now(),
+        points: pointsEarned,
+      };
+
+      const currentHistory = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
+      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); 
+      saveToLocalStorage(HISTORY_STORAGE_KEY, updatedHistory);
+      
+      const uniqueRecentItems = Object.values(
+        updatedHistory.reduce((acc, item) => {
+          if (!acc[item.category] || acc[item.category].timestamp < item.timestamp) {
+            acc[item.category] = item;
+          }
+          return acc;
+        }, {} as Record<string, ClassificationRecord>)
+      ).sort((a,b) => b.timestamp - a.timestamp)
+        .slice(0, MAX_HISTORY_DISPLAY_ITEMS);
+      setRecentClassifications(uniqueRecentItems);
+
+      setUserData(prevData => {
+        const newScore = prevData.score + pointsEarned;
+        const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
+        
+        let categoryKeyToUpdate = `total${classificationResultCategory.charAt(0).toUpperCase() + classificationResultCategory.slice(1)}` as keyof UserProfile;
+        
+        // Ensure the key exists on the profile object
+        if (!(categoryKeyToUpdate in defaultUserProfile) && classificationResultCategory.startsWith('plastic')) {
+             // Fallback for potentially unmapped plastic subcategories to general plastic, though ideally all keys should exist
+            categoryKeyToUpdate = 'totalPlastic'; 
+        } else if (!(categoryKeyToUpdate in defaultUserProfile)) {
+            categoryKeyToUpdate = 'totalOther'; // Default fallback
+        }
+
+
+        const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
+        const updatedCategoryCount = currentCategoryCount + 1; 
+        
+        const newUserData: UserProfile = {
+          ...prevData,
+          score: newScore,
+          co2Managed: parseFloat(newCo2Managed.toFixed(1)),
+          itemsClassified: prevData.itemsClassified + 1,
+          [categoryKeyToUpdate]: updatedCategoryCount, 
+        };
+        saveToLocalStorage(USER_DATA_KEY, newUserData);
+        return newUserData;
+      });
+      
+      toast({
+        title: "Classification Successful!",
+        description: `Item classified as ${currentUploadCategoryFriendlyName || classificationResultCategory}. You earned ${pointsEarned} points!`,
+      });
+      setIsUploadModalOpen(false);
+      setCurrentUploadCategory(undefined);
+      setCurrentUploadCategoryFriendlyName(undefined);
+      return { category: classificationResultCategory, confidence: classificationConfidence };
+      
     } catch (error) {
       console.error("Classification error:", error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during classification.";
@@ -483,6 +520,7 @@ export default function HomePage() {
                           sizes="48px"
                           wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-transparent flex items-center justify-center"
                           className="rounded-md object-contain" 
+                          placeholderText={category.id.startsWith('plastic') ? category.id.substring(7).toUpperCase() : undefined}
                         />
                       ) : CategoryIcon ? (
                         <CategoryIcon className="w-7 h-7 sm:w-8 sm:w-8 text-primary" />
@@ -526,6 +564,7 @@ export default function HomePage() {
                     icon={item.icon ? <item.icon className="w-6 h-6 sm:w-7 sm:w-7 text-primary" /> : undefined}
                     wrapperClassName="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
                     className="rounded-md object-contain" 
+                    placeholderText={item.placeholderText}
                   />
                   <div className="flex-grow">
                     <p className="font-medium text-sm sm:text-base">{item.name}</p>
@@ -563,7 +602,7 @@ export default function HomePage() {
                 className={cn(
                     "mt-2 sm:mt-4 h-1.5 sm:h-3", 
                     currentLevel.progressBarTrackColor,
-                    "[&>div]:transition-all [&>div]:duration-500", // Added for smooth progress transition
+                    "[&>div]:transition-all [&>div]:duration-500", 
                     `[&>div]:${currentLevel.progressBarIndicatorColor}`
                  )}
             />
@@ -586,6 +625,16 @@ export default function HomePage() {
                     categoryKeyForQuantity = 'totalBiowaste';
                   } else if (item.category === 'biowaste' && !('totalBiowaste' in defaultUserProfile) && ('totalOrganic' in defaultUserProfile)) {
                     categoryKeyForQuantity = 'totalOrganic';
+                  } else if (!(categoryKeyForQuantity in defaultUserProfile)) {
+                    // Fallback for new specific plastic types if key doesn't exist directly
+                     if (item.category.startsWith('plastic') && item.category !== 'plastic') {
+                         categoryKeyForQuantity = `total${item.category.charAt(0).toUpperCase() + item.category.slice(1)}` as keyof UserProfile;
+                         if (!(categoryKeyForQuantity in defaultUserProfile)){ // Final fallback if specific plastic isn't there
+                            categoryKeyForQuantity = 'totalPlastic'; // Or totalOther if appropriate
+                         }
+                     } else {
+                         categoryKeyForQuantity = 'totalOther'; // General fallback
+                     }
                   }
                 const quantity = (userData && typeof userData[categoryKeyForQuantity] === 'number') ? userData[categoryKeyForQuantity] as number : 0;
 
@@ -738,19 +787,17 @@ export default function HomePage() {
                 </AlertDescription>
             </Alert>
            )}
+           {(currentUploadCategory === 'plasticPete' || currentUploadCategory === 'plasticHdpe' || currentUploadCategory === 'plasticPp' || currentUploadCategory === 'plasticPs' || currentUploadCategory === 'plasticOther') && (
+             <Alert variant="default" className="mt-4 text-xs">
+                <Recycle className="h-3 w-3" />
+                <AlertTitle>Tip for {currentUploadCategoryFriendlyName}</AlertTitle>
+                <AlertDescription>
+                    Check local recycling guidelines for {currentUploadCategoryFriendlyName}. Rinse containers if necessary.
+                </AlertDescription>
+            </Alert>
+           )}
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-    
-    
-
-    
-
-    
-
-    
-
-
-

@@ -19,6 +19,14 @@ const placeholderItems = [
   { id: '6', title: 'Board Game Collection', category: 'Toys & Games', imageUrl: 'https://picsum.photos/seed/boardgames/300/200', description: 'Bundle of popular board games.', dataAiHint: 'board games' },
 ];
 
+// Placeholder log item categories
+const logItemCategories = [
+  { id: 'plastic-other', name: 'Plastic - Other', description: 'Items made from other types of plastic.', logoUrl: '/placeholder-plastic-other.png' }, // Placeholder logo URL
+  { id: 'plastic-pete', name: 'Plastic - PETE', description: 'Polyethylene Terephthalate (PETE) items.', logoUrl: '/placeholder-plastic-pete.png' }, // Placeholder logo URL
+  { id: 'hdpe', name: 'HDPE Plastic', description: 'High-Density Polyethylene (HDPE) items.', logoUrl: '/placeholder-hdpe.png' }, // Placeholder logo URL
+  { id: 'pp', name: 'PP Plastic', description: 'Polypropylene (PP) items.', logoUrl: '/placeholder-pp.png' }, // Placeholder logo URL
+  { id: 'ps', name: 'PS Plastic', description: 'Polystyrene (PS) items.', logoUrl: '/placeholder-ps.png' }, // Placeholder logo URL
+];
 export default function MarketplacePage() {
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -48,6 +56,34 @@ export default function MarketplacePage() {
             <Filter className="mr-2 h-4 w-4" /> Filter (Soon)
         </Button>
       </div>
+
+      <section className="space-y-4">
+        <h2 className="text-xl sm:text-2xl font-semibold text-primary">Log Items by Category</h2>
+        <p className="text-sm sm:text-base text-muted-foreground">Explore common categories of items that can be logged for reuse and recycling.</p>
+        
+        {logItemCategories.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {logItemCategories.map((category) => (
+              <Card key={category.id} className="overflow-hidden flex flex-col">
+                <CardHeader className="p-3 pb-0 sm:p-4 sm:pb-0">
+                    <div className="flex items-center gap-3">
+                        {category.logoUrl && (
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted flex items-center justify-center">
+                                {/* Placeholder for logo - replace with actual Image component if URLs are valid */}
+                                <PackageSearch className="w-6 h-6 text-muted-foreground"/> 
+                            </div>
+                        )}
+                        <CardTitle className="text-base sm:text-lg">{category.name}</CardTitle>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-3 pt-2 sm:p-4 sm:pt-2 flex-grow">
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{category.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : null} {/* Optionally add a message if no categories are defined */}
+      </section>
       
       {placeholderItems.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

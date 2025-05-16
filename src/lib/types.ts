@@ -1,7 +1,21 @@
 
 import type { z } from 'zod';
 
-export type WasteCategory = 'ewaste' | 'plastic' | 'biowaste' | 'cardboard' | 'paper' | 'glass' | 'metal' | 'organic' | 'other'; // Added metal, organic
+export type WasteCategory = 
+  'ewaste' | 
+  'plastic' | 
+  'biowaste' | 
+  'cardboard' | 
+  'paper' | 
+  'glass' | 
+  'metal' | 
+  'organic' | 
+  'other' |
+  'plasticOther' |
+  'plasticPete' |
+  'plasticHdpe' |
+  'plasticPp' |
+  'plasticPs';
 
 export interface ClassificationRecord {
   id: string;
@@ -34,7 +48,6 @@ export interface UserProfile {
   email?: string;
   avatar?: string; // data URI or link to an image
   score: number; // Total points
-  targetScore?: number; // Optional: Target points for the next level or personal goal
   co2Managed: number; // CO2 managed in Kg
   
   // Detailed waste counts
@@ -47,6 +60,11 @@ export interface UserProfile {
   totalMetal: number;
   totalOrganic: number;
   totalOther: number;
+  totalPlasticOther: number;
+  totalPlasticPete: number;
+  totalPlasticHdpe: number;
+  totalPlasticPp: number;
+  totalPlasticPs: number;
   
   itemsClassified: number; // Overall count of all items
   challengesCompleted: number;
@@ -128,4 +146,3 @@ const signupSchema = z.object({
   path: ['confirmPassword'],
 });
 export type SignupFormInputs = z.infer<typeof signupSchema>;
-

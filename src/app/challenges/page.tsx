@@ -57,6 +57,65 @@ const allChallenges: Challenge[] = [
     isActive: true,
     createdAt: new Date().getTime()
   },
+  { 
+    id: 'plastic-other-collector', 
+    title: 'Plastic Other Pro', 
+    description: 'Log 5 plastic (other) items.', 
+    points: 60, 
+    badgeIcon: 'Package',
+    badgeName: 'Misc Plastic Master',
+    type: 'log_specific_item_count', 
+    categoryGoal: 'plastic-other', 
+    targetValue: 5,
+    unit: 'items',
+    isActive: true,
+    createdAt: new Date().getTime()
+  },
+  { 
+    id: 'plastic-pete-collector', 
+    title: 'PETE Pioneer', 
+    description: 'Log 7 plastic (PETE) items.', 
+    points: 75, 
+    badgeIcon: 'Recycle',
+    badgeName: 'PETE Protector',
+    type: 'log_specific_item_count', 
+    categoryGoal: 'plastic-pete', 
+    targetValue: 7,
+    unit: 'items',
+    isActive: true,
+    createdAt: new Date().getTime()
+  },
+  { 
+    id: 'plastic-hdpe-collector', 
+    title: 'HDPE Hoarder', 
+    description: 'Log 8 plastic (HDPE) items.', 
+    points: 80, 
+    badgeIcon: 'Recycle',
+    badgeName: 'HDPE Helper',
+    type: 'log_specific_item_count', 
+    categoryGoal: 'plastic-hdpe', 
+    targetValue: 8,
+    unit: 'items',
+    isActive: true,
+    createdAt: new Date().getTime()
+  },
+  { 
+    id: 'plastic-pp-collector', 
+    title: 'PP Packer', 
+    description: 'Log 6 plastic (PP) items.', 
+    points: 65, 
+    badgeIcon: 'Package',
+    badgeName: 'PP Proponent',
+    type: 'log_specific_item_count', 
+    categoryGoal: 'plastic-pp', 
+    targetValue: 6,
+    unit: 'items',
+    isActive: true,
+    createdAt: new Date().getTime()
+  },
+  // Note: 'plastic-ps' could be added following the same pattern if needed.
+  // { id: 'plastic-ps-collector', title: 'PS Purifier', description: 'Log 4 plastic (PS) items.', points: 55, badgeIcon: 'Package', badgeName: 'PS Partner', type: 'log_specific_item_count', categoryGoal: 'plastic-ps', targetValue: 4, unit: 'items', isActive: true, createdAt: new Date().getTime() },
+
 ];
 
 // Placeholder user progress - in a real app, this would come from Firestore
