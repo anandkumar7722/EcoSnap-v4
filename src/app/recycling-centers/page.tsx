@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { MapPin, Search, AlertTriangle, Navigation, CalendarClock, Bell, Info, Trash2, Recycle, Leaf, Package as PackageIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -60,8 +59,6 @@ export default function RecyclingFeaturesPage() {
     if (centerSearchTerm.trim()) {
       const query = `recycling centers near ${centerSearchTerm.trim()}`;
       setEmbeddedMapQuery(query);
-      // Optionally, still open in new tab for full features:
-      // window.open(`https://www.google.com/maps/search/${encodeURIComponent(query)}`, '_blank');
     }
   };
 
@@ -69,12 +66,8 @@ export default function RecyclingFeaturesPage() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const { latitude, longitude } = position.coords;
-          // For embed, using a search query is more reliable without an API key for place details
           const query = `recycling centers near my current location`;
           setEmbeddedMapQuery(query);
-          // Optionally, still open in new tab with coordinates:
-          // window.open(`https://www.google.com/maps/search/recycling+centers/@${latitude},${longitude},13z`, '_blank');
         },
         (error) => {
           console.error("Error getting location for centers:", error);
@@ -187,19 +180,21 @@ export default function RecyclingFeaturesPage() {
       <div className="mt-6 sm:mt-8 text-center">
         <p className="text-muted-foreground mb-3 sm:mb-4 text-sm sm:text-base">Map preview for centers:</p>
         {embeddedMapQuery ? (
-          <div className="aspect-video bg-muted rounded-md overflow-hidden relative w-full max-w-2xl mx-auto border shadow-sm">
-            <iframe
-              title="Recycling Centers Map"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              loading="lazy"
-              allowFullScreen
-              referrerPolicy="no-referrer-when-downgrade"
-              src={`https://www.google.com/maps/embed/v1/search?q=${encodeURIComponent(embeddedMapQuery)}`}
-              // Note: For Place mode (specific location) or more advanced features,
-              // you'd add your API key: src={`https://www.google.com/maps/embed/v1/search?key=YOUR_API_KEY&q=${encodeURIComponent(embeddedMapQuery)}`}
-            ></iframe>
+          <div className="rc-embed-map-responsive max-w-2xl mx-auto border shadow-sm rounded-md">
+            <div className="rc-embed-map-container">
+              <iframe
+                className="rc-embed-map-frame"
+                frameBorder="0"
+                scrolling="no"
+                marginHeight="0"
+                marginWidth="0"
+                src={`https://maps.google.com/maps?width=600&height=400&hl=en&q=${encodeURIComponent(embeddedMapQuery)}&t=&z=14&ie=UTF8&iwloc=B&output=embed`}
+                title="Recycling Centers Map"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+              <a href="https://sprunkly.org" className="rc-map-attribution">map generator</a>
+            </div>
           </div>
         ) : (
           <div className="aspect-video bg-muted rounded-md overflow-hidden relative w-full max-w-2xl mx-auto border shadow-sm flex items-center justify-center">
@@ -213,7 +208,7 @@ export default function RecyclingFeaturesPage() {
             <Info className="h-4 w-4" />
             <AlertTitle className="text-sm sm:text-base">Embedded Map Note</AlertTitle>
             <AlertDescription className="text-xs sm:text-sm">
-              The map uses Google Maps Embed API. For more advanced features like custom markers, specific place details, or higher usage limits, the Google Maps JavaScript API and an API key are typically required.
+              The map uses Google Maps Embed. For more advanced features or higher usage limits, a Google Maps API key might be beneficial.
             </AlertDescription>
           </Alert>
       </div>

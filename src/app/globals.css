@@ -105,3 +105,38 @@
     @apply bg-background text-foreground font-sans;
   }
 }
+
+/* Styles for responsive map embed */
+.rc-embed-map-responsive {
+  position: relative;
+  text-align: right;
+  width: 100%;
+  height: 0;
+  padding-bottom: 66.66666666666666%; /* 3:2 aspect ratio for the map */
+}
+.rc-embed-map-container {
+  overflow: hidden;
+  background: none !important;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.rc-embed-map-frame {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.rc-map-attribution {
+  font-size: 2px !important;
+  color: gray !important;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 1; 
+  max-height: 10px;
+  overflow: hidden;
+}
