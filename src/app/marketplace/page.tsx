@@ -12,11 +12,11 @@ import { Input } from '@/components/ui/input';
 // Placeholder marketplace items
 const placeholderItems = [
   { id: '1', title: 'Old Textbooks', category: 'Books', imageUrl: 'https://placehold.co/600x400.png', description: 'Collection of university textbooks.', dataAiHint: 'stacked textbooks' },
-  { id: '2', title: 'Winter Jacket', category: 'Clothing', imageUrl: 'https://placehold.co/600x400.png', description: 'Barely used, size M.', dataAiHint: 'winter jacket' },
+  { id: '2', title: 'Winter Jacket', category: 'Clothing', imageUrl: 'https://placehold.co/600x400.png', description: 'Barely used, size M.', dataAiHint: 'winter jacket clothing' },
   { id: '3', title: 'Unused E-Reader', category: 'Electronics', imageUrl: 'https://placehold.co/600x400.png', description: 'Kindle Paperwhite, good condition.', dataAiHint: 'e-reader device' },
-  { id: '4', title: 'Vintage Ceramic Vase', category: 'Home Goods', imageUrl: 'https://placehold.co/600x400.png', description: 'Beautiful hand-painted vase.', dataAiHint: 'ceramic vase' },
+  { id: '4', title: 'Vintage Ceramic Vase', category: 'Home Goods', imageUrl: 'https://placehold.co/600x400.png', description: 'Beautiful hand-painted vase.', dataAiHint: 'ceramic vase home' },
   { id: '5', title: 'Gardening Tools Set', category: 'Garden', imageUrl: 'https://placehold.co/600x400.png', description: 'Lightly used, includes spade and rake.', dataAiHint: 'gardening tools' },
-  { id: '6', title: 'Board Game Collection', category: 'Toys & Games', imageUrl: 'https://placehold.co/600x400.png', description: 'Bundle of popular board games.', dataAiHint: 'board games' },
+  { id: '6', title: 'Board Game Collection', category: 'Toys & Games', imageUrl: 'https://placehold.co/600x400.png', description: 'Bundle of popular board games.', dataAiHint: 'board games collection' },
 ];
 
 export default function MarketplacePage() {
