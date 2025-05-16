@@ -59,7 +59,7 @@ interface LevelInfo {
 
 
 const LEVELS: LevelInfo[] = [
-  { name: 'Bronze', minScore: 0, targetForNext: 500, cardColor: 'bg-yellow-700', textColor: 'text-yellow-100', badgeIconContainerColor: 'bg-yellow-500', badgeImageUrl: '/assets/images/bronze-badge.png', progressBarIndicatorColor: 'bg-yellow-400', progressBarTrackColor: 'bg-yellow-900' },
+  { name: 'Bronze', minScore: 0, targetForNext: 500, cardColor: 'bg-amber-700', textColor: 'text-amber-50', badgeIconContainerColor: 'bg-amber-500', badgeImageUrl: '/assets/images/bronze-badge.png', progressBarIndicatorColor: 'bg-amber-400', progressBarTrackColor: 'bg-amber-800' },
   { name: 'Silver', minScore: 500, targetForNext: 1500, cardColor: 'bg-slate-600', textColor: 'text-slate-100', badgeIconContainerColor: 'bg-slate-400', badgeImageUrl: '/assets/images/silver-badge.png', progressBarIndicatorColor: 'bg-slate-300', progressBarTrackColor: 'bg-slate-800' },
   { name: 'Gold', minScore: 1500, targetForNext: 3000, cardColor: 'bg-amber-600', textColor: 'text-amber-100', badgeIconContainerColor: 'bg-amber-400', badgeImageUrl: '/assets/images/gold-badge.png', progressBarIndicatorColor: 'bg-amber-300', progressBarTrackColor: 'bg-amber-800' },
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-sky-600', textColor: 'text-sky-100', badgeIconContainerColor: 'bg-sky-400', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-300', progressBarTrackColor: 'bg-sky-800' },
@@ -222,7 +222,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: {
+  other: { // This entry is for 'Trash' category
     title: "Trash / Other Non-Recyclables",
     icon: Trash2,
     definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
@@ -234,7 +234,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { // Alias for biowaste
+  organic: { // Alias for biowaste, using Apple icon as requested
     title: "Organic Waste",
     icon: Apple,
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
@@ -304,7 +304,7 @@ const defaultUserProfile: UserProfile = {
   totalPaper: 0,
   totalGlass: 0,
   totalMetal: 0,
-  totalOrganic: 0,
+  totalOrganic: 0, // Could be combined with biowaste
   totalOther: 0,
   totalPlasticOther: 0,
   totalPlasticPete: 0,
@@ -363,6 +363,8 @@ const ImageWithFallback = ({
 
   const handleLoad = () => {
     setIsLoading(false);
+    // Only clear error if the loaded source is the one we intended (initialSrcProp)
+    // This prevents a placeholder from clearing an error state if initialSrcProp was also bad
     if (currentSrc === initialSrcProp) setIsError(false);
   };
 
@@ -375,49 +377,27 @@ const ImageWithFallback = ({
       </div>
     );
   }
+  
+  const finalSrc = (!currentSrc || isError) 
+    ? (placeholderText ? `${placeholderBaseUrl}/${placeholderSize}.png?text=${encodeURIComponent(placeholderText)}` : `${placeholderBaseUrl}/${placeholderSize}.png`)
+    : currentSrc;
 
-  if (!IconComponent && (!currentSrc || isError)) {
-    const placeholderUrl = placeholderText
-      ? `${placeholderBaseUrl}/${placeholderSize}.png?text=${encodeURIComponent(placeholderText)}`
-      : `${placeholderBaseUrl}/${placeholderSize}.png`;
-    return (
-      <div className={wrapperClassName}>
-        <Image
-          src={placeholderUrl}
-          alt={alt || "Placeholder"}
-          fill
-          className={className}
-          sizes={sizes}
-          data-ai-hint={`placeholder ${dataAiHint || ''}`.trim()}
-          unoptimized={true}
-        />
-      </div>
-    );
-  }
-
-  if (currentSrc) {
-    const isPlaceholderSrc = currentSrc.startsWith(placeholderBaseUrl);
-    return (
-      <div className={wrapperClassName}>
-        {isLoading && !isPlaceholderSrc && <div className="absolute inset-0 flex items-center justify-center bg-muted/50"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>}
-        <Image
-          src={currentSrc}
-          alt={alt}
-          fill
-          className={cn(className, isLoading && !isPlaceholderSrc ? 'opacity-0' : 'opacity-100')}
-          sizes={sizes}
-          data-ai-hint={(isError || isPlaceholderSrc) ? `placeholder ${dataAiHint}`.trim() : dataAiHint}
-          onError={handleError}
-          onLoad={handleLoad}
-          unoptimized={isPlaceholderSrc}
-        />
-      </div>
-    );
-  }
+  const isUsingPlaceholder = finalSrc.startsWith(placeholderBaseUrl);
 
   return (
     <div className={wrapperClassName}>
-       <PackageSearchIcon className="w-1/2 h-1/2 text-muted-foreground opacity-50" />
+      {isLoading && !isUsingPlaceholder && <div className="absolute inset-0 flex items-center justify-center bg-muted/50"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>}
+      <Image
+        src={finalSrc}
+        alt={alt}
+        fill
+        className={cn(className, isLoading && !isUsingPlaceholder ? 'opacity-0' : 'opacity-100')}
+        sizes={sizes}
+        data-ai-hint={(isError || isUsingPlaceholder) ? `placeholder ${dataAiHint}`.trim() : dataAiHint}
+        onError={handleError}
+        onLoad={handleLoad}
+        unoptimized={isUsingPlaceholder} // Placeholders from placehold.co don't need optimization
+      />
     </div>
   );
 };
@@ -435,7 +415,9 @@ export default function HomePage() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // console.log("HomePage: useEffect for login and data load triggered.");
     const checkLoginStatus = () => {
+      // console.log("HomePage: checkLoginStatus running");
       const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
       setIsLoggedIn(loggedIn);
 
@@ -445,6 +427,7 @@ export default function HomePage() {
         const userEmail = localStorage.getItem('userEmail');
         const userName = localStorage.getItem('userName');
         if (userEmail && storedUserData.email !== userEmail) {
+           // console.log("HomePage: User logged in with new email, resetting/updating data.");
            const displayName = userName || userEmail.split('@')[0];
            storedUserData = {
             ...defaultUserProfile,
@@ -454,19 +437,23 @@ export default function HomePage() {
             avatar: `https://placehold.co/100x100.png?text=${displayName.substring(0,2).toUpperCase()}`,
            };
         } else if (!userEmail && storedUserData.email) {
+            // console.log("HomePage: No user email in storage, but user data has email. Resetting to guest.");
             storedUserData = defaultUserProfile;
         } else if (userEmail && userName && storedUserData.displayName !== userName) {
+            // console.log("HomePage: User name updated.");
             storedUserData.displayName = userName;
             storedUserData.avatar = `https://placehold.co/100x100.png?text=${userName.substring(0,2).toUpperCase()}`;
         }
       } else {
         if (storedUserData.id !== 'localUser' || storedUserData.email) {
+            // console.log("HomePage: User not logged in, resetting to guest profile.");
             storedUserData = defaultUserProfile;
         }
       }
 
       setUserData(storedUserData);
       if (JSON.stringify(getFromLocalStorage<UserProfile>(USER_DATA_KEY, {})) !== JSON.stringify(storedUserData)) {
+          // console.log("HomePage: User data in state differs from LS, saving to LS.");
           saveToLocalStorage(USER_DATA_KEY, storedUserData);
       }
 
@@ -482,11 +469,12 @@ export default function HomePage() {
       )
       .slice(0, MAX_HISTORY_DISPLAY_ITEMS);
       setRecentClassifications(uniqueRecentItems);
+      // console.log("HomePage: User data and history loaded/set.");
     };
 
     checkLoginStatus();
-    window.addEventListener('storage', checkLoginStatus);
-    window.addEventListener('authChange', checkLoginStatus);
+    window.addEventListener('storage', checkLoginStatus); // Listen for changes in other tabs
+    window.addEventListener('authChange', checkLoginStatus); // Custom event from login/signup pages
     return () => {
         window.removeEventListener('storage', checkLoginStatus);
         window.removeEventListener('authChange', checkLoginStatus);
@@ -517,8 +505,10 @@ export default function HomePage() {
       let classificationConfidence = 1.0;
 
       if (currentUploadCategory && currentUploadCategory !== 'general') {
+        // User pre-selected a category for direct logging
         classificationResultCategory = currentUploadCategory;
       } else {
+        // AI classification needed
         const result = await classifyWaste({ photoDataUri: imageDataUri });
         if (!result || !result.category) {
           setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
@@ -545,7 +535,7 @@ export default function HomePage() {
       };
 
       const currentHistory = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
-      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50);
+      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); // Keep last 50 items
       saveToLocalStorage(HISTORY_STORAGE_KEY, updatedHistory);
 
       const sortedHistoryForRecent = updatedHistory.sort((a,b) => b.timestamp - a.timestamp);
@@ -563,6 +553,7 @@ export default function HomePage() {
         const newScore = prevData.score + pointsEarned;
         const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
 
+        // Determine the specific key for the waste category quantity
         let categoryKeyToUpdate: keyof UserProfile = `total${classificationResultCategory.charAt(0).toUpperCase() + classificationResultCategory.slice(1)}` as keyof UserProfile;
 
         const specificPlasticKeys: Partial<Record<WasteCategory, keyof UserProfile>> = {
@@ -572,18 +563,22 @@ export default function HomePage() {
             plasticPs: 'totalPlasticPs',
             plasticOther: 'totalPlasticOther',
         };
+
         if (specificPlasticKeys[classificationResultCategory]) {
             categoryKeyToUpdate = specificPlasticKeys[classificationResultCategory]!;
         } else if (classificationResultCategory === 'plastic' && !specificPlasticKeys[classificationResultCategory]) {
+            // This handles the general 'plastic' category if it's classified directly
             categoryKeyToUpdate = 'totalPlastic';
         } else if (classificationResultCategory === 'biowaste' || classificationResultCategory === 'organic') {
-            categoryKeyToUpdate = 'totalBiowaste';
+            categoryKeyToUpdate = 'totalBiowaste'; // Consolidate into totalBiowaste
         } else if (!(categoryKeyToUpdate in defaultUserProfile)) {
+            // Fallback for any category not explicitly having a total field (e.g., if 'metal' was added without 'totalMetal')
             categoryKeyToUpdate = 'totalOther';
         }
 
+
         const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
-        const updatedCategoryCount = currentCategoryCount + 1;
+        const updatedCategoryCount = currentCategoryCount + 1; // Increment by 1 item
 
         const newUserData: UserProfile = {
           ...prevData,
@@ -600,8 +595,8 @@ export default function HomePage() {
         title: "Classification Successful!",
         description: `Item classified as ${currentUploadCategoryFriendlyName || classificationResultCategory}. You earned ${pointsEarned} points!`,
       });
-      setIsUploadModalOpen(false);
-      setCurrentUploadCategory(undefined);
+      setIsUploadModalOpen(false); // Close modal on success
+      setCurrentUploadCategory(undefined); // Reset for next upload
       setCurrentUploadCategoryFriendlyName(undefined);
       return { category: classificationResultCategory, confidence: classificationConfidence };
 
@@ -626,11 +621,11 @@ export default function HomePage() {
         return LEVELS[i];
       }
     }
-    return LEVELS[0];
+    return LEVELS[0]; // Default to Bronze
   };
 
   const openUploadModalForCategory = (categoryId: WasteCategory | 'general' | undefined, categoryName: string) => {
-    setClassificationError(null);
+    setClassificationError(null); // Clear any previous errors
     setCurrentUploadCategory(categoryId);
     setCurrentUploadCategoryFriendlyName(categoryName);
     setIsUploadModalOpen(true);
@@ -646,25 +641,25 @@ export default function HomePage() {
     const pointsToNextLevelRange = currentLevel.targetForNext - currentLevel.minScore;
     if (pointsToNextLevelRange > 0) {
       scorePercentage = Math.min((pointsEarnedInLevel / pointsToNextLevelRange) * 100, 100);
-    } else {
+    } else { // Handle case where minScore might equal targetForNext (e.g., initial level)
       scorePercentage = userData.score >= currentLevel.minScore ? 100 : 0;
     }
-  } else {
+  } else { // Max level
     scorePercentage = 100;
     pointsForNextLevelDisplay = "Max";
   }
 
   const selectedCategoryForDialog = useMemo(() => currentUploadCategory || 'general', [currentUploadCategory]);
-  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog]);
+  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog, wasteCategoryFiveRTips]); // Added wasteCategoryFiveRTips to dependency
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
 
   const fiveRTipsArray = useMemo(() => {
     if (!selectedCategoryTips || !selectedCategoryTips.fiveRs) return [];
     return (Object.keys(selectedCategoryTips.fiveRs) as Array<keyof TipInfo['fiveRs']>)
       .map(key => ({ key, tip: selectedCategoryTips.fiveRs[key] }))
-      .filter(item => item.tip);
+      .filter(item => item.tip); // Ensure only tips with content are shown
   }, [selectedCategoryTips]);
-
+  
   // console.log("HomePage: JavaScript logic parsed. About to render JSX.");
 
   return (
@@ -702,6 +697,7 @@ export default function HomePage() {
               <Dialog key={`top-${category.id}`} open={isUploadModalOpen && currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name} onOpenChange={ open => {
                 if(open) { openUploadModalForCategory(category.id, category.name); }
                 else {
+                  // Only close this specific dialog instance if it was the one opened
                   if(currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name) {
                     setCurrentUploadCategory(undefined);
                     setCurrentUploadCategoryFriendlyName(undefined);
@@ -721,7 +717,7 @@ export default function HomePage() {
                         placeholderSize="48x48"
                         sizes="48px"
                         wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
-                        className="rounded-md object-contain"
+                        className="rounded-md object-contain" // Changed to object-contain
                         icon={CategoryIconComponent ? <CategoryIconComponent className="w-7 h-7 sm:w-8 sm:w-8 text-primary" /> : undefined}
                       />
                     <p className="font-medium text-xs sm:text-sm text-center truncate w-full">{category.name}</p>
@@ -743,6 +739,7 @@ export default function HomePage() {
             <Dialog key={item.id} open={isUploadModalOpen && currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name} onOpenChange={ open => {
               if(open) { openUploadModalForCategory(item.id, item.name); }
               else {
+                 // Only close this specific dialog instance if it was the one opened
                  if(currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name) {
                     setCurrentUploadCategory(undefined);
                     setCurrentUploadCategoryFriendlyName(undefined);
@@ -759,11 +756,11 @@ export default function HomePage() {
                     src={item.imageUrl}
                     alt={item.name}
                     dataAiHint={item.dataAiHint}
-                    placeholderSize="114x50"
+                    placeholderSize="114x50" // Default, will be overridden if specific placeholderText is used
                     sizes="(max-width: 639px) 94px, 114px"
                     icon={ItemIconComponent ? <ItemIconComponent className="w-6 h-6 sm:w-7 sm:w-7 text-primary" /> : undefined}
                     wrapperClassName="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
-                    className="rounded-md object-contain"
+                    className="rounded-md object-contain" // Changed to object-contain
                     placeholderText={item.placeholderText}
                   />
                   <div className="flex-grow">
@@ -797,9 +794,9 @@ export default function HomePage() {
                 <Image
                   src={currentLevel.badgeImageUrl}
                   alt={`level ${currentLevel.name.toLowerCase()} badge`}
-                  width={40}
+                  width={40} 
                   height={40}
-                  className="h-6 w-6 sm:h-10 sm:w-10"
+                  className="h-6 w-6 sm:h-10 sm:w-10" // Responsive sizing
                   data-ai-hint={`level ${currentLevel.name.toLowerCase()} badge`}
                 />
               </div>
@@ -809,7 +806,7 @@ export default function HomePage() {
                 className={cn(
                     "mt-2 sm:mt-4 h-1.5 sm:h-3",
                     currentLevel.progressBarTrackColor,
-                    "[&>div]:transition-all [&>div]:duration-500",
+                    "[&>div]:transition-all [&>div]:duration-500", // Added transition
                     `[&>div]:${currentLevel.progressBarIndicatorColor}`
                  )}
             />
@@ -827,6 +824,7 @@ export default function HomePage() {
           </div>
             <div className="flex overflow-x-auto space-x-3 pb-3 no-scrollbar">
               {recentClassifications.map(item => {
+                 // Logic to determine the correct quantityKey
                  let categoryKeyForQuantity: keyof UserProfile = `total${item.category.charAt(0).toUpperCase() + item.category.slice(1)}` as keyof UserProfile;
 
                   const specificPlasticKeys: Partial<Record<WasteCategory, keyof UserProfile>> = {
@@ -842,7 +840,7 @@ export default function HomePage() {
                   } else if ((item.category === 'biowaste' || item.category === 'organic') && ('totalBiowaste' in defaultUserProfile)) {
                     categoryKeyForQuantity = 'totalBiowaste';
                   } else if (!(categoryKeyForQuantity in defaultUserProfile)) {
-                      categoryKeyForQuantity = 'totalOther';
+                      categoryKeyForQuantity = 'totalOther'; // Fallback
                   }
                 const quantity = (userData && typeof userData[categoryKeyForQuantity] === 'number') ? userData[categoryKeyForQuantity] as number : 0;
 
@@ -938,14 +936,14 @@ export default function HomePage() {
       </section>
 
       <Dialog open={isUploadModalOpen} onOpenChange={open => {
-          if(!open) {
-            setClassificationError(null);
-            if (!isClassifying) {
+          if(!open) { // When dialog is attempting to close
+            setClassificationError(null); // Clear any errors from previous attempt
+            if (!isClassifying) { // Only reset if not in the middle of classifying
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
             }
           }
-          setIsUploadModalOpen(open);
+          setIsUploadModalOpen(open); // Control dialog open state
       }}>
         <DialogTrigger asChild>
            <Button
@@ -993,7 +991,7 @@ export default function HomePage() {
           <Separator className={cn(
             ( (selectedCategoryTips && selectedCategoryTips.definition) || fiveRTipsArray.length > 0 ||
               (currentUploadCategory && ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory))
-            ) ? "my-3" : "my-0"
+            ) ? "my-3" : "my-0" // Only show separator if there's content above
           )} />
 
           <ImageUpload
@@ -1007,5 +1005,4 @@ export default function HomePage() {
     </div>
   );
 }
-
     
