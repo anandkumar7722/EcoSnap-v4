@@ -233,9 +233,9 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { // Ensure 'organic' has an entry if it's a distinct WasteCategory
+  organic: { 
     title: "Organic Waste",
-    icon: Apple, // Assuming Apple is a distinct icon for general organic vs specific biowaste
+    icon: Apple, 
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
     fiveRs: {
       reduce: "Smart shopping, proper food storage, and using leftovers creatively.",
@@ -781,7 +781,7 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className="w-3/4 mx-auto">
+            <div className="w-1/2 mx-auto">
                 <Progress
                     value={scorePercentage}
                     className={cn(
@@ -986,3 +986,6 @@ export default function HomePage() {
     </div>
   );
 }
+
+
+    
