@@ -58,7 +58,7 @@ interface LevelInfo {
 }
 
 const LEVELS: LevelInfo[] = [
-  { name: 'Bronze', minScore: 0, targetForNext: 500, cardColor: 'bg-amber-700', textColor: 'text-amber-100', badgeIconContainerColor: 'bg-amber-500', badgeImageUrl: '/assets/images/bronze-badge.png', progressBarIndicatorColor: 'bg-amber-400', progressBarTrackColor: 'bg-amber-900' },
+  { name: 'Bronze', minScore: 0, targetForNext: 500, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/bronze-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
   { name: 'Silver', minScore: 500, targetForNext: 1500, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/silver-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
   { name: 'Gold', minScore: 1500, targetForNext: 3000, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/gold-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
@@ -175,7 +175,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   glass: {
     title: "Glass",
-    icon: Lightbulb, // Consider a more glass-specific icon if available e.g. GlassWater
+    icon: Lightbulb, 
     definition: "Made from sand, soda ash, and limestone. Infinitely recyclable without loss of quality.",
     fiveRs: {
       reduce: "Buy items in glass when it's a good alternative to plastic. Consider products with refill options.",
@@ -211,7 +211,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   metal: {
     title: "Metal",
-    icon: Wind, // Consider a more metal-specific icon e.g. Hammer
+    icon: Wind, 
     definition: "Includes aluminum cans, steel/tin cans, and sometimes other metal items. Highly recyclable.",
     fiveRs: {
       reduce: "Choose reusable containers over single-use cans where possible.",
@@ -221,7 +221,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: { // Corresponds to "Trash"
+  other: { 
     title: "Trash / Other Non-Recyclables",
     icon: Trash2,
     definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
@@ -233,7 +233,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { // Often grouped with biowaste, but kept distinct as per types
+  organic: { 
     title: "Organic Waste",
     icon: Apple,
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
@@ -339,7 +339,7 @@ const ImageWithFallback = ({
 }) => {
   const validatedInitialSrc = initialSrcProp === "" || initialSrcProp === undefined ? null : initialSrcProp;
   const [currentSrc, setCurrentSrc] = useState(validatedInitialSrc);
-  const [isError, setIsError] = useState(!validatedInitialSrc && !IconComponent);
+  const [isError, setIsError] = useState(!validatedInitialSrc && !IconComponent && !placeholderText);
   const [isLoading, setIsLoading] = useState(!!validatedInitialSrc);
 
   useEffect(() => {
@@ -350,10 +350,10 @@ const ImageWithFallback = ({
       setIsLoading(true);
     } else {
       setCurrentSrc(null);
-      setIsError(!IconComponent); 
+      setIsError(!IconComponent && !placeholderText); 
       setIsLoading(false);
     }
-  }, [initialSrcProp, IconComponent]);
+  }, [initialSrcProp, IconComponent, placeholderText]);
 
   const handleError = () => {
     if (!isError) setIsError(true);
@@ -367,7 +367,7 @@ const ImageWithFallback = ({
 
   const placeholderBaseUrl = "https://placehold.co";
 
-  if (IconComponent && (!currentSrc || isError)) {
+  if (IconComponent && (!currentSrc || isError) && !placeholderText) {
     return (
       <div className={wrapperClassName.replace('bg-muted', 'bg-transparent')}>
         <IconComponent className="w-full h-full text-muted-foreground p-1" />
@@ -781,9 +781,9 @@ export default function HomePage() {
                 <Image
                   src={currentLevel.badgeImageUrl}
                   alt={`level ${currentLevel.name.toLowerCase()} badge`}
-                  width={85} 
-                  height={85}
-                  className="h-12 w-12 sm:h-16 sm:w-16" 
+                  width={95} 
+                  height={95}
+                  className="h-14 w-14 sm:h-20 sm:w-20" 
                   data-ai-hint={`level ${currentLevel.name.toLowerCase()} badge`}
                 />
               </div>
