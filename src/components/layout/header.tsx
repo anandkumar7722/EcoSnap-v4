@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { History, Leaf, LayoutDashboard, Trophy, MapPin, Store, Bot, Users, Home, LogIn, UserPlus, LogOut, UserCircle } from 'lucide-react';
+import { History, Leaf, LayoutDashboard, Trophy, MapPin, Store, Bot, Users, Home, LogIn, UserPlus, LogOut, UserCircle, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -67,6 +67,7 @@ export function AppHeader() {
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/challenges", label: "Challenges", icon: Trophy },
     { href: "/recycling-centers", label: "Recycling Centers", icon: MapPin },
+    { href: "/recycling-schedules", label: "Schedules & Alerts", icon: CalendarClock },
     { href: "/marketplace", label: "Marketplace", icon: Store },
     { href: "/assistant", label: "AI Assistant", icon: Bot },
     { href: "/leaderboard", label: "Leaderboard", icon: Users },
@@ -75,10 +76,13 @@ export function AppHeader() {
   const getAvatarFallback = (name: string | null) => {
     if (!name) return 'U';
     const parts = name.split(' ');
-    if (parts.length > 1) {
+    if (parts.length > 1 && parts[0] && parts[1]) {
       return parts[0][0].toUpperCase() + parts[1][0].toUpperCase();
     }
-    return name.substring(0, 2).toUpperCase();
+    if (name.length > 0) {
+     return name.substring(0, 2).toUpperCase();
+    }
+    return 'U';
   }
 
   return (
@@ -104,7 +108,7 @@ export function AppHeader() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full ml-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={`https://picsum.photos/seed/${userName}/40/40`} alt={userName || 'User'} data-ai-hint="avatar person" />
+                      <AvatarImage src={`https://placehold.co/40x40.png?text=${getAvatarFallback(userName)}`} alt={userName || 'User'} data-ai-hint="avatar person" />
                       <AvatarFallback>{getAvatarFallback(userName)}</AvatarFallback>
                     </Avatar>
                   </Button>
@@ -150,7 +154,7 @@ export function AppHeader() {
                 <>
                    <DropdownMenuLabel className="flex items-center gap-2">
                      <Avatar className="h-6 w-6">
-                       <AvatarImage src={`https://picsum.photos/seed/${userName}/30/30`} alt={userName} data-ai-hint="avatar person" />
+                       <AvatarImage src={`https://placehold.co/30x30.png?text=${getAvatarFallback(userName)}`} alt={userName} data-ai-hint="avatar person" />
                        <AvatarFallback>{getAvatarFallback(userName)}</AvatarFallback>
                      </Avatar>
                      <span className="truncate max-w-[120px]">{userName}</span>

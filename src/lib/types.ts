@@ -1,15 +1,15 @@
 
 import type { z } from 'zod';
 
-export type WasteCategory = 
-  'ewaste' | 
-  'plastic' | 
-  'biowaste' | 
-  'cardboard' | 
-  'paper' | 
-  'glass' | 
-  'metal' | 
-  'organic' | 
+export type WasteCategory =
+  'ewaste' |
+  'plastic' |
+  'biowaste' |
+  'cardboard' |
+  'paper' |
+  'glass' |
+  'metal' |
+  'organic' |
   'other' |
   'plasticOther' |
   'plasticPete' |
@@ -49,7 +49,7 @@ export interface UserProfile {
   avatar?: string; // data URI or link to an image
   score: number; // Total points
   co2Managed: number; // CO2 managed in Kg
-  targetScore?: number; // Score needed for next level
+  targetScore?: number; // Score needed for next level - Now optional as levels are defined
   
   // Detailed waste counts
   totalEwaste: number;
@@ -59,7 +59,7 @@ export interface UserProfile {
   totalPaper: number;
   totalGlass: number;
   totalMetal: number;
-  totalOrganic: number;
+  totalOrganic: number; // Could be combined with biowaste depending on definition
   totalOther: number;
   totalPlasticOther: number;
   totalPlasticPete: number;
@@ -70,6 +70,8 @@ export interface UserProfile {
   itemsClassified: number; // Overall count of all items
   challengesCompleted: number;
   badges?: string[]; // Array of badge IDs or names based on completed challenges or levels
+  scheduleNotificationLocation?: string; // e.g., Zip code or address
+  scheduleNotificationsEnabled?: boolean;
 }
 
 // For Gamified Reduction Challenges
@@ -125,9 +127,11 @@ export interface MarketplaceItem {
 export interface QuickLogItem {
   id: WasteCategory;
   name: string;
-  imageUrl: string;
+  imageUrl?: string;
+  icon?: React.ElementType;
   points: number;
   dataAiHint: string;
+  placeholderText?: string;
 }
 
 // Form input types
@@ -160,4 +164,19 @@ export interface BinData {
   fill_level: number; // 0-100
   lastEmptied: number; // timestamp
   notify: boolean;
+}
+
+// For Recycling Schedules
+export interface RecyclingScheduleItem {
+  id: string;
+  date: string; // e.g., "2024-08-15"
+  wasteType: 'recycling' | 'compost' | 'trash' | 'yard_waste' | string; // Allow custom types
+  notes?: string;
+}
+
+export interface UserScheduleSettings {
+  locationQuery: string; // e.g., zip code or address
+  notificationsEnabled: boolean;
+  lastFetched?: number; // timestamp
+  schedules?: RecyclingScheduleItem[];
 }
