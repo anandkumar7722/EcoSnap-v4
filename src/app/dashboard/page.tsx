@@ -90,7 +90,7 @@ export default function DetailedDashboardPage() {
   const [selectedWasteType, setSelectedWasteType] = useState<WasteCategory | 'all'>('all');
   
   // State for E-Waste Charts
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [realTimeEWasteData, setRealTimeEWasteData] = useState<RealTimeEWasteDataPoint[]>([]);
   const [eWasteDistributionData, setEWasteDistributionData] = useState<EWasteCategoryDistributionPoint[]>([]);
   const [monthlyEWasteVolume, setMonthlyEWasteVolume] = useState<MonthlyEWasteDataPoint[]>([]);
@@ -105,6 +105,7 @@ export default function DetailedDashboardPage() {
 
   // Update current time every second for E-Waste header
   useEffect(() => {
+    setCurrentTime(new Date()); // Set initial time on mount
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -160,7 +161,7 @@ export default function DetailedDashboardPage() {
   const eWastePieChartConfig = useMemo(() => {
     return eWasteDistributionData.reduce((acc, cur) => {
       const key = Object.keys(eWasteCategoryConfig).find(k => eWasteCategoryConfig[k as EWasteType | 'others'].label === cur.name) || 'others';
-      acc[key] = {label: cur.name, color: cur.fill, icon: eWasteCategoryConfig[key as EWasteType | 'others'].icon };
+      acc[key as keyof typeof acc] = {label: cur.name, color: cur.fill, icon: eWasteCategoryConfig[key as EWasteType | 'others'].icon };
       return acc;
     }, {} as import("@/components/ui/chart").ChartConfig);
   }, [eWasteDistributionData]);
@@ -224,6 +225,7 @@ export default function DetailedDashboardPage() {
     let data = liveWasteData;
     if (dateRange?.from && dateRange?.to) {
       data = data.filter(entry => {
+        if (!entry.timestamp) return false;
         const entryDate = new Date(entry.timestamp);
         return entryDate >= dateRange.from! && entryDate <= dateRange.to!;
       });
@@ -234,38 +236,47 @@ export default function DetailedDashboardPage() {
     setFilteredData(data);
   }, [liveWasteData, dateRange, selectedWasteType]);
 
-  const monthlyData = filteredData.reduce((acc, entry) => {
-    const month = format(new Date(entry.timestamp), "MMM");
-    if (!acc[month]) {
-      acc[month] = { month };
-      allWasteCategories.forEach(cat => acc[month][cat] = 0);
-    }
-    const quantity = typeof entry.quantity === 'number' ? entry.quantity : 0;
-    acc[month][entry.type] = (acc[month][entry.type] || 0) + quantity;
-    return acc;
-  }, {} as Record<string, any>);
-  const barChartData = Object.values(monthlyData);
+  const monthlyData = useMemo(() => {
+    return filteredData.reduce((acc, entry) => {
+      if (!entry.timestamp) return acc;
+      const month = format(new Date(entry.timestamp), "MMM");
+      if (!acc[month]) {
+        acc[month] = { month };
+        allWasteCategories.forEach(cat => acc[month][cat] = 0);
+      }
+      const quantity = typeof entry.quantity === 'number' ? entry.quantity : 0;
+      acc[month][entry.type] = (acc[month][entry.type] || 0) + quantity;
+      return acc;
+    }, {} as Record<string, any>);
+  }, [filteredData]);
+  const barChartData = useMemo(() => Object.values(monthlyData), [monthlyData]);
 
-  const categoryDistribution = filteredData.reduce((acc, entry) => {
-    const existing = acc.find(item => item.name === entry.type);
-    const quantity = typeof entry.quantity === 'number' ? entry.quantity : 0;
-    if (existing) {
-      existing.value += quantity;
-    } else {
-      acc.push({ name: entry.type, value: quantity, fill: generalChartConfig[entry.type]?.color || generalChartConfig.other.color });
-    }
-    return acc;
-  }, [] as { name: WasteCategory; value: number, fill: string }[]);
+  const categoryDistribution = useMemo(() => {
+    return filteredData.reduce((acc, entry) => {
+      const existing = acc.find(item => item.name === entry.type);
+      const quantity = typeof entry.quantity === 'number' ? entry.quantity : 0;
+      if (existing) {
+        existing.value += quantity;
+      } else {
+        acc.push({ name: entry.type, value: quantity, fill: generalChartConfig[entry.type]?.color || generalChartConfig.other.color });
+      }
+      return acc;
+    }, [] as { name: WasteCategory; value: number, fill: string }[]);
+  }, [filteredData]);
 
-  const totalWaste = filteredData.reduce((sum, entry) => {
-    const quantity = typeof entry.quantity === 'number' ? entry.quantity : 0;
-    return sum + (entry.unit === 'items' ? quantity * 0.1 : quantity);
-  }, 0).toFixed(1);
+  const totalWaste = useMemo(() => {
+    return filteredData.reduce((sum, entry) => {
+      const quantity = typeof entry.quantity === 'number' ? entry.quantity : 0;
+      return sum + (entry.unit === 'items' ? quantity * 0.1 : quantity); // Assuming 0.1kg per item for simplicity
+    }, 0).toFixed(1);
+  }, [filteredData]);
   
-  const totalValueForRecycledPercentage = categoryDistribution.reduce((sum, cat) => sum + cat.value, 0);
-  const recycledPercentage = totalValueForRecycledPercentage > 0 ? 
-    ((categoryDistribution.filter(cat => cat.name !== 'other' && cat.name !== 'organic' && cat.name !== 'biowaste').reduce((sum, cat) => sum + cat.value, 0) / 
-    totalValueForRecycledPercentage) * 100).toFixed(0) : '0';
+  const recycledPercentage = useMemo(() => {
+    const totalValueForRecycledPercentage = categoryDistribution.reduce((sum, cat) => sum + cat.value, 0);
+    return totalValueForRecycledPercentage > 0 ? 
+      ((categoryDistribution.filter(cat => cat.name !== 'other' && cat.name !== 'organic' && cat.name !== 'biowaste').reduce((sum, cat) => sum + cat.value, 0) / 
+      totalValueForRecycledPercentage) * 100).toFixed(0) : '0';
+  }, [categoryDistribution]);
 
   const pieOuterRadius = isMobileView ? 60 : 90;
   const barChartLeftMargin = isMobileView ? -25 : -25;
@@ -476,7 +487,7 @@ export default function DetailedDashboardPage() {
           <CardTitle className="text-xl sm:text-2xl font-bold text-primary">E-Waste Smart Bin Monitoring</CardTitle>
           <div className="text-sm sm:text-base text-muted-foreground flex items-center">
             <Clock className="mr-2 h-4 w-4" />
-            {format(currentTime, 'PPpp')}
+            {currentTime ? format(currentTime, 'PPpp') : 'Loading time...'}
           </div>
         </CardHeader>
         <CardContent>
@@ -651,3 +662,4 @@ export default function DetailedDashboardPage() {
     </div>
   );
 }
+
