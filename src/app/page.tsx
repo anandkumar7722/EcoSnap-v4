@@ -614,7 +614,7 @@ export default function HomePage() {
     setCurrentUploadCategoryFriendlyName(categoryName);
     setIsUploadModalOpen(true);
   };
-  console.log("Current script is evaluating completely.");
+  console.log("HomePage rendering logic is starting.");
 
   const currentLevel = useMemo(() => getCurrentLevel(userData.score), [userData.score]);
 
@@ -635,7 +635,7 @@ export default function HomePage() {
   }
 
   const selectedCategoryForDialog = useMemo(() => currentUploadCategory || 'general', [currentUploadCategory]);
-  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog]);
+  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog, wasteCategoryFiveRTips]);
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
 
   const fiveRTipsArray = useMemo(() => {
@@ -645,6 +645,7 @@ export default function HomePage() {
       .filter(item => item.tip); 
   }, [selectedCategoryTips]);
   
+  console.log("HomePage preparing to return JSX.");
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
       <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
@@ -782,16 +783,15 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className="w-1/2 mx-auto">
-                <Progress
-                    value={scorePercentage}
-                    className={cn(
-                        "mt-2 sm:mt-4 h-3 sm:h-4", 
-                        currentLevel.progressBarTrackColor,
-                        "[&>div]:transition-all [&>div]:duration-500",
-                        `[&>div]:${currentLevel.progressBarIndicatorColor}`
-                     )}
-                />
+            {/* New UI Component replacing the progress bar */}
+            <div className="mt-2 sm:mt-4">
+              <div className="w-full bg-secondary p-4 sm:p-6 rounded-lg shadow-md flex justify-end">
+                <div className="w-3/4 bg-blue-500 rounded-md p-4 shadow-sm">
+                  <p className="text-white text-sm sm:text-base">
+                    This box takes up 75% width and is aligned to the end (right side).
+                  </p>
+                </div>
+              </div>
             </div>
           </Card>
         </section>
