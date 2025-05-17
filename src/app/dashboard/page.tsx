@@ -115,6 +115,7 @@ export default function DetailedDashboardPage() {
 
 
   useEffect(() => {
+    // Initialize dateRange on client-side to avoid hydration mismatch
     setDateRange({
         from: addDays(new Date(), -90),
         to: new Date(),
@@ -189,7 +190,7 @@ export default function DetailedDashboardPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    const userId = 'user1';
+    const userId = 'user1'; // Replace with actual authenticated user ID
 
     if (!firestore) {
         toast({ variant: "destructive", title: "Firebase Error", description: "Firestore is not initialized." });
@@ -277,7 +278,7 @@ export default function DetailedDashboardPage() {
       if (data && typeof data === 'object') {
         const historyArray: Bin1FillLevelHistoryPoint[] = Object.keys(data)
           .map(key => ({
-            index: parseInt(key, 10),
+            index: parseInt(key, 10), // Convert string key to number
             fill_level: data[key] as number,
           }))
           .filter(point => !isNaN(point.index) && typeof point.fill_level === 'number') // Ensure data is valid
@@ -347,7 +348,7 @@ export default function DetailedDashboardPage() {
   const totalWaste = useMemo(() => {
     return filteredData.reduce((sum, entry) => {
       const quantity = typeof entry.quantity === 'number' ? entry.quantity : 0;
-      return sum + (entry.unit === 'items' ? quantity * 0.1 : quantity);
+      return sum + (entry.unit === 'items' ? quantity * 0.1 : quantity); // Assuming 0.1kg per item for simplicity
     }, 0).toFixed(1);
   }, [filteredData]);
 
@@ -369,7 +370,7 @@ export default function DetailedDashboardPage() {
     const lx = x + radius * Math.cos(-midAngle * RADIAN);
     const ly = y + radius * Math.sin(-midAngle * RADIAN);
     const textAnchor = lx > x ? 'start' : 'end';
-    if ((isMobileView && percent * 100 < 7) || percent * 100 < 5) return null;
+    if ((isMobileView && percent * 100 < 7) || percent * 100 < 5) return null; // Hide small labels if on mobile and percent is small
     return (
       <text x={lx} y={ly} fill="currentColor" textAnchor={textAnchor} dominantBaseline="central" className="text-[9px] sm:text-xs fill-foreground">
         {generalChartConfig[name as WasteCategory]?.label || name} (${(percent * 100).toFixed(0)}%)
@@ -378,6 +379,7 @@ export default function DetailedDashboardPage() {
   };
 
   const getBinStatusText = (bin: BinData): string => {
+    if (bin.last_updated && differenceInHours(new Date(), new Date(bin.last_updated)) > 24) return "Offline";
     if (bin.notify) return "Notify";
     if (bin.fill_level >= 90) return "Full";
     if (bin.fill_level >= 70) return "Near Full";
@@ -910,7 +912,7 @@ export default function DetailedDashboardPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary">
             <LineChartIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-            Bin1 Fill Level History
+            Live Fill Level Trend - Bin 1
           </CardTitle>
           <CardDescription className="text-xs sm:text-sm">
             Live-updating chart of fill levels for 'bin1' from Realtime Database.
@@ -941,8 +943,8 @@ export default function DetailedDashboardPage() {
                 margin={{
                   top: 5,
                   right: 30,
-                  left: -10,
-                  bottom: 5,
+                  left: 20, // Adjusted for Y-axis label
+                  bottom: 20, // Adjusted for X-axis label
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.5)" />
@@ -969,7 +971,7 @@ export default function DetailedDashboardPage() {
                   cursor={{stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "3 3"}}
                   content={<ChartTooltipContent indicator="line" nameKey="fill_level" labelKey="index" />}
                 />
-                <RechartsLegend />
+                
                 <RechartsLine
                   type="monotone"
                   dataKey="fill_level"
