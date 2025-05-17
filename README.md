@@ -6,16 +6,29 @@ EcoSnap is a Next.js application designed to help users classify waste, track th
 ## Core Features
 
 -   **AI-Powered Waste Categorization**: Upload photos to classify waste (e.g., plastic, e-waste, biowaste, specific plastic types) using Genkit and Google AI (Gemini). Includes a fallback mechanism for missing images using placeholders.
--   **Waste Tracking Dashboard**: Visualize waste trends by type, quantity, and time with interactive charts (Recharts). Includes filters for date range and waste type, and summary statistics. Features a placeholder section for IoT Smart Bin monitoring.
--   **Gamified Reduction Challenges**: Participate in eco-friendly missions, track progress (placeholder data), earn badges (bronze, silver, gold, diamond tiers), and compete on a leaderboard. UI components and data structures are in place.
--   **Nearby Recycling Centers & Schedules**: Find local recycling centers using embedded Google Maps (via iframe) and view (placeholder) local collection schedules. Users can input their location to fetch schedules and manage notification preferences (UI only).
--   **Community Reuse Marketplace**: Donate, exchange, or sell used goods. Features a list of specific plastic categories for logging. (Currently placeholder item listings).
--   **AI Eco-Planner Assistant**: Get recommendations for eco-friendly products and event planning via an AI chatbot interface using Genkit.
+-   **Waste Tracking Dashboard**: 
+    *   Visualizes general waste trends by type, quantity, and time with interactive charts (Recharts) using live data from Firebase Firestore.
+    *   Includes filters for date range and waste type, and summary statistics (total waste, recycled ratio).
+    *   Features a dedicated section for **E-Waste Smart Bin Monitoring** with simulated real-time line, pie, and bar charts for e-waste volume, category distribution, and monthly collection.
+    *   Includes a section for **General Smart Bin Monitoring** displaying live status (ID, location, fill level, battery, last updated, notification status) of connected smart bins from Firebase Realtime Database.
+    *   Displays a live fill-level trend chart for a specific bin (`bin1/fill_level_history`) from Firebase Realtime Database.
+-   **Gamified Reduction Challenges**: Participate in eco-friendly missions, track progress (placeholder data), earn badges (bronze, silver, gold, diamond tiers based on score), and compete on a leaderboard. UI components and data structures are in place.
+-   **Nearby Recycling Centers & Schedules**: 
+    *   Find local recycling centers using an embedded Google Maps iframe that updates based on user search or geolocation.
+    *   View (placeholder) local collection schedules based on user-inputted location.
+    *   Manage notification preferences for schedules (UI only).
+-   **Community Reuse Marketplace**: Donate, exchange, or sell used goods. Features a list of items with images (using local asset paths) and descriptions (currently placeholder item listings).
+-   **AI Eco-Planner Assistant**: Get recommendations for eco-friendly products and event planning via an AI chatbot interface using Genkit. Includes display of source links if provided by the AI.
 -   **Leaderboard System**: Rank users based on waste reduction performance (currently uses placeholder data).
--   **User Authentication**: Simple login and signup UI (frontend only, no backend authorization yet) with form validation.
--   **IoT Smart Bin Integration (Conceptual)**:
-    *   Backend logic example (`rtdbUpdateBinNotifyOnFillLevelChange` in `src/lib/firebaseFunctions.ts`) demonstrates how a Firebase Cloud Function can monitor smart bin fill levels in Firebase Realtime Database and update a `notify` status.
-    *   The Waste Tracking Dashboard includes a placeholder card for displaying Smart Bin data.
+-   **User Authentication**: Simple login and signup UI (frontend only, using local storage for session persistence) with form validation (including show/hide password).
+-   **User Profile & Progress**:
+    *   Tracks user score, CO₂ managed, and items classified by category.
+    *   Displays user level (Bronze, Silver, Gold, Diamond) with a progress bar and badge.
+-   **Historical Classification Log**: Users can view a history of their classified items with images, categories, confidence, and points earned. Includes accordion section with detailed "5 Rs" (Reduce, Reuse, Recycle, Educate, Support) tips for various waste categories.
+-   **IoT Smart Bin Integration (Conceptual & Implemented for RTDB Display)**:
+    *   **Realtime Database Structure**: Expects bin data under `/bins/{binId}` in Firebase Realtime Database, including `fill_level`, `notify`, `location`, `battery_level`, `last_updated`, and `lastEmptied`. Also monitors `/bin1/fill_level_history`.
+    *   **Backend Logic Example**: `rtdbUpdateBinNotifyOnFillLevelChange` in `src/lib/firebaseFunctions.ts` demonstrates how a Firebase Cloud Function can monitor smart bin fill levels in Firebase Realtime Database and update a `notify` status.
+    *   **Dashboard Display**: The Waste Tracking Dashboard fetches and displays this RTDB data in real-time.
 
 ## Tech Stack
 
@@ -24,12 +37,14 @@ EcoSnap is a Next.js application designed to help users classify waste, track th
 -   **UI**: React, ShadCN UI Components
 -   **Styling**: Tailwind CSS
 -   **Generative AI**: Genkit (with Google AI - Gemini, e.g., `gemini-1.5-flash-latest`)
--   **Charting**: Recharts
--   **State Management**: React Context API, Local Storage for client-side persistence (e.g., user data, history, settings).
+-   **State Management (Client-side)**: React Context API, Local Storage for client-side persistence (e.g., user data, history, settings).
 -   **Forms**: React Hook Form, Zod for validation.
--   **Database (Conceptual for Production)**: Firebase Firestore (for user profiles, waste entries, challenges, marketplace items). Firebase Realtime Database (for IoT smart bin data).
--   **Authentication (Conceptual for Production)**: Firebase Authentication.
--   **Backend Logic (Conceptual for Production)**: Firebase Cloud Functions (example provided for IoT Smart Bin integration).
+-   **Database**: 
+    *   Firebase Firestore (for user profiles, general waste entries, challenges, marketplace items).
+    *   Firebase Realtime Database (for IoT smart bin data like `/bins` and `/bin1/fill_level_history`).
+-   **Authentication**: Firebase Authentication (client-side integration, backend rules for user-specific data).
+-   **Charting**: Recharts
+-   **Backend Logic (Conceptual for Production/Example Provided)**: Firebase Cloud Functions (example provided for IoT Smart Bin integration with Realtime Database).
 -   **Containerization**: Docker, Docker Compose (for development and production builds).
 
 ## Getting Started
@@ -41,20 +56,24 @@ EcoSnap is a Next.js application designed to help users classify waste, track th
 -   [Docker](https://www.docker.com/get-started)
 -   [Docker Compose](https://docs.docker.com/compose/install/) (usually comes with Docker Desktop)
 -   A Firebase project:
-    *   To obtain Firebase configuration keys for client-side SDK initialization.
-    *   (Optional, for full backend) For deploying Firestore, Realtime Database, Authentication, and Cloud Functions.
+    *   Set up Firestore Database (Native mode).
+    *   Set up Realtime Database.
+    *   Enable Firebase Authentication (e.g., Email/Password).
+    *   Obtain Firebase configuration keys for client-side SDK initialization.
 -   API Keys:
     *   **Gemini API Key**: **Required** for Genkit AI features. Obtain from [Google AI Studio](https://makersuite.google.com/app/apikey).
     *   **Google Maps API Key (Optional for Basic Embed)**: The embedded map for recycling centers uses Google Maps Embed API, which can work for basic searches without a key. For full features, higher usage limits, or if you switch to the Maps JavaScript API, a key is recommended/required.
 
 ### Environment Variables Setup
 
-1.  **Copy the example environment file (if needed)**:
-    Your project uses a `.env` file for environment variables. For local development, you can directly edit this file or create a `.env.local` for overrides. **It is highly recommended to use `.env.local` for your secret API keys and add `.env.local` to your `.gitignore` file.**
+1.  **Create `.env.local` (Recommended for Secrets)**:
+    It is highly recommended to create a `.env.local` file in the project root for your secret API keys and Firebase configuration. This file is gitignored by default in most Next.js projects (ensure it is in your `.gitignore`).
     ```bash
-    # If .env.local does not exist, you might create it:
-    # cp .env .env.local 
+    # If .env.local does not exist, create it:
+    # touch .env.local
     ```
+    You can copy the contents from the `.env` file as a template.
+
 2.  **Update `.env` or (preferably) `.env.local`**:
     Open the file and fill in your API keys and Firebase configuration:
     ```env
@@ -62,22 +81,25 @@ EcoSnap is a Next.js application designed to help users classify waste, track th
     # These are used by src/lib/firebase.ts
     NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
-    NEXT_PUBLIC_FIREBASE_DATABASE_URL=your_firebase_database_url
+    NEXT_PUBLIC_FIREBASE_DATABASE_URL=your_firebase_database_url # For Realtime Database
     NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id
     NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
     NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
-    NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id # Optional
+    NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id # Optional, for Analytics
 
     # Genkit (Google AI - Gemini)
     # REQUIRED for AI features (waste classification, AI assistant).
     GEMINI_API_KEY=your_actual_gemini_api_key 
 
     # Google Maps API Key (Optional for basic map embeds)
-    # Recommended for full features if you expand map usage beyond the current Embed API.
+    # Recommended for full features if you expand map usage.
     # NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
     ```
-    **Important**: Ensure your `GEMINI_API_KEY` is correctly set for the AI features to function. After editing environment files, you **must restart your development server** for the changes to take effect.
+    **Important**: 
+    - Ensure your `GEMINI_API_KEY` is correctly set for the AI features to function.
+    - Ensure your Firebase config (especially `NEXT_PUBLIC_FIREBASE_DATABASE_URL` for Realtime Database and `NEXT_PUBLIC_FIREBASE_PROJECT_ID` for Firestore) is correct.
+    - After editing environment files, you **must restart your development server** for the changes to take effect.
 
 ## Development
 
@@ -95,7 +117,7 @@ This project is configured to run in a Docker container for a consistent develop
     -   Start a container based on this image.
     -   Mount your local project directory into the container, so code changes are reflected.
     -   Forward port 9002 from the container to your host machine.
-    -   Use environment variables from the `.env` file (Docker Compose automatically loads it).
+    -   Use environment variables from the `.env` file (Docker Compose automatically loads it). `.env.local` will override `.env`.
     -   The `WATCHPACK_POLLING=true` environment variable is set in `docker-compose.yml` to help ensure file changes are detected reliably in Docker.
 
 2.  **Access the application**:
@@ -130,7 +152,7 @@ If you prefer to run directly on your host machine (ensure Node.js and npm/yarn 
 
 -   `/.env`: Base environment variables (commit only if non-sensitive defaults; use `.env.local` for secrets).
 -   `/public/`: Static assets (images, fonts, etc.).
-    -   `/public/assets/images/`: Contains images used for categories (e.g., `cardboard.png`, `ewaste.png`).
+    -   `/public/assets/images/`: Contains images used for categories (e.g., `cardboard.png`, `ewaste.png`, `bronze-badge.png`).
 -   `/src/`: Main application source code.
     -   `/src/ai/`: Genkit AI flows and configuration.
         -   `/src/ai/flows/`: Specific AI agent logic (e.g., `classify-waste.ts`, `eco-planner-assistant.ts`).
@@ -147,29 +169,29 @@ If you prefer to run directly on your host machine (ensure Node.js and npm/yarn 
         -   `/src/components/image-upload.tsx`: Component for image capture/selection.
     -   `/src/hooks/`: Custom React hooks (e.g., `useToast.ts`, `useMobile.ts`).
     -   `/src/lib/`: Utility functions, type definitions, and Firebase integration.
-        -   `firebase.ts`: Firebase app initialization (uses environment variables).
-        -   `firebaseFunctions.ts`: Example backend logic for potential Firebase Cloud Functions (e.g., `rtdbUpdateBinNotifyOnFillLevelChange`).
+        -   `firebase.ts`: Firebase app initialization (uses environment variables for Auth, Firestore, Realtime Database, Analytics).
+        -   `firebaseFunctions.ts`: Example backend logic for potential Firebase Cloud Functions (e.g., `rtdbUpdateBinNotifyOnFillLevelChange` for IoT Smart Bin).
         -   `storage.ts`: Local storage helper functions.
         -   `types.ts`: TypeScript type definitions for data structures.
         -   `utils.ts`: General utility functions (like `cn` for class names).
 -   `Dockerfile`: For building the production Docker image.
 -   `Dockerfile.dev`: For building the development Docker image.
 -   `docker-compose.yml`: Configures the Docker development environment using `Dockerfile.dev`.
--   `next.config.ts`: Next.js configuration.
+-   `next.config.ts`: Next.js configuration (includes `placehold.co` and `picsum.photos` for remote image patterns).
 -   `tailwind.config.ts`: Tailwind CSS configuration.
 
 ## Key API Keys and Setup Details
 
 -   **Firebase**:
     *   Client-side configuration (e.g., `NEXT_PUBLIC_FIREBASE_PROJECT_ID`) is needed in your `.env` or `.env.local` for the Firebase JS SDK to initialize in the browser (see `src/lib/firebase.ts`).
-    *   For actual backend database persistence, authentication, and Cloud Functions, you would need to set up these services in your Firebase project console.
+    *   For actual backend database persistence (Firestore, Realtime Database), authentication, and Cloud Functions, you need to set up these services in your Firebase project console and ensure your security rules are configured appropriately.
 -   **Gemini API Key (`GEMINI_API_KEY`)**:
     *   **Required** for the Genkit AI features (waste classification, AI assistant).
     *   Obtain this from [Google AI Studio](https://makersuite.google.com/app/apikey).
     *   Store it in your `.env` or `.env.local` file. Genkit uses this server-side, so it does *not* need the `NEXT_PUBLIC_` prefix.
 -   **Google Maps API Key (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`)**:
-    *   Currently, the app uses the Google Maps Embed API, which may work for basic searches without a key.
-    *   If you want more advanced map features (like full JavaScript API control, directions, Places API) or encounter usage limits, you'll need to enable the relevant APIs in Google Cloud Console and get an API key. Store it with the `NEXT_PUBLIC_` prefix.
+    *   The app uses the Google Maps Embed API, which may work for basic searches without a key.
+    *   For advanced map features or higher usage limits, a key is recommended. Store it with the `NEXT_PUBLIC_` prefix if used.
 
 ## Deployment
 
@@ -184,9 +206,14 @@ The `Dockerfile` in the project root is configured for building an optimized pro
     When running, ensure all necessary environment variables (those used server-side like `GEMINI_API_KEY`, and those used client-side like `NEXT_PUBLIC_FIREBASE_PROJECT_ID`) are passed to the container.
     ```bash
     docker run -p 3000:3000 \
-      -e NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id \
       -e NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key \
-      # ... (add all NEXT_PUBLIC_ and server-side variables like GEMINI_API_KEY) \
+      -e NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain \
+      -e NEXT_PUBLIC_FIREBASE_DATABASE_URL=your_firebase_database_url \
+      -e NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id \
+      -e NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket \
+      -e NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id \
+      -e NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id \
+      -e NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id \
       -e GEMINI_API_KEY=your_gemini_api_key \
       ecosnap-app
     ```
