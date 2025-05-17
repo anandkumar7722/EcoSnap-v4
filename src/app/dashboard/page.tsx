@@ -85,6 +85,10 @@ const eWasteCategoryConfig = {
   others: { label: "Other E-Waste", color: eWasteCategoryColors.others, icon: EWastePackageIcon },
 } satisfies Record<EWasteType | 'others', {label: string; color: string; icon: React.ElementType}>;
 
+interface Bin1FillLevelHistoryPoint {
+  index: number;
+  fill_level: number;
+}
 
 export default function DetailedDashboardPage() {
   const [isMobileView, setIsMobileView] = useState(false);
@@ -105,8 +109,12 @@ export default function DetailedDashboardPage() {
   const [isLoadingSmartBins, setIsLoadingSmartBins] = useState(true);
   const [smartBinsError, setSmartBinsError] = useState<string | null>(null);
 
+  const [bin1HistoryData, setBin1HistoryData] = useState<Bin1FillLevelHistoryPoint[]>([]);
+  const [isLoadingBin1History, setIsLoadingBin1History] = useState(true);
+  const [bin1HistoryError, setBin1HistoryError] = useState<string | null>(null);
+
+
   useEffect(() => {
-    // Initialize dateRange on client-side only
     setDateRange({
         from: addDays(new Date(), -90),
         to: new Date(),
@@ -256,6 +264,42 @@ export default function DetailedDashboardPage() {
     };
   }, [toast]);
 
+  useEffect(() => {
+    if (!database) {
+      setBin1HistoryError("Firebase Realtime Database is not initialized for Bin1 history.");
+      setIsLoadingBin1History(false);
+      return;
+    }
+
+    const bin1HistoryRef = ref(database, 'bin1/fill_level_history');
+    const listener = onValue(bin1HistoryRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && typeof data === 'object') {
+        const historyArray: Bin1FillLevelHistoryPoint[] = Object.keys(data)
+          .map(key => ({
+            index: parseInt(key, 10),
+            fill_level: data[key] as number,
+          }))
+          .filter(point => !isNaN(point.index) && typeof point.fill_level === 'number') // Ensure data is valid
+          .sort((a, b) => a.index - b.index); // Sort by index
+        setBin1HistoryData(historyArray);
+        setBin1HistoryError(null);
+      } else {
+        setBin1HistoryData([]); // Handle case where node is empty or not an object
+      }
+      setIsLoadingBin1History(false);
+    }, (error) => {
+      console.error("Error fetching Bin1 fill level history:", error);
+      setBin1HistoryError("Could not load Bin1 fill level history. " + error.message);
+      setIsLoadingBin1History(false);
+      toast({ variant: "destructive", title: "Bin1 History Error", description: "Failed to load fill level history for Bin1." });
+    });
+
+    return () => {
+      off(bin1HistoryRef, 'value', listener);
+    };
+  }, [toast]);
+
 
   useEffect(() => {
     let data = liveWasteData;
@@ -339,12 +383,6 @@ export default function DetailedDashboardPage() {
     if (bin.fill_level >= 70) return "Near Full";
     if (bin.fill_level >= 20) return "Filling";
     return "Empty";
-  };
-
-  const getBinStatusColor = (bin: BinData): string => {
-    if (bin.notify || bin.fill_level >= 90) return "hsl(var(--destructive))"; // Red
-    if (bin.fill_level >= 70) return "hsl(var(--chart-2))"; // Yellow/Orange
-    return "hsl(var(--chart-1))"; // Green
   };
 
   const totalSmartBins = smartBinsData.length;
@@ -867,6 +905,89 @@ export default function DetailedDashboardPage() {
         </CardContent>
       </Card>
 
+      {/* Bin1 Fill Level History Section */}
+      <Card className="mt-8 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary">
+            <LineChartIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+            Bin1 Fill Level History
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
+            Live-updating chart of fill levels for 'bin1' from Realtime Database.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingBin1History ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-8 w-8 text-primary animate-spin mr-2" />
+              <p className="text-muted-foreground">Loading Bin1 history data...</p>
+            </div>
+          ) : bin1HistoryError ? (
+            <Alert variant="destructive">
+              <WifiOff className="h-4 w-4" />
+              <AlertTitle>Error Loading Bin1 History</AlertTitle>
+              <AlertDescription>{bin1HistoryError}</AlertDescription>
+            </Alert>
+          ) : bin1HistoryData.length === 0 ? (
+            <Alert>
+                <PackageX className="h-4 w-4" />
+                <AlertTitle>No History for Bin1</AlertTitle>
+                <AlertDescription>No fill level history data found for 'bin1/fill_level_history' in the Realtime Database.</AlertDescription>
+            </Alert>
+          ) : (
+            <ChartContainer config={{fill_level: {label: "Fill Level (%)", color: "hsl(var(--primary))"}}} className="h-[300px] sm:h-[350px] w-full">
+              <RechartsLineChart
+                data={bin1HistoryData}
+                margin={{
+                  top: 5,
+                  right: 30,
+                  left: -10,
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.5)" />
+                <XAxis
+                  dataKey="index"
+                  type="number"
+                  label={{ value: "Entry Index", position: 'insideBottomRight', offset: -5, fontSize: '0.8rem', fill: 'hsl(var(--muted-foreground))' }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  fontSize="0.75rem"
+                  domain={['dataMin', 'dataMax']}
+                />
+                <YAxis
+                  dataKey="fill_level"
+                  domain={[0, 100]}
+                  label={{ value: "Fill Level (%)", angle: -90, position: 'insideLeft', fontSize: '0.8rem', fill: 'hsl(var(--muted-foreground))' }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  fontSize="0.75rem"
+                />
+                <RechartsTooltip
+                  cursor={{stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "3 3"}}
+                  content={<ChartTooltipContent indicator="line" nameKey="fill_level" labelKey="index" />}
+                />
+                <RechartsLegend />
+                <RechartsLine
+                  type="monotone"
+                  dataKey="fill_level"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: "hsl(var(--primary))" }}
+                  activeDot={{ r: 6 }}
+                  isAnimationActive={true}
+                  animationDuration={300}
+                />
+              </RechartsLineChart>
+            </ChartContainer>
+          )}
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
+
+    
