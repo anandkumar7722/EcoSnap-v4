@@ -34,7 +34,7 @@ import {
   Cell
 } from "recharts";
 import { useEffect, useState, useMemo } from 'react';
-import type { WasteEntry, WasteCategory, RealTimeEWasteDataPoint, EWasteCategoryDistributionPoint, MonthlyEWasteDataPoint, EWasteCategory as EWasteType, BinData } from '@/lib/types';
+import type { WasteEntry, WasteCategory, RealTimeEWasteDataPoint, EWasteCategoryDistributionPoint, MonthlyEWasteDataPoint, EWasteCategory as EWasteType, BinData, Bin1FillLevelHistoryPoint } from '@/lib/types';
 import type { DateRange } from "react-day-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -85,16 +85,13 @@ const eWasteCategoryConfig = {
   others: { label: "Other E-Waste", color: eWasteCategoryColors.others, icon: EWastePackageIcon },
 } satisfies Record<EWasteType | 'others', {label: string; color: string; icon: React.ElementType}>;
 
-interface Bin1FillLevelHistoryPoint {
-  index: number;
-  fill_level: number;
-}
 
 export default function DetailedDashboardPage() {
   const [isMobileView, setIsMobileView] = useState(false);
   const [liveWasteData, setLiveWasteData] = useState<WasteEntry[]>([]);
   const [filteredData, setFilteredData] = useState<WasteEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [firestoreDataError, setFirestoreDataError] = useState<string | null>(null); // New state for Firestore errors
   const { toast } = useToast();
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -115,7 +112,6 @@ export default function DetailedDashboardPage() {
 
 
   useEffect(() => {
-    // Initialize dateRange on client-side to avoid hydration mismatch
     setDateRange({
         from: addDays(new Date(), -90),
         to: new Date(),
@@ -190,15 +186,20 @@ export default function DetailedDashboardPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    const userId = 'user1'; // Replace with actual authenticated user ID
+    setFirestoreDataError(null); // Reset error on new attempt
+    const userId = 'user1'; 
 
     if (!firestore) {
-        toast({ variant: "destructive", title: "Firebase Error", description: "Firestore is not initialized." });
+        const msg = "Firebase Firestore is not initialized. Please check your Firebase setup.";
+        setFirestoreDataError(msg);
+        toast({ variant: "destructive", title: "Firebase Error", description: msg });
         setIsLoading(false);
         return;
     }
     if (!userId) {
-        toast({ variant: "destructive", title: "Auth Error", description: "User ID not available." });
+        const msg = "User ID not available. Cannot fetch waste data.";
+        setFirestoreDataError(msg);
+        toast({ variant: "destructive", title: "Auth Error", description: msg });
         setIsLoading(false);
         setLiveWasteData([]);
         return;
@@ -223,9 +224,12 @@ export default function DetailedDashboardPage() {
       });
       setLiveWasteData(entries);
       setIsLoading(false);
+      setFirestoreDataError(null); // Clear error on successful fetch
     }, (error) => {
       console.error("Error fetching real-time waste entries:", error);
-      toast({ variant: "destructive", title: "Data Fetch Error", description: "Could not load live waste data." });
+      const errorMsg = "Could not load live waste data. There might be a connection issue with the database or insufficient permissions. Please try again later.";
+      setFirestoreDataError(errorMsg);
+      toast({ variant: "destructive", title: "Data Fetch Error", description: errorMsg });
       setIsLoading(false);
     });
 
@@ -278,15 +282,15 @@ export default function DetailedDashboardPage() {
       if (data && typeof data === 'object') {
         const historyArray: Bin1FillLevelHistoryPoint[] = Object.keys(data)
           .map(key => ({
-            index: parseInt(key, 10), // Convert string key to number
+            index: parseInt(key, 10),
             fill_level: data[key] as number,
           }))
-          .filter(point => !isNaN(point.index) && typeof point.fill_level === 'number') // Ensure data is valid
-          .sort((a, b) => a.index - b.index); // Sort by index
+          .filter(point => !isNaN(point.index) && typeof point.fill_level === 'number')
+          .sort((a, b) => a.index - b.index);
         setBin1HistoryData(historyArray);
         setBin1HistoryError(null);
       } else {
-        setBin1HistoryData([]); // Handle case where node is empty or not an object
+        setBin1HistoryData([]);
       }
       setIsLoadingBin1History(false);
     }, (error) => {
@@ -348,7 +352,7 @@ export default function DetailedDashboardPage() {
   const totalWaste = useMemo(() => {
     return filteredData.reduce((sum, entry) => {
       const quantity = typeof entry.quantity === 'number' ? entry.quantity : 0;
-      return sum + (entry.unit === 'items' ? quantity * 0.1 : quantity); // Assuming 0.1kg per item for simplicity
+      return sum + (entry.unit === 'items' ? quantity * 0.1 : quantity); 
     }, 0).toFixed(1);
   }, [filteredData]);
 
@@ -370,7 +374,7 @@ export default function DetailedDashboardPage() {
     const lx = x + radius * Math.cos(-midAngle * RADIAN);
     const ly = y + radius * Math.sin(-midAngle * RADIAN);
     const textAnchor = lx > x ? 'start' : 'end';
-    if ((isMobileView && percent * 100 < 7) || percent * 100 < 5) return null; // Hide small labels if on mobile and percent is small
+    if ((isMobileView && percent * 100 < 7) || percent * 100 < 5) return null; 
     return (
       <text x={lx} y={ly} fill="currentColor" textAnchor={textAnchor} dominantBaseline="central" className="text-[9px] sm:text-xs fill-foreground">
         {generalChartConfig[name as WasteCategory]?.label || name} (${(percent * 100).toFixed(0)}%)
@@ -469,6 +473,12 @@ export default function DetailedDashboardPage() {
           <Loader2 className="h-12 w-12 text-primary animate-spin" />
           <p className="ml-4 text-lg text-muted-foreground">Loading dashboard data...</p>
         </div>
+      ) : firestoreDataError ? ( // Display Firestore specific error
+        <Alert variant="destructive" className="mt-4">
+            <WifiOff className="h-4 w-4" />
+            <AlertTitle>General Waste Data Error</AlertTitle>
+            <AlertDescription>{firestoreDataError}</AlertDescription>
+        </Alert>
       ) : (
         <>
           {liveWasteData.length === 0 && !isLoading && (
@@ -801,7 +811,7 @@ export default function DetailedDashboardPage() {
                 <div className="space-y-4">
                   {smartBinsData.map((bin) => {
                     const binStatusText = getBinStatusText(bin);
-                    const isOffline = bin.last_updated && differenceInHours(new Date(), new Date(bin.last_updated)) > 24; // Example: offline if not updated in 24h
+                    const isOffline = bin.last_updated && differenceInHours(new Date(), new Date(bin.last_updated)) > 24; 
 
                     let statusIcon;
                     let statusColorClass;
@@ -943,8 +953,8 @@ export default function DetailedDashboardPage() {
                 margin={{
                   top: 5,
                   right: 30,
-                  left: 20, // Adjusted for Y-axis label
-                  bottom: 20, // Adjusted for X-axis label
+                  left: 20, 
+                  bottom: 20, 
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.5)" />
@@ -992,4 +1002,3 @@ export default function DetailedDashboardPage() {
   );
 }
 
-    
