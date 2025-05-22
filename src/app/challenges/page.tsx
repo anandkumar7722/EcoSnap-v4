@@ -158,7 +158,17 @@ export default function ChallengesPage() {
         url: window.location.href,
       })
       .then(() => toast({ title: "Challenge Shared!", description: "Thanks for spreading the word."}))
-      .catch((error) => console.error("Error sharing:", error));
+      .catch((error) => {
+        console.error("Error sharing:", error);
+        if (error instanceof Error && error.name === 'AbortError') {
+          // User cancelled the share operation
+          toast({ variant: "default", title: "Share Cancelled", description: "You decided not to share the challenge."});
+        } else if (error instanceof Error && error.message.includes("Permission denied")) {
+          toast({ variant: "destructive", title: "Share Failed", description: "Could not share due to permission issues. Ensure you're on HTTPS and sharing is allowed by your browser."});
+        } else {
+          toast({ variant: "destructive", title: "Share Error", description: "An unexpected error occurred while trying to share."});
+        }
+      });
     } else {
       toast({ variant: "destructive", title: "Share Not Supported", description: "Your browser doesn't support direct sharing."});
     }
@@ -258,3 +268,4 @@ export default function ChallengesPage() {
     </div>
   );
 }
+
