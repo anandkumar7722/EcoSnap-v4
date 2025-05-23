@@ -68,8 +68,7 @@ const LEVELS: LevelInfo[] = [
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
 ];
 
-
-const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
+const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 'compostable' | 'non-recyclable', TipInfo> = {
   general: {
     title: "General Waste Item",
     icon: HelpCircle,
@@ -106,7 +105,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Purchase recycled paper products. Support businesses that use sustainable paper sourcing."
     }
   },
-  plastic: { 
+  plastic: {
     title: "Plastic (General)",
     icon: Recycle,
     definition: "A wide range of synthetic or semi-synthetic materials, often found in packaging, bottles, and containers.",
@@ -120,7 +119,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   plasticPete: {
     title: "Plastic - PETE (#1)",
-    icon: Recycle, 
+    icon: Recycle,
     definition: "Polyethylene Terephthalate. Common in beverage bottles, food containers. Widely recyclable.",
     fiveRs: {
       reduce: "Choose reusable bottles. Buy beverages in larger containers or from concentrate.",
@@ -132,7 +131,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   plasticHdpe: {
     title: "Plastic - HDPE (#2)",
-    icon: Recycle, 
+    icon: Recycle,
     definition: "High-Density Polyethylene. Found in milk jugs, detergent bottles. Often recyclable.",
     fiveRs: {
       reduce: "Buy concentrated detergents. Opt for bar soap over liquid soap in plastic bottles.",
@@ -144,7 +143,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   plasticPp: {
     title: "Plastic - PP (#5)",
-    icon: PackageIcon, 
+    icon: PackageIcon,
     definition: "Polypropylene. Used for yogurt containers, bottle caps, some tubs. Increasingly recyclable.",
     fiveRs: {
       reduce: "Buy yogurt in larger tubs. Consider making some items (like sauces) at home.",
@@ -156,7 +155,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   plasticPs: {
     title: "Plastic - PS (#6)",
-    icon: AlertTriangle, 
+    icon: AlertTriangle,
     definition: "Polystyrene. Found in disposable foam cups/plates, some food containers, packing peanuts. Rarely recycled.",
     fiveRs: {
       reduce: "AVOID PS whenever possible. Use reusable cups and containers. Ask restaurants for non-PS takeout containers.",
@@ -168,7 +167,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   plasticOther: {
     title: "Plastic - Other (#7)",
-    icon: HelpCircle, 
+    icon: HelpCircle,
     definition: "Miscellaneous plastics, including multi-layer materials or newer bioplastics. Recyclability varies greatly.",
     fiveRs: {
       reduce: "Be cautious with items marked #7; try to find alternatives if unsure about recyclability. Avoid products with excessive or mixed-material plastic packaging.",
@@ -180,7 +179,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   glass: {
     title: "Glass",
-    icon: Lightbulb, 
+    icon: Lightbulb,
     definition: "Made from sand, soda ash, and limestone. Infinitely recyclable without loss of quality.",
     fiveRs: {
       reduce: "Buy items in glass when it's a good alternative to plastic. Consider products with refill options.",
@@ -192,7 +191,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   ewaste: {
     title: "E-Waste",
-    icon: Tv2, 
+    icon: Tv2,
     definition: "Electronic waste like old phones, computers, TVs, batteries, cables. Contains valuable and hazardous materials.",
     fiveRs: {
       reduce: "Repair electronics instead of replacing them. Buy durable, high-quality products. Resist upgrading too frequently.",
@@ -204,7 +203,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   biowaste: {
     title: "Bio-Waste / Organic",
-    icon: Leaf, 
+    icon: Leaf,
     definition: "Organic matter like food scraps (fruit, vegetables, coffee grounds), yard trimmings, and some paper products (if not waxy or coated).",
     fiveRs: {
       reduce: "Plan meals to reduce food waste. Store food properly to extend its life. Only buy what you need.",
@@ -216,7 +215,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   },
   metal: {
     title: "Metal",
-    icon: Wind, 
+    icon: Wind,
     definition: "Includes aluminum cans, steel/tin cans, and sometimes other metal items. Highly recyclable.",
     fiveRs: {
       reduce: "Choose reusable containers over single-use cans where possible.",
@@ -226,7 +225,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: { 
+  other: {
     title: "Trash / Other Non-Recyclables",
     icon: Trash2,
     definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
@@ -238,11 +237,11 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { 
-    title: "Organic Waste", 
-    icon: Apple, 
+  organic: { // Explicitly defining 'organic' as it's a valid WasteCategory from types.ts
+    title: "Organic Waste",
+    icon: Apple,
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
-    fiveRs: { 
+    fiveRs: {
       reduce: "Smart shopping, proper food storage, and using leftovers creatively can significantly reduce organic waste.",
       reuse: "Many vegetable scraps can be used to make broth. Coffee grounds can be great for your garden.",
       recycle: "Compost at home using a bin, pile, or worm farm. Utilize municipal green bin collection services if available.",
@@ -288,6 +287,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   }
 };
 
+
 const topHorizontalCategories: Array<{
   id: WasteCategory | 'general';
   name: string;
@@ -310,7 +310,7 @@ const verticalLogCategories: Array<{
   name: string;
   imageUrl?: string;
   icon?: React.ElementType;
-  points: number; 
+  points: number;
   dataAiHint: string;
   quantityKey: keyof Pick<UserProfile, 'totalCardboard' | 'totalPaper' | 'totalGlass' | 'totalPlastic' | 'totalOther' | 'totalEwaste' | 'totalBiowaste' | 'totalMetal' | 'totalOrganic' | 'totalPlasticOther' | 'totalPlasticPete' | 'totalPlasticHdpe' | 'totalPlasticPp' | 'totalPlasticPs' | 'itemsClassified'>;
   placeholderText?: string;
@@ -344,7 +344,7 @@ const defaultUserProfile: UserProfile = {
   totalPaper: 0,
   totalGlass: 0,
   totalMetal: 0,
-  totalOrganic: 0, 
+  totalOrganic: 0,
   totalOther: 0,
   totalPlasticOther: 0,
   totalPlasticPete: 0,
@@ -390,7 +390,7 @@ const ImageWithFallback = ({
       setIsLoading(true);
     } else {
       setCurrentSrc(null);
-      setIsError(!IconComponent && !placeholderText); 
+      setIsError(!IconComponent && !placeholderText);
       setIsLoading(false);
     }
   }, [initialSrcProp, IconComponent, placeholderText]);
@@ -460,23 +460,23 @@ export default function HomePage() {
 
       if (loggedIn) {
         const userEmail = localStorage.getItem('userEmail');
-        const userName = localStorage.getItem('userName'); 
+        const userName = localStorage.getItem('userName');
         if (userEmail && storedUserData.email !== userEmail) {
-           const displayName = userName || userEmail.split('@')[0]; 
+           const displayName = userName || userEmail.split('@')[0];
            storedUserData = {
-            ...defaultUserProfile, 
-            id: userEmail, 
+            ...defaultUserProfile,
+            id: userEmail,
             displayName: displayName,
             email: userEmail,
             avatar: `https://placehold.co/100x100.png?text=${displayName.substring(0,2).toUpperCase()}`,
            };
-        } else if (!userEmail && storedUserData.email) { 
-            storedUserData = defaultUserProfile; 
-        } else if (userEmail && userName && storedUserData.displayName !== userName) { 
+        } else if (!userEmail && storedUserData.email) {
+            storedUserData = defaultUserProfile;
+        } else if (userEmail && userName && storedUserData.displayName !== userName) {
             storedUserData.displayName = userName;
             storedUserData.avatar = `https://placehold.co/100x100.png?text=${userName.substring(0,2).toUpperCase()}`;
         }
-      } else { 
+      } else {
         if (storedUserData.id !== 'localUser' || storedUserData.email) {
             storedUserData = defaultUserProfile;
         }
@@ -489,13 +489,13 @@ export default function HomePage() {
 
       const history = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
       const sortedHistory = history.sort((a,b) => b.timestamp - a.timestamp);
-      
+
       setRecentClassifications(sortedHistory.slice(0, MAX_HISTORY_DISPLAY_ITEMS));
     };
 
-    checkLoginStatus(); 
-    window.addEventListener('storage', checkLoginStatus); 
-    window.addEventListener('authChange', checkLoginStatus); 
+    checkLoginStatus();
+    window.addEventListener('storage', checkLoginStatus);
+    window.addEventListener('authChange', checkLoginStatus);
     return () => {
         window.removeEventListener('storage', checkLoginStatus);
         window.removeEventListener('authChange', checkLoginStatus);
@@ -522,6 +522,7 @@ export default function HomePage() {
     setClassificationError(null);
 
     try {
+      // The AI will classify into 'recyclable', 'compostable', or 'non-recyclable'
       const result = await classifyWaste({ photoDataUri: imageDataUri });
       if (!result || !result.category) {
         setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
@@ -533,31 +534,31 @@ export default function HomePage() {
         setIsClassifying(false);
         return null;
       }
-      
-      const classificationResultCategory = result.category as AIWasteCategory; 
+
+      const classificationResultCategory = result.category as AIWasteCategory;
       const classificationConfidence = result.confidence;
-      
-      const pointsEarned = WASTE_POINTS[classificationResultCategory] || 10; 
+
+      const pointsEarned = WASTE_POINTS[classificationResultCategory] || 10;
 
       const newRecord: ClassificationRecord = {
         id: Date.now().toString(),
         imageDataUri,
-        category: classificationResultCategory, 
+        category: classificationResultCategory, // This is the AI's broad category
         confidence: classificationConfidence,
         timestamp: Date.now(),
         points: pointsEarned,
       };
 
       const currentHistory = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
-      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); 
+      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50);
       saveToLocalStorage(HISTORY_STORAGE_KEY, updatedHistory);
-      
+
       setRecentClassifications(updatedHistory.slice(0, MAX_HISTORY_DISPLAY_ITEMS));
 
       setUserData(prevData => {
         const newScore = prevData.score + pointsEarned;
         const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
-        
+
         const newUserData: UserProfile = {
           ...prevData,
           score: newScore,
@@ -565,8 +566,8 @@ export default function HomePage() {
           itemsClassified: prevData.itemsClassified + 1,
         };
 
-        // Increment specific category count if currentUploadCategory is set and is a specific material type
-        // This is for the user's personal tracking; points and main classification are based on AI's broad output.
+        // If the user initiated by clicking a specific category (e.g., "Cardboard"),
+        // update that specific category's quantity count.
         if (currentUploadCategory && currentUploadCategory !== 'general' && currentUploadCategory !== 'recyclable' && currentUploadCategory !== 'compostable' && currentUploadCategory !== 'non-recyclable') {
           const categoryToUpdateDetails = verticalLogCategories.find(cat => cat.id === currentUploadCategory);
           if (categoryToUpdateDetails && categoryToUpdateDetails.quantityKey) {
@@ -574,7 +575,7 @@ export default function HomePage() {
             newUserData[keyToUpdate] = (newUserData[keyToUpdate] || 0) + 1; // Increment by 1 item
           }
         }
-        
+
         saveToLocalStorage(USER_DATA_KEY, newUserData);
         return newUserData;
       });
@@ -583,8 +584,8 @@ export default function HomePage() {
         title: "Classification Successful!",
         description: `Item classified as ${classificationResultCategory}. You earned ${pointsEarned} points!`,
       });
-      setIsUploadModalOpen(false); 
-      setCurrentUploadCategory(undefined); 
+      setIsUploadModalOpen(false);
+      setCurrentUploadCategory(undefined);
       setCurrentUploadCategoryFriendlyName(undefined);
       return { category: classificationResultCategory, confidence: classificationConfidence };
 
@@ -609,16 +610,16 @@ export default function HomePage() {
         return LEVELS[i];
       }
     }
-    return LEVELS[0]; 
+    return LEVELS[0];
   };
 
   const openUploadModalForCategory = (categoryId: WasteCategory | 'general' | undefined, categoryName: string) => {
-    setClassificationError(null); 
+    setClassificationError(null);
     setCurrentUploadCategory(categoryId);
     setCurrentUploadCategoryFriendlyName(categoryName);
     setIsUploadModalOpen(true);
   };
-  
+
   const currentLevel = useMemo(() => getCurrentLevel(userData.score), [userData.score]);
 
   let scorePercentage = 0;
@@ -629,10 +630,10 @@ export default function HomePage() {
     const pointsToNextLevelRange = currentLevel.targetForNext - currentLevel.minScore;
     if (pointsToNextLevelRange > 0) {
       scorePercentage = Math.min((pointsEarnedInLevel / pointsToNextLevelRange) * 100, 100);
-    } else { 
+    } else {
       scorePercentage = userData.score >= currentLevel.minScore ? 100 : 0;
     }
-  } else { 
+  } else {
     scorePercentage = 100;
     pointsForNextLevelDisplay = "Max";
   }
@@ -643,10 +644,10 @@ export default function HomePage() {
     }
     return currentUploadCategory && currentUploadCategory !== 'general' ? currentUploadCategory : 'general';
   }, [currentUploadCategory]);
-  
+
   const selectedCategoryTips = useMemo(() => {
       return wasteCategoryFiveRTips[dialogTipsCategoryKey] || wasteCategoryFiveRTips.general;
-  }, [dialogTipsCategoryKey, wasteCategoryFiveRTips]); // Added wasteCategoryFiveRTips dependency
+  }, [dialogTipsCategoryKey, wasteCategoryFiveRTips]);
 
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
 
@@ -654,11 +655,8 @@ export default function HomePage() {
     if (!selectedCategoryTips || !selectedCategoryTips.fiveRs) return [];
     return (Object.keys(selectedCategoryTips.fiveRs) as Array<keyof TipInfo['fiveRs']>)
       .map(key => ({ key, tip: selectedCategoryTips.fiveRs[key] }))
-      .filter(item => item.tip); 
+      .filter(item => item.tip);
   }, [selectedCategoryTips]);
-  
-  // console.log("HomePage: currentUploadCategory:", currentUploadCategory, "Resolved tips for:", dialogTipsCategoryKey);
-
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
@@ -790,21 +788,21 @@ export default function HomePage() {
                 <Image
                   src={currentLevel.badgeImageUrl}
                   alt={`level ${currentLevel.name.toLowerCase()} badge`}
-                  width={95} 
+                  width={95}
                   height={95}
-                  className="h-14 w-14 sm:h-20 sm:w-20" 
+                  className="h-14 w-14 sm:h-20 sm:w-20"
                   data-ai-hint={`level ${currentLevel.name.toLowerCase()} badge`}
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-[80%]")}> {/* Adjusted: Removed mx-auto for left align, or use w-full if parent handles alignment */}
+            <div className={cn("mt-2 sm:mt-4 w-full")}>
                  <Progress
                     value={scorePercentage}
                     className={cn(
-                        currentLevel.progressBarTrackColor, 
+                        currentLevel.progressBarTrackColor,
                         `[&>div]:${currentLevel.progressBarIndicatorColor}`,
-                        "h-3 sm:h-4", 
-                        "w-full"  // Progress bar itself is full width of its 80% container
+                        "h-3 sm:h-4",
+                        "w-[80%]"
                     )}
                     aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
                 />
@@ -823,28 +821,12 @@ export default function HomePage() {
           </div>
             <div className="flex overflow-x-auto space-x-3 pb-3 no-scrollbar">
               {recentClassifications.map(item => {
-                 const specificCategoryDetails = verticalLogCategories.find(
-                    (logCat) => logCat.id === item.category || // Direct match (e.g. if AI outputs 'cardboard')
-                                (item.category === 'recyclable' && ['cardboard', 'paper', 'plastic', 'glass', 'metal', 'plasticPete', 'plasticHdpe', 'plasticPp'].includes(logCat.id as string)) ||
-                                (item.category === 'compostable' && ['biowaste', 'organic'].includes(logCat.id as string)) ||
-                                (item.category === 'non-recyclable' && ['other', 'plasticPs', 'plasticOther'].includes(logCat.id as string))
-                    // This mapping is imperfect for quantity if AI output is broad.
-                    // For quantity, we might need to show a generic "1 item" or rely on user's initial selection if that's desired.
-                    // For now, we'll try to find a specific category or default to 1 for AI categories.
-                );
-
                 let displayQuantity = 1; // Default for broad AI categories
-                if (specificCategoryDetails && userData && typeof userData[specificCategoryDetails.quantityKey] === 'number') {
-                    // This part is tricky: AI gives broad, user profile has specific.
-                    // If we want to show quantity for specific item, we'd need to link AI's output back to user's original intent.
-                    // For now, if the AI classified as "recyclable", it's hard to know *which* recyclable item's quantity to show.
-                    // So, we'll simplify: if AI category matches one of the loggable types, use its count. Otherwise, default to 1.
-                    const directMatchCategory = verticalLogCategories.find(vc => vc.id === item.category);
-                    if (directMatchCategory) {
-                        displayQuantity = (userData[directMatchCategory.quantityKey] as number) || 0;
-                    }
+                // Try to find a match in verticalLogCategories to display its specific count if AI category is a specific material type
+                const directMatchCategory = verticalLogCategories.find(vc => vc.id === item.category);
+                if (directMatchCategory && userData && typeof userData[directMatchCategory.quantityKey] === 'number') {
+                    displayQuantity = (userData[directMatchCategory.quantityKey] as number) || 0;
                 }
-
 
                 return (
                   <Card key={item.id} className="p-3 flex items-center gap-3 min-w-[280px] sm:min-w-[320px] flex-shrink-0 shadow-sm hover:shadow-md transition-shadow">
@@ -860,9 +842,8 @@ export default function HomePage() {
                     <div className="flex-grow overflow-hidden">
                       <p className="font-medium capitalize text-sm sm:text-base truncate">{item.category}</p>
                       <p className="text-xs sm:text-sm text-muted-foreground">
-                        {item.points || 0} points 
-                        {/* Displaying a generic "x 1" for AI-classified items, as specific quantity link is complex */}
-                         x 1
+                        {item.points || 0} pts
+                         x <span className="font-semibold text-primary">{displayQuantity}</span>
                       </p>
                     </div>
                   </Card>
@@ -941,7 +922,7 @@ export default function HomePage() {
       <Dialog open={isUploadModalOpen} onOpenChange={open => {
           if(!open) {
             setClassificationError(null);
-            if (!isClassifying) { 
+            if (!isClassifying) {
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
             }
@@ -957,21 +938,21 @@ export default function HomePage() {
             <ImagePlus className="h-6 w-6 sm:h-7 sm:w-7" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-sm p-4">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <DialogTitle className="flex items-center gap-2 text-md sm:text-lg">
               <SelectedCategoryIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               {currentUploadCategoryFriendlyName || "Classify Waste Item"}
             </DialogTitle>
           </DialogHeader>
 
           {selectedCategoryTips && selectedCategoryTips.definition && (
-            <p className="text-sm text-muted-foreground my-3 italic">{selectedCategoryTips.definition}</p>
+            <p className="text-sm text-muted-foreground my-2 italic">{selectedCategoryTips.definition}</p>
           )}
 
           {fiveRTipsArray.length > 0 && (
-            <div className="my-2 sm:my-3 space-y-2 text-sm max-h-[180px] sm:max-h-[220px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-              <h3 className="font-semibold text-base text-primary mb-1.5">5 Rs of Waste Management:</h3>
+            <div className="my-1 sm:my-2 space-y-1.5 text-sm max-h-[120px] sm:max-h-[150px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+              <h3 className="font-semibold text-sm text-primary mb-1">5 Rs of Waste Management:</h3>
               {fiveRTipsArray.map((tipItem) => (
                 <div key={tipItem.key}>
                   <p className="font-medium capitalize text-primary/90">{tipItem.key}:</p>
@@ -994,9 +975,9 @@ export default function HomePage() {
           <Separator className={cn(
             ( (selectedCategoryTips && selectedCategoryTips.definition) || fiveRTipsArray.length > 0 ||
               (currentUploadCategory && ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory))
-            ) ? "my-3" : "my-0"
+            ) ? "my-2" : "my-0"
           )} />
-          
+
           <ImageUpload
             onClassify={handleClassify}
             isClassifying={isClassifying}
@@ -1008,5 +989,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    

@@ -6,14 +6,14 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Camera, Loader2, AlertTriangle, ImagePlus } from 'lucide-react'; // Changed Icon
+import { Camera, Loader2, AlertTriangle, ImagePlus } from 'lucide-react';
 import type { ClassifyWasteOutput } from '@/ai/flows/classify-waste';
 
 interface ImageUploadProps {
   onClassify: (imageDataUri: string) => Promise<ClassifyWasteOutput | null>;
   isClassifying: boolean;
   classificationError: string | null;
-  initialPromptText?: string; // Optional: To prefill some context if needed by AI
+  initialPromptText?: string;
 }
 
 export function ImageUpload({ onClassify, isClassifying, classificationError, initialPromptText }: ImageUploadProps) {
@@ -32,7 +32,7 @@ export function ImageUpload({ onClassify, isClassifying, classificationError, in
         return;
       }
       setSelectedImage(file);
-      setInternalError(null); // Clear previous internal errors
+      setInternalError(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result as string);
@@ -43,9 +43,8 @@ export function ImageUpload({ onClassify, isClassifying, classificationError, in
 
   const handleClassify = async () => {
     if (selectedImage && previewUrl) {
-      setInternalError(null); // Clear previous internal errors before new attempt
+      setInternalError(null);
       await onClassify(previewUrl);
-      // Do not reset selectedImage/previewUrl here, let parent component decide if modal closes
     } else {
       setInternalError("Please select an image first.");
     }
@@ -54,23 +53,21 @@ export function ImageUpload({ onClassify, isClassifying, classificationError, in
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
-  
-  // Effect to clear errors if the component is re-rendered (e.g. modal reopens)
+
   useEffect(() => {
     setInternalError(null);
-    // classificationError is managed by parent
   }, []);
 
 
   return (
-    <Card className="w-full max-w-md shadow-lg border-none"> {/* Removed border to fit modal better */}
-      <CardHeader className="pt-2 pb-4"> {/* Adjusted padding */}
-        <CardTitle className="flex items-center gap-2 text-base sm:text-lg"> {/* Smaller title, responsive */}
+    <Card className="w-full max-w-md shadow-lg border-none">
+      <CardHeader className="pt-1 pb-2">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <Camera className="h-5 w-5 text-primary" />
           Snap & Classify
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2">
         <Input
           type="file"
           accept="image/*"
@@ -81,15 +78,15 @@ export function ImageUpload({ onClassify, isClassifying, classificationError, in
         <Button variant="outline" onClick={triggerFileInput} className="w-full">
           <ImagePlus className="mr-2 h-4 w-4" /> {previewUrl ? "Change Image" : "Choose or Capture Image"}
         </Button>
-        
+
         {previewUrl && (
-          <div className="mt-4 border rounded-md overflow-hidden aspect-video relative">
+          <div className="mt-2 border rounded-md overflow-hidden aspect-video relative">
             <Image src={previewUrl} alt="Selected waste preview" layout="fill" objectFit="cover" data-ai-hint="upload preview" />
           </div>
         )}
-        
+
         {(internalError || classificationError) && (
-          <div className="mt-2 text-sm text-destructive flex items-center gap-1 p-2 bg-destructive/10 rounded-md">
+          <div className="mt-1 text-sm text-destructive flex items-center gap-1 p-2 bg-destructive/10 rounded-md">
             <AlertTriangle className="h-4 w-4" />
             {internalError || classificationError}
           </div>
@@ -110,4 +107,3 @@ export function ImageUpload({ onClassify, isClassifying, classificationError, in
     </Card>
   );
 }
-
