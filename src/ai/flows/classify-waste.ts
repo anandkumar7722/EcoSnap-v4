@@ -21,12 +21,26 @@ const ClassifyWasteInputSchema = z.object({
 });
 export type ClassifyWasteInput = z.infer<typeof ClassifyWasteInputSchema>;
 
-const AIWasteCategorySchema = z.enum(["recyclable", "compostable", "non-recyclable"]);
+// Define the specific waste categories the AI should output
+const AIWasteCategorySchema = z.enum([
+    "cardboard", 
+    "paper", 
+    "glass", 
+    "plasticPete", 
+    "plasticHdpe", 
+    "plasticPp", 
+    "plasticPs", 
+    "plasticOther", 
+    "ewaste", 
+    "biowaste", 
+    "metal", 
+    "other" // For general trash
+]);
 export type AIWasteCategory = z.infer<typeof AIWasteCategorySchema>;
 
 const ClassifyWasteOutputSchema = z.object({
   category: AIWasteCategorySchema
-    .describe('The predicted category of the waste: recyclable, compostable, or non-recyclable.'),
+    .describe('The predicted specific category of the waste.'),
   confidence: z.number().min(0).max(1).describe('The confidence level of the prediction (0-1).'),
 });
 export type ClassifyWasteOutput = z.infer<typeof ClassifyWasteOutputSchema>;
@@ -39,19 +53,26 @@ const classifyWastePrompt = ai.definePrompt({
   name: 'classifyWastePrompt',
   input: {schema: ClassifyWasteInputSchema},
   output: {schema: ClassifyWasteOutputSchema},
-  prompt: `You are an expert in waste management and sustainable practices.
+  prompt: `You are an expert in waste management and material identification.
+Analyze the provided photo of a waste item and classify it into ONE of the following specific categories:
 
-You will classify the waste item in the provided photo into one of the following categories:
-
-1.  ♻️ Recyclable – Items that can be processed and materials recovered for reuse. Common examples include clean paper, cardboard, specific types of plastic containers (like PETE #1, HDPE #2 bottles and jugs if clean), glass bottles and jars, and metal cans (aluminum, steel, tin). The item must be relatively clean and dry to be considered recyclable.
-2.  🌱 Compostable – Organic matter that can naturally decompose into nutrient-rich compost. This primarily includes food scraps (fruit and vegetable peels, coffee grounds, eggshells, plate scrapings - excluding large amounts of meat, dairy, or oily foods for home composting), and garden waste (leaves, grass clippings, small twigs). Some certified compostable packaging might also fit here if specified by local programs.
-3.  🚫 Non-Recyclable – Items that currently cannot be recycled or composted through standard municipal programs and are typically sent to landfill. This includes items like Styrofoam, most flexible plastic packaging (chip bags, candy wrappers), mixed-material items that are hard to separate, heavily soiled or greasy paper/cardboard, broken ceramics or glass (that isn't bottle/jar glass), and general trash.
-
-Analyze the following image and determine the most appropriate category based on its primary material and common disposal method. Provide the predicted waste category and your confidence level (0-1).
+- "cardboard": Corrugated cardboard (like shipping boxes) or flat cardboard (like cereal boxes). Must be clean and dry.
+- "paper": Newspapers, magazines, office paper, junk mail. Must be clean and dry. Not waxy or heavily soiled.
+- "glass": Glass bottles and jars (clear, brown, green). Should be empty and rinsed. Do not classify broken window glass or ceramics here.
+- "plasticPete": Plastic items marked with resin code #1 (PET or PETE). Typically clear beverage bottles, food containers.
+- "plasticHdpe": Plastic items marked with resin code #2 (HDPE). Typically milk jugs, detergent bottles, some plastic bags.
+- "plasticPp": Plastic items marked with resin code #5 (PP). Typically yogurt containers, bottle caps, some food tubs.
+- "plasticPs": Plastic items marked with resin code #6 (PS). Typically disposable foam cups/plates, some food containers, packing peanuts. Often not recyclable.
+- "plasticOther": Any other plastic items, including those marked with resin codes #3 (V/PVC), #4 (LDPE), #7 (OTHER), or plastics with no visible resin code. This also includes items you identify as plastic but cannot determine the specific type.
+- "ewaste": Electronic waste. Includes old phones, computers, cables, batteries, TVs, and other electronic devices.
+- "biowaste": Organic matter. Includes food scraps (fruit/vegetable peels, coffee grounds, eggshells), yard trimmings (leaves, grass clippings).
+- "metal": Metal items. Includes aluminum cans, steel/tin cans, clean foil.
+- "other": General trash. Items that do not fit into any of the above categories, are heavily contaminated, or are mixed-material items that cannot be easily separated. This is for items typically sent to landfill.
 
 Photo: {{media url=photoDataUri}}
 
-Ensure the 'category' field ONLY contains one of "recyclable", "compostable", or "non-recyclable".
+Based on the image, determine the most appropriate specific category.
+Ensure the 'category' field in your output strictly matches one of the allowed enum values provided in the schema.
 The 'confidence' field should be a number between 0 and 1.`,
 });
 
@@ -63,27 +84,21 @@ const classifyWasteFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await classifyWastePrompt(input);
-    // Ensure output conforms to the schema, especially the enum for category.
-    if (output && output.category) {
-        const lowerCaseCategory = output.category.toLowerCase();
-        if (AIWasteCategorySchema.safeParse(lowerCaseCategory).success) {
-            output.category = lowerCaseCategory as AIWasteCategory;
-        } else {
-            // If LLM returns an invalid category, default to 'non-recyclable' or handle as an error.
-            // For now, we let Zod validation catch this if it's truly out of enum and this provides a fallback.
-            console.warn(`AI returned an invalid category: '${output.category}'. Defaulting to 'non-recyclable'.`);
-            output.category = "non-recyclable";
-        }
-    } else if (output) {
-        // If output exists but category is missing, default it
-        console.warn(`AI output missing category. Defaulting to 'non-recyclable'.`);
-        output.category = "non-recyclable";
-    } else {
-        // If output itself is null/undefined
-        console.warn(`AI returned no output. Defaulting classification.`);
-        return { category: "non-recyclable", confidence: 0.1 };
+    
+    if (!output || !output.category) {
+      console.warn(`AI returned no output or category. Defaulting classification to 'other'. Input:`, input);
+      return { category: "other" as AIWasteCategory, confidence: 0.1 };
     }
-    return output!;
+    
+    // Ensure the returned category is valid against the schema
+    // Zod validation on the prompt output should handle this, but an extra check is good.
+    const parseResult = AIWasteCategorySchema.safeParse(output.category);
+    if (!parseResult.success) {
+        console.warn(`AI returned an invalid category: '${output.category}'. Defaulting to 'other'. Errors:`, parseResult.error);
+        output.category = "other" as AIWasteCategory;
+        output.confidence = Math.min(output.confidence, 0.5); // Lower confidence if category was invalid
+    }
+
+    return output;
   }
 );
-
