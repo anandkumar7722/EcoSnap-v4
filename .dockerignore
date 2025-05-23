@@ -1,0 +1,34 @@
+
+Dockerfile
+Dockerfile.dev
+.dockerignore
+.env
+.env*.local
+.git
+.github
+.next
+.vscode
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.env
+*.log
+README.md
+components.json
+build/
+dist/
+coverage/
+# Add any other files or directories that should not be included in the Docker image
+public/assets/images/textbooks.jpeg
+public/assets/images/winter-jacket.jpeg
+public/assets/images/e-reader.jpeg
+public/assets/images/ceramic-vase.jpeg
+public/assets/images/gardening-tools.jpeg
+public/assets/images/board-games.jpeg
+# If you have large asset files not needed for the build, list them too.
+# Example:
+# public/videos/
+# src/assets_raw/
+
+    

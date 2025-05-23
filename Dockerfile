@@ -1,9 +1,9 @@
+
 # Dockerfile for the Next.js Web Application
 
 # 1. Install dependencies only when needed
 FROM node:18-alpine AS deps
-# Ensure Node.js is available
-RUN apk add --no-cache libc6-compat nodejs
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -17,33 +17,27 @@ RUN \
 
 # 2. Rebuild the source code only when needed
 FROM node:18-alpine AS builder
-RUN apk add --no-cache libc6-compat nodejs
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment thefollowing line in case you want to disable telemetry.
-# ENV NEXT_TELEMETRY_DISABLED 1
-
 # Ensure all necessary Firebase environment variables are available during the build
 # These should be passed as build arguments or set in your CI/CD environment
-# Example:
-# ARG NEXT_PUBLIC_FIREBASE_API_KEY
-# ENV NEXT_PUBLIC_FIREBASE_API_KEY=${NEXT_PUBLIC_FIREBASE_API_KEY}
+# Example: NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_GOOGLE_MAPS_API_KEY, GEMINI_API_KEY etc.
+# ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
 # (Add all required NEXT_PUBLIC_ and server-side env vars here if not using build args)
 
 RUN npm run build
 
 # 3. Production image, copy all the files and run next
 FROM node:18-alpine AS runner
-RUN apk add --no-cache libc6-compat nodejs
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 # Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED 1
+# ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -59,10 +53,11 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
+ENV PORT=3000
 # Set the correct hostname if running in a container
-ENV HOSTNAME "0.0.0.0"
+ENV HOSTNAME="0.0.0.0"
 
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
 CMD ["node", "server.js"]
+
+
+    
