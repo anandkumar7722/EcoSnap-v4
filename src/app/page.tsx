@@ -26,7 +26,7 @@ const HISTORY_STORAGE_KEY = 'ecoSnapHistory';
 const USER_DATA_KEY = 'ecoSnapUserData';
 const MAX_HISTORY_DISPLAY_ITEMS = 5;
 
-const WASTE_POINTS: Record<WasteCategory, number> = {
+const WASTE_POINTS: Record<WasteCategory | AIWasteCategory, number> = {
   ewaste: 100,
   plastic: 50,
   biowaste: 60,
@@ -69,7 +69,7 @@ const LEVELS: LevelInfo[] = [
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
 ];
 
-const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 'compostable' | 'non-recyclable', TipInfo> = {
+const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | AIWasteCategory, TipInfo> = {
   general: {
     title: "General Waste Item",
     icon: HelpCircle,
@@ -290,7 +290,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
 
 
 const topHorizontalCategories: Array<{
-  id: WasteCategory | 'general';
+  id: WasteCategory | 'general' | AIWasteCategory;
   name: string;
   imageUrl?: string;
   icon?: React.ElementType;
@@ -357,12 +357,13 @@ const defaultUserProfile: UserProfile = {
   badges: [],
 };
 
+// Helper component for rendering images with fallback
 const ImageWithFallback = ({
   src: initialSrcProp,
   alt,
   dataAiHint,
-  placeholderSize = "114x50",
-  sizes = "(max-width: 639px) 94px, 114px",
+  placeholderSize = "114x50", // Default for vertical list
+  sizes = "(max-width: 639px) 94px, 114px", // Default for vertical list
   className = "rounded-md object-cover",
   wrapperClassName = "relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center",
   icon: IconComponent,
@@ -391,18 +392,19 @@ const ImageWithFallback = ({
       setIsLoading(true);
     } else {
       setCurrentSrc(null);
-      setIsError(!IconComponent && !placeholderText);
+      setIsError(!IconComponent && !placeholderText); // Error if no image and no icon/text fallback
       setIsLoading(false);
     }
   }, [initialSrcProp, IconComponent, placeholderText]);
 
   const handleError = () => {
-    if (!isError) setIsError(true);
+    if (!isError) setIsError(true); // Only set error if it's not already in error state
     setIsLoading(false);
   };
 
   const handleLoad = () => {
     setIsLoading(false);
+    // Only clear error if the loaded source matches the initial prop and wasn't null
     if (currentSrc === initialSrcProp && initialSrcProp !== null) setIsError(false);
   };
 
@@ -419,7 +421,7 @@ const ImageWithFallback = ({
   const finalSrc = (!currentSrc || isError)
     ? (placeholderText ? `${placeholderBaseUrl}/${placeholderSize}.png?text=${encodeURIComponent(placeholderText)}` : `${placeholderBaseUrl}/${placeholderSize}.png`)
     : currentSrc;
-
+    
   const isUsingPlaceholder = finalSrc.startsWith(placeholderBaseUrl);
 
   return (
@@ -434,7 +436,7 @@ const ImageWithFallback = ({
         data-ai-hint={(isError || isUsingPlaceholder) ? `placeholder ${dataAiHint}`.trim() : dataAiHint}
         onError={handleError}
         onLoad={handleLoad}
-        unoptimized={isUsingPlaceholder}
+        unoptimized={isUsingPlaceholder} // No need to optimize placeholder.co images
       />
     </div>
   );
@@ -447,7 +449,7 @@ export default function HomePage() {
   const [isClassifying, setIsClassifying] = useState(false);
   const [classificationError, setClassificationError] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [currentUploadCategory, setCurrentUploadCategory] = useState<WasteCategory | 'general' | undefined>(undefined);
+  const [currentUploadCategory, setCurrentUploadCategory] = useState<WasteCategory | 'general' | AIWasteCategory | undefined>(undefined);
   const [currentUploadCategoryFriendlyName, setCurrentUploadCategoryFriendlyName] = useState<string | undefined>(undefined);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { toast } = useToast();
@@ -456,6 +458,7 @@ export default function HomePage() {
   useEffect(() => {
     console.log("[Debug] userData state changed:", JSON.stringify(userData, null, 2));
   }, [userData]);
+
 
   useEffect(() => {
     const checkLoginStatus = () => {
@@ -470,21 +473,18 @@ export default function HomePage() {
       if (loggedIn) {
         const userEmail = localStorage.getItem('userEmail');
         const userName = localStorage.getItem('userName');
-        // If user is logged in but local data is guest, or email mismatch, re-initialize.
         if (storedUserData.id === 'localUser' || (userEmail && storedUserData.email !== userEmail) || (userName && storedUserData.displayName !== userName) ) {
            const displayName = userName || (userEmail ? userEmail.split('@')[0] : 'User');
            console.log("[Effect] checkLoginStatus: User logged in, but local data needs sync. Re-initializing profile for:", userEmail || "unknown email");
            storedUserData = {
-            ...defaultUserProfile, // Start from default to clear old specific counts if any
-            id: userEmail || 'firebaseUser', // Use email or a generic ID if email is somehow null
+            ...defaultUserProfile,
+            id: userEmail || 'firebaseUser',
             displayName: displayName,
             email: userEmail || '',
             avatar: `https://placehold.co/100x100.png?text=${displayName.substring(0,2).toUpperCase()}`,
-            // Keep existing score and other progress if ONLY displayName/avatar changed
             score: (userEmail && storedUserData.email === userEmail) ? storedUserData.score : 0,
             co2Managed: (userEmail && storedUserData.email === userEmail) ? storedUserData.co2Managed : 0,
             itemsClassified: (userEmail && storedUserData.email === userEmail) ? storedUserData.itemsClassified : 0,
-            // Reset specific counts if it's a "new" login recognition for this email
             totalCardboard: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalCardboard : 0,
             totalPaper: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalPaper : 0,
             totalGlass: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalGlass : 0,
@@ -504,7 +504,6 @@ export default function HomePage() {
            };
         }
       } else {
-        // Not logged in, ensure guest profile if current data is not already guest
         if (storedUserData.id !== 'localUser') {
             console.log("[Effect] checkLoginStatus: User not logged in, resetting to default guest profile.");
             storedUserData = defaultUserProfile;
@@ -514,8 +513,6 @@ export default function HomePage() {
       console.log("[Effect] checkLoginStatus: Setting userData state to:", JSON.stringify(storedUserData, null, 2));
       setUserData(storedUserData);
       
-      // Only save back to local storage if there was a meaningful change triggered by login state
-      // or if current localStorage is out of sync with what checkLoginStatus determined.
       const currentLocalStorageData = getFromLocalStorage<UserProfile>(USER_DATA_KEY, {});
       if (JSON.stringify(currentLocalStorageData) !== JSON.stringify(storedUserData)) {
           console.log("[Effect] checkLoginStatus: Saving updated/corrected userData to localStorage.", storedUserData);
@@ -528,9 +525,9 @@ export default function HomePage() {
       setRecentClassifications(sortedHistory.slice(0, MAX_HISTORY_DISPLAY_ITEMS));
     };
 
-    checkLoginStatus(); // Initial check
-    window.addEventListener('storage', checkLoginStatus); // Listen for changes from other tabs
-    window.addEventListener('authChange', checkLoginStatus); // Custom event for login/logout
+    checkLoginStatus();
+    window.addEventListener('storage', checkLoginStatus);
+    window.addEventListener('authChange', checkLoginStatus);
     return () => {
         window.removeEventListener('storage', checkLoginStatus);
         window.removeEventListener('authChange', checkLoginStatus);
@@ -538,7 +535,8 @@ export default function HomePage() {
   }, []);
 
 
-  const handleClassify = async (imageDataUri: string): Promise<ClassifyWasteOutput | null> => {
+  const handleClassify = async (imageDataUri: string, categoryUserInitiatedWith?: WasteCategory | 'general' | AIWasteCategory): Promise<ClassifyWasteOutput | null> => {
+    console.log("[Classify] Process started. User initiated with category (passed to handleClassify):", categoryUserInitiatedWith);
     if (!isLoggedIn) {
       toast({
         title: "Login Required",
@@ -555,10 +553,6 @@ export default function HomePage() {
 
     setIsClassifying(true);
     setClassificationError(null);
-
-    const specificCategoryInitiatedByUser = currentUploadCategory; // Capture before AI call
-    console.log("[Classify] Process started. User initiated with category:", specificCategoryInitiatedByUser);
-
 
     try {
       const result = await classifyWaste({ photoDataUri: imageDataUri });
@@ -593,7 +587,6 @@ export default function HomePage() {
 
       setUserData(prevData => {
         console.log("[Classify] setUserData callback. prevData:", JSON.stringify(prevData, null, 2));
-        // Start with a fresh copy for the new state
         const newUserDataState: UserProfile = {
           ...prevData,
           score: prevData.score + pointsEarned,
@@ -601,20 +594,19 @@ export default function HomePage() {
           itemsClassified: prevData.itemsClassified + 1,
         };
         
-        console.log("[Classify] User initiated with category for quantity update:", specificCategoryInitiatedByUser);
+        console.log("[Classify] User initiated with category for quantity update (from parameter):", categoryUserInitiatedWith);
 
-        // If user clicked a specific category to initiate, update that specific quantity
-        if (specificCategoryInitiatedByUser && specificCategoryInitiatedByUser !== 'general' && specificCategoryInitiatedByUser !== 'recyclable' && specificCategoryInitiatedByUser !== 'compostable' && specificCategoryInitiatedByUser !== 'non-recyclable') {
-          const categoryToUpdateDetails = verticalLogCategories.find(cat => cat.id === specificCategoryInitiatedByUser);
+        if (categoryUserInitiatedWith && categoryUserInitiatedWith !== 'general' && !['recyclable', 'compostable', 'non-recyclable'].includes(categoryUserInitiatedWith) ) {
+          const categoryToUpdateDetails = verticalLogCategories.find(cat => cat.id === categoryUserInitiatedWith);
           if (categoryToUpdateDetails && categoryToUpdateDetails.quantityKey) {
             const keyToUpdate = categoryToUpdateDetails.quantityKey;
-            console.log("[Classify] Found quantityKey to update:", keyToUpdate, "Current value in prevData:", prevData[keyToUpdate]);
+            const currentSpecificQuantity = Number(prevData[keyToUpdate] || 0);
+            console.log("[Classify] Found quantityKey to update:", keyToUpdate, "Current value in prevData:", currentSpecificQuantity);
             
-            // Ensure we are updating the newUserDataState object being built
-            newUserDataState[keyToUpdate] = ((prevData[keyToUpdate] as number) || 0) + 1;
+            newUserDataState[keyToUpdate] = currentSpecificQuantity + 1;
             console.log("[Classify] Updated specific quantity for", keyToUpdate, "in newUserDataState to:", newUserDataState[keyToUpdate]);
           } else {
-             console.warn("[Classify] Could not find category details or quantityKey for user-selected category:", specificCategoryInitiatedByUser);
+             console.warn("[Classify] Could not find category details or quantityKey for user-selected category:", categoryUserInitiatedWith);
           }
         } else {
             console.log("[Classify] No specific user-selected category to update quantity for, or it was a general/AI category.");
@@ -622,7 +614,7 @@ export default function HomePage() {
 
         saveToLocalStorage(USER_DATA_KEY, newUserDataState);
         console.log("[Classify] FINAL newUserDataState for setUserData:", JSON.stringify(newUserDataState, null, 2));
-        return newUserDataState; // This triggers the re-render
+        return newUserDataState;
       });
 
       toast({
@@ -644,13 +636,11 @@ export default function HomePage() {
       return null;
     } finally {
       setIsClassifying(false);
-       // Reset currentUploadCategory only after all processing, including async state updates, have likely settled.
-       // This might still be too early if setUserData is batched.
-       // Consider resetting it inside the onOpenChange of the dialog when `open` becomes `false` and `!isClassifying`.
-       // For now, we keep it here as the finally block executes after try/catch.
+      // Reset currentUploadCategory only after all processing.
+      // The dialog's onOpenChange will also handle this if !isClassifying.
       setCurrentUploadCategory(undefined);
       setCurrentUploadCategoryFriendlyName(undefined);
-      console.log("[Classify] Process finished. Reset currentUploadCategory.");
+      console.log("[Classify] Process finished. Reset currentUploadCategory state in HomePage.");
     }
   };
 
@@ -663,7 +653,7 @@ export default function HomePage() {
     return LEVELS[0];
   };
 
-  const openUploadModalForCategory = (categoryId: WasteCategory | 'general' | undefined, categoryName: string) => {
+  const openUploadModalForCategory = (categoryId: WasteCategory | 'general' | AIWasteCategory | undefined, categoryName: string) => {
     setClassificationError(null); 
     setCurrentUploadCategory(categoryId);
     setCurrentUploadCategoryFriendlyName(categoryName);
@@ -723,8 +713,8 @@ export default function HomePage() {
 
       {!isLoggedIn && (
         <Card className="bg-primary/10 p-4 sm:p-6 text-center">
-            <CardTitle className="text-primary mb-2">Join the EcoSnap Community!</CardTitle>
-            <CardDescription className="mb-4">
+            <CardTitle className="text-primary mb-2 text-lg sm:text-xl">Join the EcoSnap Community!</CardTitle>
+            <CardDescription className="mb-4 text-sm sm:text-base">
               Log in or sign up to classify waste, track your progress, and earn rewards.
             </CardDescription>
             <div className="flex gap-2 sm:gap-3 justify-center">
@@ -767,7 +757,7 @@ export default function HomePage() {
                         sizes="48px"
                         wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
                         className="rounded-md object-contain"
-                        icon={CategoryIconComponent ? <CategoryIconComponent className="w-7 h-7 sm:w-8 sm:w-8 text-primary" /> : undefined}
+                        icon={CategoryIconComponent ? CategoryIconComponent : undefined} // Pass icon directly
                       />
                     <p className="font-medium text-xs sm:text-sm text-center truncate w-full">{category.name}</p>
                   </Card>
@@ -806,7 +796,7 @@ export default function HomePage() {
                     dataAiHint={item.dataAiHint}
                     placeholderSize="114x50"
                     sizes="(max-width: 639px) 94px, 114px"
-                    icon={ItemIconComponent ? <ItemIconComponent className="w-6 h-6 sm:w-7 sm:w-7 text-primary" /> : undefined}
+                    icon={ItemIconComponent ? ItemIconComponent : undefined} // Pass icon directly
                     wrapperClassName="relative w-[94px] h-[44px] sm:w-[114px] sm:h-[50px] rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
                     className="rounded-md object-contain"
                     placeholderText={item.placeholderText}
@@ -849,13 +839,14 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-[80%] mx-auto")}>
+            <div className={cn("mt-2 sm:mt-4 w-[80%]", currentLevel.name === 'Bronze' ? 'mx-auto' : 'mx-auto' )}> {/* Applied specific width and centering for Bronze */}
                  <Progress
                     value={scorePercentage}
                     className={cn(
                         currentLevel.progressBarTrackColor,
                         `[&>div]:${currentLevel.progressBarIndicatorColor}`,
-                        "h-3 sm:h-4"
+                        "h-3 sm:h-4",
+                        "w-full" // Progress bar itself takes full width of its container
                     )}
                     aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
                 />
@@ -874,14 +865,10 @@ export default function HomePage() {
           </div>
             <div className="flex overflow-x-auto space-x-3 pb-3 no-scrollbar">
               {recentClassifications.map(item => {
-                let displayQuantity = 1; 
-                // The AI gives broad categories. If we want to show a specific quantity for a recent item
-                // based on how the user *intended* to log it (e.g. they clicked "Cardboard" then AI said "recyclable"),
-                // that intention isn't directly in 'item.category' which is the AI's output.
-                // For "Recent Items", it's usually simpler to just show it as "1 item classified as [AI Category]".
-                // Or, if you want to show total quantity of *that AI category*, you'd need to sum them up or store them differently.
-                // For now, keeping it simple as 1 for each classified item, as specific detailed counts aren't on UserProfile for broad AI categories.
-                // If you *did* want to show total of, say, "recyclable", you'd need UserProfile.totalRecyclable etc.
+                 const categoryDetails = verticalLogCategories.find(cat => cat.id === item.category);
+                 const quantity = categoryDetails && userData && typeof userData[categoryDetails.quantityKey] === 'number'
+                   ? userData[categoryDetails.quantityKey] as number
+                   : (item.category as AIWasteCategory) ? 1 : 0; // Default to 1 if it's an AI category and no specific mapping
 
                 return (
                   <Card key={item.id} className="p-3 flex items-center gap-3 min-w-[280px] sm:min-w-[320px] flex-shrink-0 shadow-sm hover:shadow-md transition-shadow">
@@ -900,6 +887,9 @@ export default function HomePage() {
                         {item.points || 0} pts
                       </p>
                     </div>
+                     <div className="text-right flex-shrink-0 ml-2">
+                        <p className="text-sm sm:text-base font-semibold text-primary">x {quantity}</p>
+                     </div>
                   </Card>
                 );
               })}
@@ -1017,7 +1007,7 @@ export default function HomePage() {
             </div>
           )}
 
-            {currentUploadCategory && ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory) && (
+            {currentUploadCategory && ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory as string) && (
                 <Alert variant="default" className="my-2">
                     <Lightbulb className="h-4 w-4" />
                     <AlertTitle>Plastic Tip</AlertTitle>
@@ -1029,12 +1019,12 @@ export default function HomePage() {
 
           <Separator className={cn(
             ( (selectedCategoryTips && selectedCategoryTips.definition) || fiveRTipsArray.length > 0 ||
-              (currentUploadCategory && ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory))
+              (currentUploadCategory && ['plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'].includes(currentUploadCategory as string))
             ) ? "my-2" : "my-0"
           )} />
 
           <ImageUpload
-            onClassify={handleClassify}
+            onClassify={(imageDataUri) => handleClassify(imageDataUri, currentUploadCategory)}
             isClassifying={isClassifying}
             classificationError={classificationError}
             initialPromptText={currentUploadCategoryFriendlyName && currentUploadCategoryFriendlyName !== 'General Waste Item' ? `Image of ${currentUploadCategoryFriendlyName.toLowerCase()}` : undefined}
