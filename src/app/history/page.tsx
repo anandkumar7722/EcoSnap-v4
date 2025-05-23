@@ -9,7 +9,7 @@ import type { ClassificationRecord, WasteCategory, TipInfo } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Trash2, Info, ArrowLeft, PackageSearch, Atom, Recycle, Leaf, Package, HelpCircle, Lightbulb, Smile, BookOpen, Tv2, Wind, Apple } from 'lucide-react';
+import { Trash2, Info, ArrowLeft, PackageSearch, Atom, Recycle, Leaf, Package, HelpCircle, Lightbulb, Smile, BookOpen, Tv2, Wind, Apple, AlertTriangle } from 'lucide-react';
 
 const HISTORY_STORAGE_KEY = 'ecoSnapHistory';
 
@@ -339,3 +339,4 @@ export default function HistoryPage() {
     </div>
   );
 }
+
