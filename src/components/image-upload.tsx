@@ -65,7 +65,7 @@ export function ImageUpload({ onClassify, isClassifying, classificationError, in
   return (
     <Card className="w-full max-w-md shadow-lg border-none"> {/* Removed border to fit modal better */}
       <CardHeader className="pt-2 pb-4"> {/* Adjusted padding */}
-        <CardTitle className="flex items-center gap-2 text-lg"> {/* Smaller title */}
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg"> {/* Smaller title, responsive */}
           <Camera className="h-5 w-5 text-primary" />
           Snap & Classify
         </CardTitle>
