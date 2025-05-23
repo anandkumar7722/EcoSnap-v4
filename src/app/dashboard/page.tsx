@@ -372,20 +372,20 @@ export default function DetailedDashboardPage() {
     return ((recycledValue / totalValueForRecycledPercentage) * 100).toFixed(0);
   }, [categoryDistribution]);
 
-  const generalPieOuterRadius = isMobileView ? 60 : 80;
-  const eWastePieOuterRadius = isMobileView ? 70 : 80;
+  const generalPieOuterRadius = isMobileView ? 50 : 70; // Adjusted
+  const eWastePieOuterRadius = isMobileView ? 60 : 70; // Adjusted
 
   const renderPieLabel = ({ name, percent, x, y, midAngle, outerRadius: currentOuterRadius }: any) => {
-    const labelRadiusOffset = isMobileView ? 10 : 15;
+    const labelRadiusOffset = isMobileView ? 8 : 12; // Adjusted
     const RADIAN = Math.PI / 180;
     const effectiveOuterRadius = typeof currentOuterRadius === 'number' ? currentOuterRadius : generalPieOuterRadius;
     const radius = effectiveOuterRadius + labelRadiusOffset;
     const lx = x + radius * Math.cos(-midAngle * RADIAN);
     const ly = y + radius * Math.sin(-midAngle * RADIAN);
     const textAnchor = lx > x ? 'start' : 'end';
-    if ((isMobileView && percent * 100 < 8) || percent * 100 < 5) return null; 
+    if ((isMobileView && percent * 100 < 10) || percent * 100 < 7) return null;  // Adjusted visibility
     return (
-      <text x={lx} y={ly} fill="currentColor" textAnchor={textAnchor} dominantBaseline="central" className="text-[9px] sm:text-xs fill-foreground">
+      <text x={lx} y={ly} fill="currentColor" textAnchor={textAnchor} dominantBaseline="central" className="text-[8px] sm:text-[10px] fill-foreground"> {/* Adjusted font size */}
         {generalChartConfig[name as WasteCategory]?.label || name} (${(percent * 100).toFixed(0)}%)
       </text>
     );
@@ -406,17 +406,17 @@ export default function DetailedDashboardPage() {
 
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-primary">Waste Tracking Dashboard</h1>
+    <div className="space-y-4 sm:space-y-6"> {/* Reduced overall spacing */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <h1 className="text-xl sm:text-2xl font-bold text-primary">Waste Tracking Dashboard</h1> {/* Reduced title size */}
         <Button variant="outline" asChild size="sm">
-            <Link href="/"><Edit className="mr-2 h-4 w-4" /> Back to Main Page</Link>
+            <Link href="/"><Edit className="mr-2 h-3 w-3 sm:h-4 sm:w-4" /> Back to Main Page</Link>
         </Button>
       </div>
 
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>Track Your Impact!</AlertTitle>
+      <Alert className="text-xs sm:text-sm"> {/* Smaller alert text */}
+        <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        <AlertTitle className="text-sm sm:text-base">Track Your Impact!</AlertTitle> {/* Smaller alert title */}
         <AlertDescription>
           Visualize your general waste habits and e-waste trends. Data is updated in real-time from your logged entries or simulated for e-waste.
           Log items on the <Link href="/" className="font-medium text-primary hover:underline">home page</Link>.
@@ -424,20 +424,20 @@ export default function DetailedDashboardPage() {
       </Alert>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <Filter className="h-5 w-5 text-primary" />
+        <CardHeader className="pb-3 sm:pb-4"> {/* Reduced padding */}
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold"> {/* Reduced title size */}
+            <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             Filters (For General Waste)
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <CardContent className="flex flex-col sm:flex-row gap-2 sm:gap-3 p-3 sm:p-4"> {/* Reduced padding & gap */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
-                className={cn("w-full sm:w-auto justify-start text-left font-normal", !dateRange && "text-muted-foreground")}
+                className={cn("w-full sm:w-auto justify-start text-left font-normal text-xs sm:text-sm", !dateRange && "text-muted-foreground")} // Smaller text
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 {dateRange?.from ? (
                   dateRange.to ? (
                     <>
@@ -464,13 +464,13 @@ export default function DetailedDashboardPage() {
             </PopoverContent>
           </Popover>
           <Select value={selectedWasteType} onValueChange={(value) => setSelectedWasteType(value as WasteCategory | 'all')}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full sm:w-[160px] text-xs sm:text-sm"> {/* Smaller trigger, smaller text */}
               <SelectValue placeholder="Select waste type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
               {allWasteCategories.map(cat => (
-                <SelectItem key={cat} value={cat} className="capitalize">{generalChartConfig[cat]?.label || cat}</SelectItem>
+                <SelectItem key={cat} value={cat} className="capitalize text-xs sm:text-sm">{generalChartConfig[cat]?.label || cat}</SelectItem> 
               ))}
             </SelectContent>
           </Select>
@@ -478,70 +478,70 @@ export default function DetailedDashboardPage() {
       </Card>
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-12 w-12 text-primary animate-spin" />
-          <p className="ml-4 text-lg text-muted-foreground">Loading dashboard data...</p>
+        <div className="flex items-center justify-center h-48 sm:h-64"> {/* Reduced height */}
+          <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 text-primary animate-spin" />
+          <p className="ml-3 sm:ml-4 text-base sm:text-lg text-muted-foreground">Loading dashboard data...</p> {/* Smaller text */}
         </div>
       ) : firestoreDataError ? ( 
-        <Alert variant="destructive" className="mt-4">
-            <WifiOff className="h-4 w-4" />
-            <AlertTitle>General Waste Data Error</AlertTitle>
+        <Alert variant="destructive" className="mt-3 sm:mt-4 text-xs sm:text-sm"> {/* Smaller text, reduced margin */}
+            <WifiOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <AlertTitle className="text-sm sm:text-base">General Waste Data Error</AlertTitle>
             <AlertDescription>{firestoreDataError}</AlertDescription>
         </Alert>
       ) : (
         <>
           {liveWasteData.length === 0 && !isLoading && (
-            <Alert variant="default" className="mt-4">
-              <Info className="h-4 w-4" />
-              <AlertTitle>No General Waste Data Yet</AlertTitle>
+            <Alert variant="default" className="mt-3 sm:mt-4 text-xs sm:text-sm"> {/* Smaller text, reduced margin */}
+              <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <AlertTitle className="text-sm sm:text-base">No General Waste Data Yet</AlertTitle>
               <AlertDescription>
-                No general waste entries found for your account. Start logging items on the <Link href="/" className="font-medium text-primary hover:underline">home page</Link> to see your dashboard populate!
+                No general waste entries found. Start logging on the <Link href="/" className="font-medium text-primary hover:underline">home page</Link>!
               </AlertDescription>
             </Alert>
           )}
 
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-3"> {/* Reduced gap */}
             <Card>
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Total General Waste Logged</CardTitle>
+                <CardHeader className="pb-1 sm:pb-2"> {/* Reduced padding */}
+                    <CardTitle className="text-xs sm:text-sm font-medium">Total General Waste Logged</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{totalWaste} kg <span className="text-xs text-muted-foreground">(approx)</span></div>
+                <CardContent className="p-2 sm:p-3"> {/* Reduced padding */}
+                    <div className="text-lg sm:text-xl font-bold">{totalWaste} kg <span className="text-xs text-muted-foreground">(approx)</span></div>
                     <p className="text-xs text-muted-foreground">Across selected period</p>
                 </CardContent>
             </Card>
             <Card>
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Recycled Ratio (Est.)</CardTitle>
+                <CardHeader className="pb-1 sm:pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Recycled Ratio (Est.)</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{recycledPercentage}%</div>
+                <CardContent className="p-2 sm:p-3">
+                    <div className="text-lg sm:text-xl font-bold">{recycledPercentage}%</div>
                     <p className="text-xs text-muted-foreground">Recyclable types vs total</p>
                 </CardContent>
             </Card>
             <Card>
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">General Items Logged</CardTitle>
+                <CardHeader className="pb-1 sm:pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">General Items Logged</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{filteredData.length}</div>
+                <CardContent className="p-2 sm:p-3">
+                    <div className="text-lg sm:text-xl font-bold">{filteredData.length}</div>
                     <p className="text-xs text-muted-foreground">Entries in selected period</p>
                 </CardContent>
             </Card>
           </div>
 
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-1 lg:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-1 lg:grid-cols-2"> {/* Reduced gap */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                  <PieChartIconLucideGeneral className="h-5 w-5 text-primary" />
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
+                  <PieChartIconLucideGeneral className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   General Waste Category Distribution
                 </CardTitle>
-                <CardDescription className="text-xs sm:text-sm">Overall breakdown of classified general items by category.</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Overall breakdown of classified general items.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-2 sm:p-3"> {/* Reduced padding */}
                 {categoryDistribution.length > 0 ? (
-                  <ChartContainer config={generalChartConfig} className="mx-auto aspect-square min-h-[280px] max-h-[280px] sm:min-h-[300px] sm:max-h-[300px] md:min-h-[350px] md:max-h-[350px]">
+                  <ChartContainer config={generalChartConfig} className="mx-auto aspect-square min-h-[220px] max-h-[220px] sm:min-h-[250px] sm:max-h-[250px] md:min-h-[280px] md:max-h-[280px]"> {/* Reduced height */}
                     <RechartsPieChart>
                       <RechartsTooltip content={<ChartTooltipContent nameKey="name" />} />
                       <Pie
@@ -554,32 +554,32 @@ export default function DetailedDashboardPage() {
                         labelLine={false}
                         label={renderPieLabel}
                       />
-                      <RechartsLegend content={<ChartLegendContent nameKey="name" className="text-xs sm:text-sm [&>div]:gap-1 [&>div>svg]:size-3" />} />
+                      <RechartsLegend content={<ChartLegendContent nameKey="name" className="text-[10px] sm:text-xs [&>div]:gap-0.5 [&>div>svg]:size-2.5 mt-1" />} /> {/* Smaller legend */}
                     </RechartsPieChart>
                   </ChartContainer>
                 ) : (
-                  <div className="text-center py-10 text-muted-foreground">No general data for selected filters.</div>
+                  <div className="text-center py-8 sm:py-10 text-muted-foreground text-xs sm:text-sm">No general data for selected filters.</div> {/* Reduced padding */}
                 )}
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                  <BarChartIconGeneral className="h-5 w-5 text-primary" />
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
+                  <BarChartIconGeneral className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   Monthly General Classification Volume
                 </CardTitle>
-                <CardDescription className="text-xs sm:text-sm">Volume of general items classified each month by type.</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Volume of general items classified each month.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-2 sm:p-3"> {/* Reduced padding */}
                 {barChartData.length > 0 ? (
-                  <ChartContainer config={generalChartConfig} className="min-h-[280px] h-[280px] sm:h-[300px] md:h-[350px] w-full">
+                  <ChartContainer config={generalChartConfig} className="h-[220px] sm:h-[250px] md:h-[280px] w-full"> {/* Reduced height */}
                     <RechartsBarChart data={barChartData} margin={{ top: 5, right: isMobileView ? 0 : 5, left: isMobileView ? -25 : -20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false}/>
-                        <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={isMobileView ? "0.6rem" : "0.75rem"} />
-                        <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={isMobileView ? "0.6rem" : "0.75rem"} />
+                        <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={isMobileView ? "0.6rem" : "0.7rem"} /> {/* Adjusted font size */}
+                        <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={isMobileView ? "0.6rem" : "0.7rem"} /> {/* Adjusted font size */}
                         <RechartsTooltip cursor={false} content={<ChartTooltipContent indicator="dashed" />} />
-                        <RechartsLegend content={<ChartLegendContent nameKey="name" className="text-xs sm:text-sm [&>div]:gap-1 [&>div>svg]:size-3"/>} />
+                        <RechartsLegend content={<ChartLegendContent nameKey="name" className="text-[10px] sm:text-xs [&>div]:gap-0.5 [&>div>svg]:size-2.5 mt-1"/>} /> {/* Smaller legend */}
                         {allWasteCategories.filter(cat => cat !== 'other' && generalChartConfig[cat]).map(cat => (
                           <Bar key={cat} dataKey={cat} stackId="a" fill={generalChartConfig[cat]?.color || generalChartConfig.other.color} name={generalChartConfig[cat]?.label as string} radius={cat === 'ewaste' || cat === 'recyclable' ? [4,4,0,0] : [0,0,0,0]}/>
                         ))}
@@ -587,7 +587,7 @@ export default function DetailedDashboardPage() {
                     </RechartsBarChart>
                   </ChartContainer>
                 ) : (
-                  <div className="text-center py-10 text-muted-foreground">No general data for selected filters.</div>
+                  <div className="text-center py-8 sm:py-10 text-muted-foreground text-xs sm:text-sm">No general data for selected filters.</div> {/* Reduced padding */}
                 )}
               </CardContent>
             </Card>
@@ -596,37 +596,37 @@ export default function DetailedDashboardPage() {
       )}
 
       {/* E-Waste Section */}
-      <Card className="shadow-md mt-8">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-          <CardTitle className="text-xl sm:text-2xl font-bold text-primary">E-Waste Smart Bin Monitoring</CardTitle>
-          <div className="text-sm sm:text-base text-muted-foreground flex items-center">
-            <Clock className="mr-2 h-4 w-4" />
-            {currentTime ? format(currentTime, 'PPpp') : 'Loading time...'}
+      <Card className="shadow-md mt-6 sm:mt-8"> {/* Reduced margin */}
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3"> {/* Reduced padding */}
+          <CardTitle className="text-lg sm:text-xl font-semibold text-primary">E-Waste Smart Bin Monitoring</CardTitle> {/* Reduced title size */}
+          <div className="text-xs sm:text-sm text-muted-foreground flex items-center"> {/* Smaller text */}
+            <Clock className="mr-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            {currentTime ? format(currentTime, 'PP p') : 'Loading time...'} {/* Simplified date format */}
           </div>
         </CardHeader>
-        <CardContent>
-            <Alert variant="default" className="bg-primary/5">
-                <Server className="h-4 w-4 text-primary" />
-                <AlertTitle className="text-primary">Live E-Waste Data (Simulated)</AlertTitle>
+        <CardContent className="p-3 sm:p-4"> {/* Reduced padding */}
+            <Alert variant="default" className="bg-primary/5 text-xs sm:text-sm"> {/* Smaller text */}
+                <Server className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                <AlertTitle className="text-sm sm:text-base text-primary">Live E-Waste Data (Simulated)</AlertTitle> {/* Smaller text */}
                 <AlertDescription>
-                This section displays simulated real-time e-waste smart bin data. Track volumes, category distributions, and monthly trends.
+                This section displays simulated real-time e-waste data. Track volumes, categories, and monthly trends.
                 </AlertDescription>
             </Alert>
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-1 lg:grid-cols-2"> {/* Reduced gap */}
         <Card className="shadow-md lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <LineChartIcon className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
+              <LineChartIcon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Real-Time E-Waste Volume
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Waste volume updates every {REAL_TIME_EWASTE_UPDATE_INTERVAL / 1000} seconds (simulated).</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Updates every {REAL_TIME_EWASTE_UPDATE_INTERVAL / 1000}s (simulated).</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={{volume: {label: "Volume (kg)", color: "hsl(var(--primary))"}}} className="h-[250px] sm:h-[300px] w-full">
-              <RechartsLineChart data={realTimeEWasteData} margin={{ top: 5, right: 20, left: isMobileView ? -15 : -10, bottom: 5 }}>
+          <CardContent className="p-2 sm:p-3">
+            <ChartContainer config={{volume: {label: "Volume (kg)", color: "hsl(var(--primary))"}}} className="h-[200px] sm:h-[250px] w-full"> {/* Reduced height */}
+              <RechartsLineChart data={realTimeEWasteData} margin={{ top: 5, right: 15, left: isMobileView ? -20 : -10, bottom: 5 }}> {/* Adjusted margins */}
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.5)" />
                 <XAxis
                   dataKey="timestamp"
@@ -661,16 +661,16 @@ export default function DetailedDashboardPage() {
         </Card>
 
         <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <PieChartIconLucideEWaste className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
+              <PieChartIconLucideEWaste className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               E-Waste Category Distribution
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Proportion of different e-waste types (simulated).</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Proportion of e-waste types (simulated).</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2 sm:p-3">
             {eWasteDistributionData.length > 0 ? (
-              <ChartContainer config={eWastePieChartConfig} className="mx-auto aspect-square min-h-[250px] max-h-[250px] sm:max-h-[300px]">
+              <ChartContainer config={eWastePieChartConfig} className="mx-auto aspect-square min-h-[200px] max-h-[200px] sm:max-h-[250px]"> {/* Reduced height */}
                 <RechartsPieChart>
                   <RechartsTooltip content={<ChartTooltipContent nameKey="name" />} />
                   <Pie
@@ -682,7 +682,7 @@ export default function DetailedDashboardPage() {
                     outerRadius={eWastePieOuterRadius}
                     labelLine={false}
                     label={({ name, percent, ...entry }) => {
-                        if (percent * 100 < (isMobileView ? 10 : 5)) return ''; // Hide small labels, more aggressive on mobile
+                        if (percent * 100 < (isMobileView ? 12 : 7)) return ''; // Adjusted visibility
                         return `${(percent * 100).toFixed(0)}%`;
                     }}
                   >
@@ -693,7 +693,7 @@ export default function DetailedDashboardPage() {
                   <RechartsLegend
                     content={<ChartLegendContent
                         nameKey="name"
-                        className="text-xs sm:text-sm [&>div]:gap-1 [&>div>svg]:size-3 mt-2"
+                        className="text-[10px] sm:text-xs [&>div]:gap-0.5 [&>div>svg]:size-2.5 mt-1" // Smaller legend
                         payload={eWasteDistributionData.map(entry => ({
                             value: entry.name,
                             type: 'square',
@@ -706,21 +706,21 @@ export default function DetailedDashboardPage() {
                 </RechartsPieChart>
               </ChartContainer>
             ) : (
-              <div className="text-center py-10 text-muted-foreground">Loading e-waste distribution...</div>
+              <div className="text-center py-8 sm:py-10 text-muted-foreground text-xs sm:text-sm">Loading e-waste distribution...</div> {/* Reduced padding */}
             )}
           </CardContent>
         </Card>
 
         <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <BarChartIconEWaste className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
+              <BarChartIconEWaste className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Monthly E-Waste Collection
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">E-waste volume collected over last 6 months (kg, simulated).</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">E-waste volume (kg, simulated).</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={{volume: {label: "Volume (kg)", color: "hsl(var(--chart-3))"}}} className="h-[250px] sm:h-[300px] w-full">
+          <CardContent className="p-2 sm:p-3">
+            <ChartContainer config={{volume: {label: "Volume (kg)", color: "hsl(var(--chart-3))"}}} className="h-[200px] sm:h-[250px] w-full"> {/* Reduced height */}
               <RechartsBarChart data={monthlyEWasteVolume} margin={{ top: 5, right: 10, left: isMobileView ? -25 : -20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.5)" />
                 <XAxis
@@ -753,71 +753,69 @@ export default function DetailedDashboardPage() {
       </div>
 
       {/* General Smart Bin Monitoring Section */}
-      <Card className="mt-8 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary">
+      <Card className="mt-6 sm:mt-8 shadow-lg"> {/* Reduced margin */}
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl font-semibold text-primary"> {/* Reduced title */}
             <Trash2 className="h-5 w-5 sm:h-6 sm:w-6" />
             General Smart Bin Monitoring
           </CardTitle>
           <CardDescription className="text-xs sm:text-sm">
-            Overview of connected smart bin statuses for general waste. Real-time data from IoT-enabled smart bins.
-            The 'notify' status is updated by a Cloud Function.
+            Overview of connected smart bin statuses. Cloud Function updates 'notify' status.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-4"> {/* Reduced padding */}
           {isLoadingSmartBins ? (
-            <div className="flex items-center justify-center py-10">
-              <Loader2 className="h-8 w-8 text-primary animate-spin mr-2" />
-              <p className="text-muted-foreground">Loading smart bin data...</p>
+            <div className="flex items-center justify-center py-8 sm:py-10"> {/* Reduced padding */}
+              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-primary animate-spin mr-2" />
+              <p className="text-muted-foreground text-sm sm:text-base">Loading smart bin data...</p> {/* Smaller text */}
             </div>
           ) : smartBinsError ? (
-            <Alert variant="destructive">
-              <WifiOff className="h-4 w-4" />
-              <AlertTitle>Error Loading Smart Bins</AlertTitle>
+            <Alert variant="destructive" className="text-xs sm:text-sm">
+              <WifiOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <AlertTitle className="text-sm sm:text-base">Error Loading Smart Bins</AlertTitle>
               <AlertDescription>{smartBinsError}</AlertDescription>
             </Alert>
           ) : (
             <>
-              {/* Summary Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6"> {/* Reduced gap & margin */}
                 <Card className="shadow-sm">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Bins</CardTitle>
-                    <Box className="h-4 w-4 text-muted-foreground" />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Total Bins</CardTitle>
+                    <Box className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{totalSmartBins}</div>
+                  <CardContent className="p-2 sm:p-3">
+                    <div className="text-lg sm:text-xl font-bold">{totalSmartBins}</div>
                   </CardContent>
                 </Card>
                 <Card className="shadow-sm">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Full / Needs Attention</CardTitle>
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Full / Needs Attention</CardTitle>
+                    <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{fullSmartBins}</div>
+                  <CardContent className="p-2 sm:p-3">
+                    <div className="text-lg sm:text-xl font-bold">{fullSmartBins}</div>
                   </CardContent>
                 </Card>
                 <Card className="shadow-sm">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Low Battery</CardTitle>
-                    <BatteryWarning className="h-4 w-4 text-orange-500" />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Low Battery</CardTitle>
+                    <BatteryWarning className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-500" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{lowBatterySmartBins}</div>
+                  <CardContent className="p-2 sm:p-3">
+                    <div className="text-lg sm:text-xl font-bold">{lowBatterySmartBins}</div>
                     <p className="text-xs text-muted-foreground">(Battery data if available)</p>
                   </CardContent>
                 </Card>
               </div>
 
               {smartBinsData.length === 0 ? (
-                 <Alert>
-                    <PackageX className="h-4 w-4" />
-                    <AlertTitle>No Smart Bins Found</AlertTitle>
-                    <AlertDescription>No general smart bin data available in the Realtime Database at the moment.</AlertDescription>
+                 <Alert className="text-xs sm:text-sm">
+                    <PackageX className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <AlertTitle className="text-sm sm:text-base">No Smart Bins Found</AlertTitle>
+                    <AlertDescription>No general smart bin data available in the Realtime Database.</AlertDescription>
                 </Alert>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4"> {/* Reduced gap */}
                   {smartBinsData.map((bin) => {
                     const binStatusText = getBinStatusText(bin);
                     const isOffline = bin.last_updated && differenceInHours(new Date(), new Date(bin.last_updated)) > 24; 
@@ -827,23 +825,23 @@ export default function DetailedDashboardPage() {
                     let progressColorClass;
 
                     if (isOffline) {
-                        statusIcon = <WifiOff className="h-4 w-4 text-muted-foreground" />;
+                        statusIcon = <WifiOff className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />;
                         statusColorClass = "text-muted-foreground";
                         progressColorClass = "[&>div]:bg-muted";
                     } else if (bin.notify) {
-                        statusIcon = <AlertCircleIcon className="h-4 w-4 text-destructive" />;
+                        statusIcon = <AlertCircleIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />;
                         statusColorClass = "text-destructive";
                         progressColorClass = "[&>div]:bg-destructive";
                     } else if (bin.fill_level >= 90) {
-                        statusIcon = <TrashIcon className="h-4 w-4 text-destructive" />;
+                        statusIcon = <TrashIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />;
                         statusColorClass = "text-destructive";
                         progressColorClass = "[&>div]:bg-destructive";
                     } else if (bin.fill_level >= 70) {
-                        statusIcon = <CircleGauge className="h-4 w-4 text-orange-500" />;
+                        statusIcon = <CircleGauge className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-500" />;
                         statusColorClass = "text-orange-500";
                         progressColorClass = "[&>div]:bg-orange-500";
                     } else {
-                        statusIcon = <PackageCheck className="h-4 w-4 text-green-600" />;
+                        statusIcon = <PackageCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />;
                         statusColorClass = "text-green-600";
                         progressColorClass = "[&>div]:bg-green-500";
                     }
@@ -852,7 +850,7 @@ export default function DetailedDashboardPage() {
                         <Card
                         key={bin.id}
                         className={cn(
-                            "p-3 sm:p-4 shadow-sm transition-all duration-300 ease-in-out border-l-4",
+                            "p-2 sm:p-3 shadow-sm transition-all duration-300 ease-in-out border-l-4", // Reduced padding
                             isOffline ? "border-muted" :
                             bin.notify || bin.fill_level >= 90 ? "border-destructive" :
                             bin.fill_level >= 70 ? "border-orange-500" :
@@ -860,10 +858,10 @@ export default function DetailedDashboardPage() {
                             isOffline ? "bg-muted/30" : "bg-card hover:shadow-md"
                         )}
                         >
-                        <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-3"> {/* Reduced gap */}
                             <div className="flex-grow">
-                            <h4 className="font-semibold text-base sm:text-lg flex items-center gap-2">
-                                <TrashIcon className={cn("h-5 w-5 shrink-0", statusColorClass)} />
+                            <h4 className={cn("font-semibold text-sm sm:text-base flex items-center gap-1.5 sm:gap-2", statusColorClass)}> {/* Reduced text size & gap */}
+                                <TrashIcon className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
                                 <span className="truncate" title={`Bin ID: ${bin.id}`}>Bin: {bin.id}</span>
                             </h4>
                             {bin.location && (
@@ -872,17 +870,17 @@ export default function DetailedDashboardPage() {
                                 </p>
                             )}
                             </div>
-                            <div className="flex flex-col items-start sm:items-end w-full sm:w-auto space-y-1.5 sm:space-y-2">
-                            <div className={cn("text-sm w-full", isMobileView ? "sm:w-32" : "sm:w-40 md:w-48")}>
-                                <div className="flex justify-between items-baseline mb-1">
+                            <div className="flex flex-col items-start sm:items-end w-full sm:w-auto space-y-1 sm:space-y-1.5"> {/* Reduced gap */}
+                            <div className={cn("text-sm w-full", isMobileView ? "sm:w-28" : "sm:w-32 md:w-36")}> {/* Adjusted width */}
+                                <div className="flex justify-between items-baseline mb-0.5 sm:mb-1">
                                 <span className="font-medium text-muted-foreground text-xs">Fill Level:</span>
-                                <span className={cn("font-bold text-base sm:text-lg", statusColorClass)}>
+                                <span className={cn("font-semibold text-sm sm:text-base", statusColorClass)}> {/* Reduced text size */}
                                     {bin.fill_level}%
                                 </span>
                                 </div>
                                 <Progress
                                 value={bin.fill_level}
-                                className={cn("h-2 sm:h-2.5 rounded-full", progressColorClass)}
+                                className={cn("h-1.5 sm:h-2 rounded-full", progressColorClass)} // Thinner progress bar
                                 aria-label={`Bin ${bin.id} fill level ${bin.fill_level}%`}
                                 />
                             </div>
@@ -890,25 +888,25 @@ export default function DetailedDashboardPage() {
                             {typeof bin.battery_level === 'number' && (
                                 <div className={cn("text-xs flex items-center", bin.battery_level < 20 ? "text-orange-500" : "text-muted-foreground")}>
                                 {bin.battery_level < 20 ?
-                                    <BatteryWarning className="h-3.5 w-3.5 mr-1 shrink-0" /> :
-                                    <BatteryFull className="h-3.5 w-3.5 mr-1 shrink-0" />
+                                    <BatteryWarning className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 shrink-0" /> :
+                                    <BatteryFull className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 shrink-0" />
                                 }
                                 Battery: {bin.battery_level}%
                                 </div>
                             )}
 
-                            <div className={cn("text-xs sm:text-sm font-medium flex items-center px-2 py-0.5 rounded-md shadow-xs",
+                            <div className={cn("text-xs font-medium flex items-center px-1.5 py-0.5 sm:px-2 rounded-md shadow-xs", // Reduced padding
                                 isOffline ? "bg-muted text-muted-foreground" :
                                 bin.notify || bin.fill_level >= 90 ? "bg-destructive/10 text-destructive" :
                                 bin.fill_level >= 70 ? "bg-orange-500/10 text-orange-600" :
                                 "bg-green-600/10 text-green-700"
                             )}>
                                 {statusIcon}
-                                Status: {isOffline ? "Offline" : binStatusText}
+                                <span className="ml-1">Status: {isOffline ? "Offline" : binStatusText}</span>
                             </div>
                             </div>
                         </div>
-                        <div className="mt-2 pt-2 border-t border-muted/20 text-xs text-muted-foreground space-y-0.5">
+                        <div className="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-muted/20 text-xs text-muted-foreground space-y-0.5"> {/* Reduced margins */}
                             {typeof bin.lastEmptied === 'number' && bin.lastEmptied > 0 && (
                                 <p>Last Emptied: {format(new Date(bin.lastEmptied), 'PP p')}</p>
                             )}
@@ -927,9 +925,9 @@ export default function DetailedDashboardPage() {
       </Card>
 
       {/* Bin1 Fill Level History Section */}
-      <Card className="mt-8 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary">
+      <Card className="mt-6 sm:mt-8 shadow-lg"> {/* Reduced margin */}
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl font-semibold text-primary"> {/* Reduced title */}
             <LineChartIcon className="h-5 w-5 sm:h-6 sm:w-6" />
             Live Fill Level Trend - Bin 1
           </CardTitle>
@@ -937,54 +935,54 @@ export default function DetailedDashboardPage() {
             Live-updating chart of fill levels for 'bin1' from Realtime Database.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-3"> {/* Reduced padding */}
           {isLoadingBin1History ? (
-            <div className="flex items-center justify-center py-10">
-              <Loader2 className="h-8 w-8 text-primary animate-spin mr-2" />
-              <p className="text-muted-foreground">Loading Bin1 history data...</p>
+            <div className="flex items-center justify-center py-8 sm:py-10"> {/* Reduced padding */}
+              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-primary animate-spin mr-2" />
+              <p className="text-muted-foreground text-sm sm:text-base">Loading Bin1 history data...</p> {/* Smaller text */}
             </div>
           ) : bin1HistoryError ? (
-            <Alert variant="destructive">
-              <WifiOff className="h-4 w-4" />
-              <AlertTitle>Error Loading Bin1 History</AlertTitle>
+            <Alert variant="destructive" className="text-xs sm:text-sm">
+              <WifiOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <AlertTitle className="text-sm sm:text-base">Error Loading Bin1 History</AlertTitle>
               <AlertDescription>{bin1HistoryError}</AlertDescription>
             </Alert>
           ) : bin1HistoryData.length === 0 ? (
-            <Alert>
-                <PackageX className="h-4 w-4" />
-                <AlertTitle>No History for Bin1</AlertTitle>
-                <AlertDescription>No fill level history data found for 'bin1/fill_level_history' in the Realtime Database.</AlertDescription>
+            <Alert className="text-xs sm:text-sm">
+                <PackageX className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <AlertTitle className="text-sm sm:text-base">No History for Bin1</AlertTitle>
+                <AlertDescription>No fill level history data found for 'bin1/fill_level_history'.</AlertDescription>
             </Alert>
           ) : (
-            <ChartContainer config={{fill_level: {label: "Fill Level (%)", color: "hsl(var(--primary))"}}} className="h-[300px] sm:h-[350px] w-full">
+            <ChartContainer config={{fill_level: {label: "Fill Level (%)", color: "hsl(var(--primary))"}}} className="h-[250px] sm:h-[300px] w-full"> {/* Reduced height */}
               <RechartsLineChart
                 data={bin1HistoryData}
                 margin={{
                   top: 5,
-                  right: isMobileView ? 10 : 30,
-                  left: isMobileView ? -10 : 20, 
-                  bottom: isMobileView ? 30 : 20, 
+                  right: isMobileView ? 5 : 20, // Reduced right margin for mobile
+                  left: isMobileView ? -15 : 5, // Adjusted left margin
+                  bottom: isMobileView ? 25 : 15, // Adjusted bottom margin
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.5)" />
                 <XAxis
                   dataKey="index"
                   type="number"
-                  label={{ value: "Entry Index", position: 'insideBottom', dy: isMobileView ? 15 : 10, fontSize: isMobileView ? '0.7rem' : '0.8rem', fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: "Entry Index", position: 'insideBottom', dy: isMobileView ? 12 : 8, fontSize: isMobileView ? '0.6rem' : '0.75rem', fill: 'hsl(var(--muted-foreground))' }} // Adjusted label
                   tickLine={false}
                   axisLine={false}
-                  tickMargin={8}
-                  fontSize={isMobileView ? "0.65rem" : "0.75rem"}
+                  tickMargin={6} // Reduced margin
+                  fontSize={isMobileView ? "0.6rem" : "0.7rem"} // Adjusted font size
                   domain={['dataMin', 'dataMax']}
                 />
                 <YAxis
                   dataKey="fill_level"
                   domain={[0, 100]}
-                  label={{ value: "Fill Level (%)", angle: -90, position: 'insideLeft', dx: isMobileView ? 10 : 0, fontSize: isMobileView ? '0.7rem' : '0.8rem', fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: "Fill Level (%)", angle: -90, position: 'insideLeft', dx: isMobileView ? 8 : -2, fontSize: isMobileView ? '0.6rem' : '0.75rem', fill: 'hsl(var(--muted-foreground))' }} // Adjusted label
                   tickLine={false}
                   axisLine={false}
-                  tickMargin={8}
-                  fontSize={isMobileView ? "0.65rem" : "0.75rem"}
+                  tickMargin={6} // Reduced margin
+                  fontSize={isMobileView ? "0.6rem" : "0.7rem"} // Adjusted font size
                 />
                 <RechartsTooltip
                   cursor={{stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "3 3"}}
@@ -996,8 +994,8 @@ export default function DetailedDashboardPage() {
                   dataKey="fill_level"
                   stroke="hsl(var(--primary))"
                   strokeWidth={2}
-                  dot={{ r: isMobileView ? 2 : 3, fill: "hsl(var(--primary))" }}
-                  activeDot={{ r: isMobileView ? 4 : 6 }}
+                  dot={{ r: isMobileView ? 1.5 : 2.5, fill: "hsl(var(--primary))" }} // Smaller dots
+                  activeDot={{ r: isMobileView ? 3 : 5 }} // Smaller active dots
                   isAnimationActive={true}
                   animationDuration={300}
                 />
