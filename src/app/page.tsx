@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import {
     ImagePlus, ChevronRight, BarChart3, MapPin, BotIcon, LogIn, UserPlus as SignupIcon, Trash2, Leaf,
     Package as PackageIcon, Edit, AlertTriangle, Tv2, Apple, Wind, Lightbulb, Info, Loader2,
-    Recycle, HelpCircle, Star as StarIcon, BookOpen, Users, CheckCircle, PackageSearch as PackageSearchIcon
+    Recycle, HelpCircle, Star as StarIcon, BookOpen, Users, CheckCircle, PackageSearch as PackageSearchIcon, Atom
 } from 'lucide-react';
 import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -41,10 +41,10 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
   plasticHdpe: 55,
   plasticPp: 45,
   plasticPs: 15,
-  // New points for AI broad categories
+  // Points for AI broad categories
   recyclable: 50,
   compostable: 60,
-  'non-recyclable': 10, // Points for logging/awareness
+  'non-recyclable': 10,
 };
 
 const CO2_SAVED_PER_POINT = 0.1;
@@ -67,6 +67,7 @@ const LEVELS: LevelInfo[] = [
   { name: 'Gold', minScore: 1500, targetForNext: 3000, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/gold-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
 ];
+
 
 const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   general: {
@@ -237,7 +238,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: { // Explicitly defining 'organic' as it's a valid WasteCategory from types.ts
+  organic: { 
     title: "Organic Waste", 
     icon: Apple, 
     definition: "Primarily food scraps and plant matter that can decompose naturally.",
@@ -287,7 +288,6 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   }
 };
 
-
 const topHorizontalCategories: Array<{
   id: WasteCategory | 'general';
   name: string;
@@ -310,7 +310,7 @@ const verticalLogCategories: Array<{
   name: string;
   imageUrl?: string;
   icon?: React.ElementType;
-  points: number; // This 'points' is now mostly informational for the UI, actual points from AI logic
+  points: number; 
   dataAiHint: string;
   quantityKey: keyof Pick<UserProfile, 'totalCardboard' | 'totalPaper' | 'totalGlass' | 'totalPlastic' | 'totalOther' | 'totalEwaste' | 'totalBiowaste' | 'totalMetal' | 'totalOrganic' | 'totalPlasticOther' | 'totalPlasticPete' | 'totalPlasticHdpe' | 'totalPlasticPp' | 'totalPlasticPs' | 'itemsClassified'>;
   placeholderText?: string;
@@ -490,7 +490,6 @@ export default function HomePage() {
       const history = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
       const sortedHistory = history.sort((a,b) => b.timestamp - a.timestamp);
       
-      // For "Recent Items", show the actual classified item.
       setRecentClassifications(sortedHistory.slice(0, MAX_HISTORY_DISPLAY_ITEMS));
     };
 
@@ -538,13 +537,12 @@ export default function HomePage() {
       const classificationResultCategory = result.category as AIWasteCategory; 
       const classificationConfidence = result.confidence;
       
-      // Points are awarded based on the AI's broad classification category.
       const pointsEarned = WASTE_POINTS[classificationResultCategory] || 10; 
 
       const newRecord: ClassificationRecord = {
         id: Date.now().toString(),
         imageDataUri,
-        category: classificationResultCategory, // Stores AI's broad category (recyclable, compostable, non-recyclable)
+        category: classificationResultCategory, 
         confidence: classificationConfidence,
         timestamp: Date.now(),
         points: pointsEarned,
@@ -556,19 +554,27 @@ export default function HomePage() {
       
       setRecentClassifications(updatedHistory.slice(0, MAX_HISTORY_DISPLAY_ITEMS));
 
-
       setUserData(prevData => {
         const newScore = prevData.score + pointsEarned;
         const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
         
-        // Specific category counts (e.g. totalCardboard) are NOT updated by this AI classification.
-        // Only the general itemsClassified count is incremented.
         const newUserData: UserProfile = {
           ...prevData,
           score: newScore,
           co2Managed: parseFloat(newCo2Managed.toFixed(1)),
           itemsClassified: prevData.itemsClassified + 1,
         };
+
+        // Increment specific category count if currentUploadCategory is set and is a specific material type
+        // This is for the user's personal tracking; points and main classification are based on AI's broad output.
+        if (currentUploadCategory && currentUploadCategory !== 'general' && currentUploadCategory !== 'recyclable' && currentUploadCategory !== 'compostable' && currentUploadCategory !== 'non-recyclable') {
+          const categoryToUpdateDetails = verticalLogCategories.find(cat => cat.id === currentUploadCategory);
+          if (categoryToUpdateDetails && categoryToUpdateDetails.quantityKey) {
+            const keyToUpdate = categoryToUpdateDetails.quantityKey;
+            newUserData[keyToUpdate] = (newUserData[keyToUpdate] || 0) + 1; // Increment by 1 item
+          }
+        }
+        
         saveToLocalStorage(USER_DATA_KEY, newUserData);
         return newUserData;
       });
@@ -640,7 +646,7 @@ export default function HomePage() {
   
   const selectedCategoryTips = useMemo(() => {
       return wasteCategoryFiveRTips[dialogTipsCategoryKey] || wasteCategoryFiveRTips.general;
-  }, [dialogTipsCategoryKey]);
+  }, [dialogTipsCategoryKey, wasteCategoryFiveRTips]); // Added wasteCategoryFiveRTips dependency
 
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
 
@@ -651,7 +657,7 @@ export default function HomePage() {
       .filter(item => item.tip); 
   }, [selectedCategoryTips]);
   
-  console.log("HomePage: CurrentUploadCategory for dialog:", currentUploadCategory, "Resolved to tips for:", dialogTipsCategoryKey);
+  // console.log("HomePage: currentUploadCategory:", currentUploadCategory, "Resolved tips for:", dialogTipsCategoryKey);
 
 
   return (
@@ -791,14 +797,14 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-full")}>
+            <div className={cn("mt-2 sm:mt-4 w-[80%]")}> {/* Adjusted: Removed mx-auto for left align, or use w-full if parent handles alignment */}
                  <Progress
                     value={scorePercentage}
                     className={cn(
                         currentLevel.progressBarTrackColor, 
                         `[&>div]:${currentLevel.progressBarIndicatorColor}`,
                         "h-3 sm:h-4", 
-                        "w-[80%]" 
+                        "w-full"  // Progress bar itself is full width of its 80% container
                     )}
                     aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
                 />
@@ -817,10 +823,28 @@ export default function HomePage() {
           </div>
             <div className="flex overflow-x-auto space-x-3 pb-3 no-scrollbar">
               {recentClassifications.map(item => {
-                const categoryData = verticalLogCategories.find(cat => cat.id === item.category);
-                const quantity = categoryData && userData && typeof userData[categoryData.quantityKey] === 'number' 
-                                 ? userData[categoryData.quantityKey] as number 
-                                 : (item.category === 'recyclable' || item.category === 'compostable' || item.category === 'non-recyclable' ? 1 : 0);
+                 const specificCategoryDetails = verticalLogCategories.find(
+                    (logCat) => logCat.id === item.category || // Direct match (e.g. if AI outputs 'cardboard')
+                                (item.category === 'recyclable' && ['cardboard', 'paper', 'plastic', 'glass', 'metal', 'plasticPete', 'plasticHdpe', 'plasticPp'].includes(logCat.id as string)) ||
+                                (item.category === 'compostable' && ['biowaste', 'organic'].includes(logCat.id as string)) ||
+                                (item.category === 'non-recyclable' && ['other', 'plasticPs', 'plasticOther'].includes(logCat.id as string))
+                    // This mapping is imperfect for quantity if AI output is broad.
+                    // For quantity, we might need to show a generic "1 item" or rely on user's initial selection if that's desired.
+                    // For now, we'll try to find a specific category or default to 1 for AI categories.
+                );
+
+                let displayQuantity = 1; // Default for broad AI categories
+                if (specificCategoryDetails && userData && typeof userData[specificCategoryDetails.quantityKey] === 'number') {
+                    // This part is tricky: AI gives broad, user profile has specific.
+                    // If we want to show quantity for specific item, we'd need to link AI's output back to user's original intent.
+                    // For now, if the AI classified as "recyclable", it's hard to know *which* recyclable item's quantity to show.
+                    // So, we'll simplify: if AI category matches one of the loggable types, use its count. Otherwise, default to 1.
+                    const directMatchCategory = verticalLogCategories.find(vc => vc.id === item.category);
+                    if (directMatchCategory) {
+                        displayQuantity = (userData[directMatchCategory.quantityKey] as number) || 0;
+                    }
+                }
+
 
                 return (
                   <Card key={item.id} className="p-3 flex items-center gap-3 min-w-[280px] sm:min-w-[320px] flex-shrink-0 shadow-sm hover:shadow-md transition-shadow">
@@ -837,7 +861,8 @@ export default function HomePage() {
                       <p className="font-medium capitalize text-sm sm:text-base truncate">{item.category}</p>
                       <p className="text-xs sm:text-sm text-muted-foreground">
                         {item.points || 0} points 
-                        { item.category === 'recyclable' || item.category === 'compostable' || item.category === 'non-recyclable' ? '' : <span className="text-primary font-semibold"> x {quantity}</span>}
+                        {/* Displaying a generic "x 1" for AI-classified items, as specific quantity link is complex */}
+                         x 1
                       </p>
                     </div>
                   </Card>
@@ -983,3 +1008,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
