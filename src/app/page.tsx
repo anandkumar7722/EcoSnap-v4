@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
-import { classifyWaste, type ClassifyWasteOutput } from '@/ai/flows/classify-waste';
+import { classifyWaste, type ClassifyWasteOutput, type AIWasteCategory } from '@/ai/flows/classify-waste';
 import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
 import type { ClassificationRecord, UserProfile, WasteCategory, TipInfo } from '@/lib/types';
 import { ImageUpload } from '@/components/image-upload';
@@ -26,6 +26,8 @@ const HISTORY_STORAGE_KEY = 'ecoSnapHistory';
 const USER_DATA_KEY = 'ecoSnapUserData';
 const MAX_HISTORY_DISPLAY_ITEMS = 5;
 
+// Points for specific manual logging might still be relevant for non-AI flows
+// Points for AI classification will use new broad categories
 const WASTE_POINTS: Record<WasteCategory, number> = {
   ewaste: 100,
   plastic: 50,
@@ -41,6 +43,10 @@ const WASTE_POINTS: Record<WasteCategory, number> = {
   plasticHdpe: 55,
   plasticPp: 45,
   plasticPs: 15,
+  // New points for AI broad categories
+  recyclable: 50,
+  compostable: 60,
+  'non-recyclable': 10, // Points for logging/awareness
 };
 
 const CO2_SAVED_PER_POINT = 0.1;
@@ -64,7 +70,6 @@ const LEVELS: LevelInfo[] = [
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
 ];
 
-// Simplified for debugging, expand as needed
 const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
   general: {
     title: "General Waste Item",
@@ -102,7 +107,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       support: "Purchase recycled paper products. Support businesses that use sustainable paper sourcing."
     }
   },
-  plastic: {
+  plastic: { // General plastic, can be refined for AI output "recyclable" if context is plastic
     title: "Plastic (General)",
     icon: Recycle,
     definition: "A wide range of synthetic or semi-synthetic materials, often found in packaging, bottles, and containers.",
@@ -245,6 +250,42 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
       educate: "Share composting benefits and how-to guides. Raise awareness about food waste impact.",
       support: "Local farms using compost, community gardens, businesses with organic waste programs."
     }
+  },
+  recyclable: {
+    title: "Recyclable Item",
+    icon: Recycle,
+    definition: "Items that can be processed and materials recovered for reuse. This is a broad category; specific material type (e.g., paper, specific plastic) determines actual recyclability in your area.",
+    fiveRs: {
+      reduce: "Choose items with less packaging overall. Opt for durable, reusable alternatives to single-use items.",
+      reuse: "Before recycling, see if the item can be repurposed. Jars for storage, paper for scrap, etc.",
+      recycle: "Key: Check local guidelines! Not all 'recyclable' materials are accepted everywhere. Clean and dry items are best. Empty containers. For plastics, know which numbers (#1-7) your facility takes.",
+      educate: "Learn your local recycling rules thoroughly and share them. Explain common contaminants (like food in containers, plastic bags in paper recycling).",
+      support: "Buy products made from recycled materials. Support companies with clear recycling information and sustainable packaging."
+    }
+  },
+  compostable: {
+    title: "Compostable Item",
+    icon: Leaf,
+    definition: "Organic matter that can naturally decompose into nutrient-rich compost. Primarily food scraps and yard waste.",
+    fiveRs: {
+      reduce: "Minimize food waste by planning meals, storing food correctly, and using leftovers. Avoid over-purchasing perishable goods.",
+      reuse: "Use vegetable scraps to make broth. Regrow certain vegetables (like green onions) from scraps.",
+      recycle: "Compost at home (backyard bin, worm farm) or use municipal green bin/organics collection if available. Check what's accepted (e.g., meat, dairy, certified compostable plastics often have specific rules).",
+      educate: "Promote composting benefits for soil health and waste reduction. Share tips on what can and cannot be composted locally.",
+      support: "Support community composting programs or local farms that use compost. If buying 'compostable' products, verify they are accepted by your local composting facility."
+    }
+  },
+  'non-recyclable': {
+    title: "Non-Recyclable Item",
+    icon: Trash2,
+    definition: "Items that currently cannot be recycled or composted through standard municipal programs and are typically sent to landfill.",
+    fiveRs: {
+      reduce: "This is the most crucial 'R' here! Avoid items known to be non-recyclable (e.g., Styrofoam, many flexible plastics). Choose products with minimal or recyclable/compostable packaging. Repair items instead of replacing.",
+      reuse: "Before discarding, think if the item (or parts of it) can be repurposed for a completely different use. This might be for crafts, organization, etc.",
+      recycle: "Double-check if there's a special drop-off or mail-in program for the specific item (e.g., some stores take plastic bags, Terracycle for hard-to-recycle waste). However, most items in this category won't have standard recycling options.",
+      educate: "Understand why certain items are non-recyclable (e.g., mixed materials, contamination, lack of market). Share this to help others make informed choices.",
+      support: "Support businesses that design for durability and use easily recyclable/compostable materials. Advocate for policies that reduce non-recyclable waste and improve waste management infrastructure."
+    }
   }
 };
 
@@ -273,7 +314,7 @@ const verticalLogCategories: Array<{
   icon?: React.ElementType;
   points: number;
   dataAiHint: string;
-  quantityKey: keyof Pick<UserProfile, 'totalCardboard' | 'totalPaper' | 'totalGlass' | 'totalPlastic' | 'totalOther' | 'totalEwaste' | 'totalBiowaste' | 'totalMetal' | 'totalOrganic' | 'totalPlasticOther' | 'totalPlasticPete' | 'totalPlasticHdpe' | 'totalPlasticPp' | 'totalPlasticPs'>;
+  quantityKey: keyof Pick<UserProfile, 'totalCardboard' | 'totalPaper' | 'totalGlass' | 'totalPlastic' | 'totalOther' | 'totalEwaste' | 'totalBiowaste' | 'totalMetal' | 'totalOrganic' | 'totalPlasticOther' | 'totalPlasticPete' | 'totalPlasticHdpe' | 'totalPlasticPp' | 'totalPlasticPs' | 'itemsClassified'>; // Added itemsClassified to make it valid for new cats
   placeholderText?: string;
 }> = [
   { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.png', points: WASTE_POINTS.cardboard, dataAiHint: 'cardboard box', quantityKey: 'totalCardboard' },
@@ -305,7 +346,7 @@ const defaultUserProfile: UserProfile = {
   totalPaper: 0,
   totalGlass: 0,
   totalMetal: 0,
-  totalOrganic: 0,
+  totalOrganic: 0, // Still here, can be used by manual logging.
   totalOther: 0,
   totalPlasticOther: 0,
   totalPlasticPete: 0,
@@ -452,7 +493,9 @@ export default function HomePage() {
       const sortedHistory = history.sort((a,b) => b.timestamp - a.timestamp);
       const uniqueRecentItems = Object.values(
         sortedHistory.reduce((acc, item) => {
-          if (!acc[item.category]) {
+          // Use item.id for uniqueness if available and meaningful for recent display
+          // Or stick to category if that's preferred for this section
+          if (!acc[item.category]) { // Or some other logic for "recent"
             acc[item.category] = item;
           }
           return acc;
@@ -491,32 +534,28 @@ export default function HomePage() {
     setClassificationError(null);
 
     try {
-      let classificationResultCategory: WasteCategory;
-      let classificationConfidence = 1.0; 
-
-      if (currentUploadCategory && currentUploadCategory !== 'general') {
-        classificationResultCategory = currentUploadCategory;
-      } else {
-        const result = await classifyWaste({ photoDataUri: imageDataUri });
-        if (!result || !result.category) {
-          setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
-          toast({
-            title: "Classification Failed",
-            description: "The AI could not process the image correctly. Please try a different image or manually log.",
-            variant: "destructive",
-          });
-          setIsClassifying(false);
-          return null;
-        }
-        classificationResultCategory = result.category;
-        classificationConfidence = result.confidence;
+      const result = await classifyWaste({ photoDataUri: imageDataUri });
+      if (!result || !result.category) {
+        setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
+        toast({
+          title: "Classification Failed",
+          description: "The AI could not process the image correctly. Please try a different image or manually log.",
+          variant: "destructive",
+        });
+        setIsClassifying(false);
+        return null;
       }
+      
+      const classificationResultCategory = result.category as AIWasteCategory; // AI output is one of 3
+      const classificationConfidence = result.confidence;
+      
+      // Use new points system for broad AI categories
+      const pointsEarned = WASTE_POINTS[classificationResultCategory] || 10; // Default 10 for safety
 
-      const pointsEarned = WASTE_POINTS[classificationResultCategory] || WASTE_POINTS.other;
       const newRecord: ClassificationRecord = {
         id: Date.now().toString(),
         imageDataUri,
-        category: classificationResultCategory,
+        category: classificationResultCategory, // Store the broad category
         confidence: classificationConfidence,
         timestamp: Date.now(),
         points: pointsEarned,
@@ -540,37 +579,13 @@ export default function HomePage() {
       setUserData(prevData => {
         const newScore = prevData.score + pointsEarned;
         const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
-
-        let categoryKeyToUpdate: keyof UserProfile = `total${classificationResultCategory.charAt(0).toUpperCase() + classificationResultCategory.slice(1)}` as keyof UserProfile;
-
-        const specificPlasticKeys: Partial<Record<WasteCategory, keyof UserProfile>> = {
-            plasticPete: 'totalPlasticPete',
-            plasticHdpe: 'totalPlasticHdpe',
-            plasticPp: 'totalPlasticPp',
-            plasticPs: 'totalPlasticPs',
-            plasticOther: 'totalPlasticOther',
-        };
-
-        if (specificPlasticKeys[classificationResultCategory]) {
-            categoryKeyToUpdate = specificPlasticKeys[classificationResultCategory]!;
-        } else if (classificationResultCategory === 'plastic' && !specificPlasticKeys[classificationResultCategory]) {
-            categoryKeyToUpdate = 'totalPlastic';
-        } else if (classificationResultCategory === 'biowaste' || classificationResultCategory === 'organic') {
-            categoryKeyToUpdate = 'totalBiowaste'; 
-        } else if (!(categoryKeyToUpdate in defaultUserProfile)) {
-            console.warn(`Unknown category key derived: ${categoryKeyToUpdate}. Logging to totalOther.`);
-            categoryKeyToUpdate = 'totalOther';
-        }
         
-        const currentCategoryCount = typeof prevData[categoryKeyToUpdate] === 'number' ? (prevData[categoryKeyToUpdate] as number) : 0;
-        const updatedCategoryCount = currentCategoryCount + 1;
-
         const newUserData: UserProfile = {
           ...prevData,
           score: newScore,
           co2Managed: parseFloat(newCo2Managed.toFixed(1)),
           itemsClassified: prevData.itemsClassified + 1,
-          [categoryKeyToUpdate]: updatedCategoryCount,
+          // Specific category counts (e.g. totalCardboard) are NO LONGER updated by AI classification
         };
         saveToLocalStorage(USER_DATA_KEY, newUserData);
         return newUserData;
@@ -578,7 +593,7 @@ export default function HomePage() {
 
       toast({
         title: "Classification Successful!",
-        description: `Item classified as ${currentUploadCategoryFriendlyName || classificationResultCategory}. You earned ${pointsEarned} points!`,
+        description: `Item classified as ${classificationResultCategory}. You earned ${pointsEarned} points!`,
       });
       setIsUploadModalOpen(false); 
       setCurrentUploadCategory(undefined); 
@@ -634,8 +649,20 @@ export default function HomePage() {
     pointsForNextLevelDisplay = "Max";
   }
 
-  const selectedCategoryForDialog = useMemo(() => currentUploadCategory || 'general', [currentUploadCategory]);
-  const selectedCategoryTips = useMemo(() => wasteCategoryFiveRTips[selectedCategoryForDialog] || wasteCategoryFiveRTips.general, [selectedCategoryForDialog, wasteCategoryFiveRTips]);
+  // Determine which set of tips to show in the dialog
+  // If currentUploadCategory is one of the new broad AI categories, use its tips
+  // Otherwise, try to find tips for the specific category or default to 'general'
+  const dialogTipsCategoryKey = useMemo(() => {
+    if (currentUploadCategory && ['recyclable', 'compostable', 'non-recyclable'].includes(currentUploadCategory)) {
+      return currentUploadCategory as 'recyclable' | 'compostable' | 'non-recyclable';
+    }
+    return currentUploadCategory && currentUploadCategory !== 'general' ? currentUploadCategory : 'general';
+  }, [currentUploadCategory]);
+  
+  const selectedCategoryTips = useMemo(() => {
+      return wasteCategoryFiveRTips[dialogTipsCategoryKey] || wasteCategoryFiveRTips.general;
+  }, [dialogTipsCategoryKey]);
+
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
 
   const fiveRTipsArray = useMemo(() => {
@@ -645,7 +672,7 @@ export default function HomePage() {
       .filter(item => item.tip); 
   }, [selectedCategoryTips]);
   
-  console.log("HomePage render. IsLoggedIn:", isLoggedIn);
+  console.log("HomePage rendering. CurrentUploadCategory for dialog:", currentUploadCategory, "Resolved to tips for:", dialogTipsCategoryKey);
 
 
   return (
@@ -718,6 +745,8 @@ export default function HomePage() {
       <section className="space-y-2 sm:space-y-3">
         <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Log Items by Category</h2>
         {verticalLogCategories.map(item => {
+          // For specific categories, quantityKey will correctly fetch counts like userData.totalCardboard
+          // For new broad AI categories, if they were added here, we'd need a generic quantityKey or different logic
           const quantity = (userData && typeof userData[item.quantityKey] === 'number') ? userData[item.quantityKey] as number : 0;
           const ItemIconComponent = item.icon;
           return (
@@ -785,14 +814,14 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-full")}> {/* Container for progress bar */}
-                <Progress
+            <div className={cn("mt-2 sm:mt-4 w-full")}>
+                 <Progress
                     value={scorePercentage}
                     className={cn(
                         currentLevel.progressBarTrackColor, 
                         `[&>div]:${currentLevel.progressBarIndicatorColor}`,
-                        "h-3 sm:h-4", // Progress bar height
-                        "w-[80%]" // Progress bar width
+                        "h-3 sm:h-4", 
+                        "w-[80%]" // Progress bar width is 80% of its container
                     )}
                     aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
                 />
@@ -811,24 +840,15 @@ export default function HomePage() {
           </div>
             <div className="flex overflow-x-auto space-x-3 pb-3 no-scrollbar">
               {recentClassifications.map(item => {
-                 let categoryKeyForQuantity: keyof UserProfile = `total${item.category.charAt(0).toUpperCase() + item.category.slice(1)}` as keyof UserProfile;
-
-                  const specificPlasticKeys: Partial<Record<WasteCategory, keyof UserProfile>> = {
-                      plasticPete: 'totalPlasticPete',
-                      plasticHdpe: 'totalPlasticHdpe',
-                      plasticPp: 'totalPlasticPp',
-                      plasticPs: 'totalPlasticPs',
-                      plasticOther: 'totalPlasticOther',
-                  };
-
-                  if (specificPlasticKeys[item.category]) {
-                      categoryKeyForQuantity = specificPlasticKeys[item.category]!;
-                  } else if ((item.category === 'biowaste' || item.category === 'organic') && ('totalBiowaste' in defaultUserProfile)) {
-                    categoryKeyForQuantity = 'totalBiowaste';
-                  } else if (!(categoryKeyForQuantity in defaultUserProfile)) {
-                      categoryKeyForQuantity = 'totalOther';
-                  }
-                const quantity = (userData && typeof userData[categoryKeyForQuantity] === 'number') ? userData[categoryKeyForQuantity] as number : 0;
+                 // For recent items, the 'category' will be one of the AI's broad categories
+                 // So, we can't directly map to UserProfile's specific counts like 'totalPlasticPete'
+                 // We can show 'N/A' or remove quantity for AI-classified recent items.
+                 // Or, if currentUploadCategory was set (user clicked a specific category to upload for),
+                 // we *could* infer, but that's not stored with the classification record itself.
+                 // For simplicity, let's just show total items classified for this category,
+                 // if we were tracking broad categories. Since we're not, this part is tricky.
+                 // Let's default to showing 1, as it's one classified item.
+                const quantity = 1; 
 
                 return (
                   <Card key={item.id} className="p-3 flex items-center gap-3 min-w-[260px] sm:min-w-[300px] flex-shrink-0 shadow-sm hover:shadow-md transition-shadow">
@@ -844,8 +864,7 @@ export default function HomePage() {
                     <div className="flex-grow overflow-hidden">
                       <p className="font-medium capitalize text-sm sm:text-base truncate">{item.category}</p>
                       <p className="text-xs sm:text-sm text-muted-foreground">
-                        {item.points || 0} points{' '}
-                        <span className="text-primary font-medium">x {quantity}</span>
+                        {item.points || 0} points
                       </p>
                     </div>
                   </Card>
@@ -991,4 +1010,3 @@ export default function HomePage() {
     </div>
   );
 }
-
