@@ -115,26 +115,26 @@ export default function DetailedDashboardPage() {
 
 
   useEffect(() => {
-    // Initialize dateRange on client-side to avoid hydration mismatch
-    setDateRange({
-        from: addDays(new Date(), -90),
-        to: new Date(),
-    });
-
     if (typeof window !== 'undefined') {
         const checkMobile = () => setIsMobileView(window.innerWidth < 768);
         checkMobile();
         window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
+        // Initialize dateRange on client-side to avoid hydration mismatch
+        setDateRange({
+            from: addDays(new Date(), -90),
+            to: new Date(),
+        });
+        // Initialize currentTime on client-side to avoid hydration mismatch for the clock
+        setCurrentTime(new Date());
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        
+        return () => {
+            window.removeEventListener('resize', checkMobile);
+            clearInterval(timer);
+        }
     }
   }, []);
 
-  useEffect(() => {
-    // Initialize currentTime on client-side to avoid hydration mismatch for the clock
-    setCurrentTime(new Date());
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     const initialTimestamp = new Date();
@@ -372,18 +372,18 @@ export default function DetailedDashboardPage() {
     return ((recycledValue / totalValueForRecycledPercentage) * 100).toFixed(0);
   }, [categoryDistribution]);
 
-  const pieOuterRadius = isMobileView ? 60 : 90;
-  const barChartLeftMargin = isMobileView ? -25 : -25;
+  const generalPieOuterRadius = isMobileView ? 60 : 80;
+  const eWastePieOuterRadius = isMobileView ? 70 : 80;
 
   const renderPieLabel = ({ name, percent, x, y, midAngle, outerRadius: currentOuterRadius }: any) => {
     const labelRadiusOffset = isMobileView ? 10 : 15;
     const RADIAN = Math.PI / 180;
-    const effectiveOuterRadius = typeof currentOuterRadius === 'number' ? currentOuterRadius : pieOuterRadius;
+    const effectiveOuterRadius = typeof currentOuterRadius === 'number' ? currentOuterRadius : generalPieOuterRadius;
     const radius = effectiveOuterRadius + labelRadiusOffset;
     const lx = x + radius * Math.cos(-midAngle * RADIAN);
     const ly = y + radius * Math.sin(-midAngle * RADIAN);
     const textAnchor = lx > x ? 'start' : 'end';
-    if ((isMobileView && percent * 100 < 7) || percent * 100 < 5) return null; 
+    if ((isMobileView && percent * 100 < 8) || percent * 100 < 5) return null; 
     return (
       <text x={lx} y={ly} fill="currentColor" textAnchor={textAnchor} dominantBaseline="central" className="text-[9px] sm:text-xs fill-foreground">
         {generalChartConfig[name as WasteCategory]?.label || name} (${(percent * 100).toFixed(0)}%)
@@ -459,7 +459,7 @@ export default function DetailedDashboardPage() {
                 defaultMonth={dateRange?.from}
                 selected={dateRange}
                 onSelect={setDateRange}
-                numberOfMonths={2}
+                numberOfMonths={isMobileView ? 1 : 2}
               />
             </PopoverContent>
           </Popover>
@@ -541,7 +541,7 @@ export default function DetailedDashboardPage() {
               </CardHeader>
               <CardContent>
                 {categoryDistribution.length > 0 ? (
-                  <ChartContainer config={generalChartConfig} className="mx-auto aspect-square min-h-[250px] max-h-[250px] sm:max-h-[300px] md:max-h-[350px]">
+                  <ChartContainer config={generalChartConfig} className="mx-auto aspect-square min-h-[280px] max-h-[280px] sm:min-h-[300px] sm:max-h-[300px] md:min-h-[350px] md:max-h-[350px]">
                     <RechartsPieChart>
                       <RechartsTooltip content={<ChartTooltipContent nameKey="name" />} />
                       <Pie
@@ -550,7 +550,7 @@ export default function DetailedDashboardPage() {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        outerRadius={pieOuterRadius}
+                        outerRadius={generalPieOuterRadius}
                         labelLine={false}
                         label={renderPieLabel}
                       />
@@ -573,8 +573,8 @@ export default function DetailedDashboardPage() {
               </CardHeader>
               <CardContent>
                 {barChartData.length > 0 ? (
-                  <ChartContainer config={generalChartConfig} className="min-h-[250px] h-[250px] sm:h-[300px] md:h-[350px] w-full">
-                    <RechartsBarChart data={barChartData} margin={{ top: 5, right: isMobileView ? 0 : 5, left: barChartLeftMargin, bottom: 5 }}>
+                  <ChartContainer config={generalChartConfig} className="min-h-[280px] h-[280px] sm:h-[300px] md:h-[350px] w-full">
+                    <RechartsBarChart data={barChartData} margin={{ top: 5, right: isMobileView ? 0 : 5, left: isMobileView ? -25 : -20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false}/>
                         <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={isMobileView ? "0.6rem" : "0.75rem"} />
                         <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={isMobileView ? "0.6rem" : "0.75rem"} />
@@ -626,20 +626,20 @@ export default function DetailedDashboardPage() {
           </CardHeader>
           <CardContent>
             <ChartContainer config={{volume: {label: "Volume (kg)", color: "hsl(var(--primary))"}}} className="h-[250px] sm:h-[300px] w-full">
-              <RechartsLineChart data={realTimeEWasteData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+              <RechartsLineChart data={realTimeEWasteData} margin={{ top: 5, right: 20, left: isMobileView ? -15 : -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.5)" />
                 <XAxis
                   dataKey="timestamp"
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  fontSize="0.7rem"
+                  fontSize={isMobileView ? "0.6rem" : "0.7rem"}
                 />
                 <YAxis
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  fontSize="0.7rem"
+                  fontSize={isMobileView ? "0.6rem" : "0.7rem"}
                   domain={[0, 'dataMax + 10']}
                 />
                 <RechartsTooltip
@@ -679,10 +679,10 @@ export default function DetailedDashboardPage() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
+                    outerRadius={eWastePieOuterRadius}
                     labelLine={false}
                     label={({ name, percent, ...entry }) => {
-                        if (percent * 100 < 5) return '';
+                        if (percent * 100 < (isMobileView ? 10 : 5)) return ''; // Hide small labels, more aggressive on mobile
                         return `${(percent * 100).toFixed(0)}%`;
                     }}
                   >
@@ -721,20 +721,20 @@ export default function DetailedDashboardPage() {
           </CardHeader>
           <CardContent>
             <ChartContainer config={{volume: {label: "Volume (kg)", color: "hsl(var(--chart-3))"}}} className="h-[250px] sm:h-[300px] w-full">
-              <RechartsBarChart data={monthlyEWasteVolume} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+              <RechartsBarChart data={monthlyEWasteVolume} margin={{ top: 5, right: 10, left: isMobileView ? -25 : -20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.5)" />
                 <XAxis
                   dataKey="month"
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  fontSize="0.7rem"
+                  fontSize={isMobileView ? "0.6rem" : "0.7rem"}
                 />
                 <YAxis
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  fontSize="0.7rem"
+                  fontSize={isMobileView ? "0.6rem" : "0.7rem"}
                   domain={[0, 'dataMax + 20']}
                 />
                 <RechartsTooltip
@@ -873,7 +873,7 @@ export default function DetailedDashboardPage() {
                             )}
                             </div>
                             <div className="flex flex-col items-start sm:items-end w-full sm:w-auto space-y-1.5 sm:space-y-2">
-                            <div className="text-sm w-full min-w-[130px] sm:min-w-[160px]">
+                            <div className={cn("text-sm w-full", isMobileView ? "sm:w-32" : "sm:w-40 md:w-48")}>
                                 <div className="flex justify-between items-baseline mb-1">
                                 <span className="font-medium text-muted-foreground text-xs">Fill Level:</span>
                                 <span className={cn("font-bold text-base sm:text-lg", statusColorClass)}>
@@ -961,30 +961,30 @@ export default function DetailedDashboardPage() {
                 data={bin1HistoryData}
                 margin={{
                   top: 5,
-                  right: 30,
-                  left: 20, 
-                  bottom: 20, 
+                  right: isMobileView ? 10 : 30,
+                  left: isMobileView ? -10 : 20, 
+                  bottom: isMobileView ? 30 : 20, 
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.5)" />
                 <XAxis
                   dataKey="index"
                   type="number"
-                  label={{ value: "Entry Index", position: 'insideBottomRight', offset: -5, fontSize: '0.8rem', fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: "Entry Index", position: 'insideBottom', dy: isMobileView ? 15 : 10, fontSize: isMobileView ? '0.7rem' : '0.8rem', fill: 'hsl(var(--muted-foreground))' }}
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  fontSize="0.75rem"
+                  fontSize={isMobileView ? "0.65rem" : "0.75rem"}
                   domain={['dataMin', 'dataMax']}
                 />
                 <YAxis
                   dataKey="fill_level"
                   domain={[0, 100]}
-                  label={{ value: "Fill Level (%)", angle: -90, position: 'insideLeft', fontSize: '0.8rem', fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: "Fill Level (%)", angle: -90, position: 'insideLeft', dx: isMobileView ? 10 : 0, fontSize: isMobileView ? '0.7rem' : '0.8rem', fill: 'hsl(var(--muted-foreground))' }}
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  fontSize="0.75rem"
+                  fontSize={isMobileView ? "0.65rem" : "0.75rem"}
                 />
                 <RechartsTooltip
                   cursor={{stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "3 3"}}
@@ -996,8 +996,8 @@ export default function DetailedDashboardPage() {
                   dataKey="fill_level"
                   stroke="hsl(var(--primary))"
                   strokeWidth={2}
-                  dot={{ r: 3, fill: "hsl(var(--primary))" }}
-                  activeDot={{ r: 6 }}
+                  dot={{ r: isMobileView ? 2 : 3, fill: "hsl(var(--primary))" }}
+                  activeDot={{ r: isMobileView ? 4 : 6 }}
                   isAnimationActive={true}
                   animationDuration={300}
                 />
@@ -1010,3 +1010,4 @@ export default function DetailedDashboardPage() {
     </div>
   );
 }
+
