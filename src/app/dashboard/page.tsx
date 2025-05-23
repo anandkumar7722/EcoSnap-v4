@@ -48,7 +48,7 @@ import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 
 
-const allWasteCategories: WasteCategory[] = ['ewaste', 'plastic', 'biowaste', 'cardboard', 'paper', 'glass', 'metal', 'organic', 'other', 'plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther'];
+const allWasteCategories: WasteCategory[] = ['ewaste', 'plastic', 'biowaste', 'cardboard', 'paper', 'glass', 'metal', 'organic', 'other', 'plasticPete', 'plasticHdpe', 'plasticPp', 'plasticPs', 'plasticOther', 'recyclable', 'compostable', 'non-recyclable'];
 
 const generalChartConfig = {
   items: { label: "Items/Kg" },
@@ -66,6 +66,9 @@ const generalChartConfig = {
   plasticPp: { label: "Plastic PP", color: "hsl(var(--chart-2))" },
   plasticPs: { label: "Plastic PS", color: "hsl(var(--chart-2))" },
   plasticOther: { label: "Plastic Other", color: "hsl(var(--chart-2))" },
+  recyclable: { label: "Recyclable", color: "hsl(var(--chart-1))" },
+  compostable: { label: "Compostable", color: "hsl(var(--chart-3))" },
+  'non-recyclable': { label: "Non-Recyclable", color: "hsl(var(--chart-5))" },
 } satisfies import("@/components/ui/chart").ChartConfig;
 
 const MAX_REAL_TIME_EWASTE_POINTS = 20;
@@ -91,7 +94,7 @@ export default function DetailedDashboardPage() {
   const [liveWasteData, setLiveWasteData] = useState<WasteEntry[]>([]);
   const [filteredData, setFilteredData] = useState<WasteEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [firestoreDataError, setFirestoreDataError] = useState<string | null>(null); // New state for Firestore errors
+  const [firestoreDataError, setFirestoreDataError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -112,6 +115,7 @@ export default function DetailedDashboardPage() {
 
 
   useEffect(() => {
+    // Initialize dateRange on client-side to avoid hydration mismatch
     setDateRange({
         from: addDays(new Date(), -90),
         to: new Date(),
@@ -126,6 +130,7 @@ export default function DetailedDashboardPage() {
   }, []);
 
   useEffect(() => {
+    // Initialize currentTime on client-side to avoid hydration mismatch for the clock
     setCurrentTime(new Date());
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -186,7 +191,7 @@ export default function DetailedDashboardPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    setFirestoreDataError(null); // Reset error on new attempt
+    setFirestoreDataError(null); 
     const userId = 'user1'; 
 
     if (!firestore) {
@@ -224,12 +229,12 @@ export default function DetailedDashboardPage() {
       });
       setLiveWasteData(entries);
       setIsLoading(false);
-      setFirestoreDataError(null); // Clear error on successful fetch
+      setFirestoreDataError(null); 
     }, (error) => {
       console.error("Error fetching real-time waste entries:", error);
       const errorMsg = "Could not load live waste data. There might be a connection issue with the database or insufficient permissions. Please try again later.";
       setFirestoreDataError(errorMsg);
-      toast({ variant: "destructive", title: "Data Fetch Error", description: errorMsg });
+      toast({ variant: "destructive", title: "Data Fetch Error", description: errorMsg, duration: 10000 });
       setIsLoading(false);
     });
 
@@ -358,9 +363,13 @@ export default function DetailedDashboardPage() {
 
   const recycledPercentage = useMemo(() => {
     const totalValueForRecycledPercentage = categoryDistribution.reduce((sum, cat) => sum + cat.value, 0);
-    return totalValueForRecycledPercentage > 0 ?
-      ((categoryDistribution.filter(cat => cat.name !== 'other' && cat.name !== 'organic' && cat.name !== 'biowaste').reduce((sum, cat) => sum + cat.value, 0) /
-      totalValueForRecycledPercentage) * 100).toFixed(0) : '0';
+    if (totalValueForRecycledPercentage === 0) return '0';
+    
+    const recycledValue = categoryDistribution
+      .filter(cat => ['recyclable', 'plastic', 'paper', 'cardboard', 'glass', 'metal', 'plasticPete', 'plasticHdpe', 'plasticPp'].includes(cat.name))
+      .reduce((sum, cat) => sum + cat.value, 0);
+      
+    return ((recycledValue / totalValueForRecycledPercentage) * 100).toFixed(0);
   }, [categoryDistribution]);
 
   const pieOuterRadius = isMobileView ? 60 : 90;
@@ -473,7 +482,7 @@ export default function DetailedDashboardPage() {
           <Loader2 className="h-12 w-12 text-primary animate-spin" />
           <p className="ml-4 text-lg text-muted-foreground">Loading dashboard data...</p>
         </div>
-      ) : firestoreDataError ? ( // Display Firestore specific error
+      ) : firestoreDataError ? ( 
         <Alert variant="destructive" className="mt-4">
             <WifiOff className="h-4 w-4" />
             <AlertTitle>General Waste Data Error</AlertTitle>
@@ -503,11 +512,11 @@ export default function DetailedDashboardPage() {
             </Card>
             <Card>
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Recycled Ratio (General Est.)</CardTitle>
+                    <CardTitle className="text-sm font-medium">Recycled Ratio (Est.)</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{recycledPercentage}%</div>
-                    <p className="text-xs text-muted-foreground">Non-organic/other vs total</p>
+                    <p className="text-xs text-muted-foreground">Recyclable types vs total</p>
                 </CardContent>
             </Card>
             <Card>
@@ -572,7 +581,7 @@ export default function DetailedDashboardPage() {
                         <RechartsTooltip cursor={false} content={<ChartTooltipContent indicator="dashed" />} />
                         <RechartsLegend content={<ChartLegendContent nameKey="name" className="text-xs sm:text-sm [&>div]:gap-1 [&>div>svg]:size-3"/>} />
                         {allWasteCategories.filter(cat => cat !== 'other' && generalChartConfig[cat]).map(cat => (
-                          <Bar key={cat} dataKey={cat} stackId="a" fill={generalChartConfig[cat]?.color || generalChartConfig.other.color} name={generalChartConfig[cat]?.label as string} radius={cat === 'ewaste' ? [4,4,0,0] : [0,0,0,0]}/>
+                          <Bar key={cat} dataKey={cat} stackId="a" fill={generalChartConfig[cat]?.color || generalChartConfig.other.color} name={generalChartConfig[cat]?.label as string} radius={cat === 'ewaste' || cat === 'recyclable' ? [4,4,0,0] : [0,0,0,0]}/>
                         ))}
                         <Bar dataKey="other" stackId="a" fill={generalChartConfig.other.color} name={generalChartConfig.other.label as string} radius={[0,0,4,4]}/>
                     </RechartsBarChart>
@@ -1001,4 +1010,3 @@ export default function DetailedDashboardPage() {
     </div>
   );
 }
-
