@@ -106,10 +106,10 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
       support: "Purchase recycled paper products. Support businesses that use sustainable paper sourcing."
     }
   },
-  plastic: { // General plastic
+  plastic: { 
     title: "Plastic (General)",
     icon: Recycle,
-    definition: "A wide range of synthetic or semi-synthetic materials, often found in packaging, bottles, and containers. For specific types like PETE or HDPE, see their entries.",
+    definition: "A wide range of synthetic or semi-synthetic materials, often found in packaging, bottles, and containers.",
     fiveRs: {
       reduce: "Avoid single-use plastics (bags, straws, cutlery, bottles). Choose items with less plastic packaging.",
       reuse: "Use reusable water bottles, coffee cups, and shopping bags. Repurpose plastic containers for storage.",
@@ -120,7 +120,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
   },
   plasticPete: {
     title: "Plastic - PETE (#1)",
-    icon: Recycle, // Consider a more specific icon or visual differentiator if possible
+    icon: Recycle, 
     definition: "Polyethylene Terephthalate. Common in beverage bottles, food containers. Widely recyclable.",
     fiveRs: {
       reduce: "Choose reusable bottles. Buy beverages in larger containers or from concentrate.",
@@ -132,7 +132,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
   },
   plasticHdpe: {
     title: "Plastic - HDPE (#2)",
-    icon: Recycle, // Consider a more specific icon
+    icon: Recycle, 
     definition: "High-Density Polyethylene. Found in milk jugs, detergent bottles. Often recyclable.",
     fiveRs: {
       reduce: "Buy concentrated detergents. Opt for bar soap over liquid soap in plastic bottles.",
@@ -144,7 +144,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
   },
   plasticPp: {
     title: "Plastic - PP (#5)",
-    icon: PackageIcon, // Or a more specific icon
+    icon: PackageIcon, 
     definition: "Polypropylene. Used for yogurt containers, bottle caps, some tubs. Increasingly recyclable.",
     fiveRs: {
       reduce: "Buy yogurt in larger tubs. Consider making some items (like sauces) at home.",
@@ -156,7 +156,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
   },
   plasticPs: {
     title: "Plastic - PS (#6)",
-    icon: AlertTriangle, // Good icon choice for caution
+    icon: AlertTriangle, 
     definition: "Polystyrene. Found in disposable foam cups/plates, some food containers, packing peanuts. Rarely recycled.",
     fiveRs: {
       reduce: "AVOID PS whenever possible. Use reusable cups and containers. Ask restaurants for non-PS takeout containers.",
@@ -168,7 +168,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
   },
   plasticOther: {
     title: "Plastic - Other (#7)",
-    icon: HelpCircle, // Good icon choice for uncertainty
+    icon: HelpCircle, 
     definition: "Miscellaneous plastics, including multi-layer materials or newer bioplastics. Recyclability varies greatly.",
     fiveRs: {
       reduce: "Be cautious with items marked #7; try to find alternatives if unsure about recyclability. Avoid products with excessive or mixed-material plastic packaging.",
@@ -180,7 +180,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
   },
   glass: {
     title: "Glass",
-    icon: Lightbulb, // Consider if this is the best icon, maybe a bottle/jar icon?
+    icon: Lightbulb, 
     definition: "Made from sand, soda ash, and limestone. Infinitely recyclable without loss of quality.",
     fiveRs: {
       reduce: "Buy items in glass when it's a good alternative to plastic. Consider products with refill options.",
@@ -192,7 +192,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
   },
   ewaste: {
     title: "E-Waste",
-    icon: Tv2,
+    icon: Tv2, 
     definition: "Electronic waste like old phones, computers, TVs, batteries, cables. Contains valuable and hazardous materials.",
     fiveRs: {
       reduce: "Repair electronics instead of replacing them. Buy durable, high-quality products. Resist upgrading too frequently.",
@@ -204,7 +204,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
   },
   biowaste: {
     title: "Bio-Waste / Organic",
-    icon: Leaf,
+    icon: Leaf, 
     definition: "Organic matter like food scraps (fruit, vegetables, coffee grounds), yard trimmings, and some paper products (if not waxy or coated).",
     fiveRs: {
       reduce: "Plan meals to reduce food waste. Store food properly to extend its life. Only buy what you need.",
@@ -216,7 +216,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
   },
   metal: {
     title: "Metal",
-    icon: Wind, // Consider a more direct "metal" icon like a can or scrap
+    icon: Wind, 
     definition: "Includes aluminum cans, steel/tin cans, and sometimes other metal items. Highly recyclable.",
     fiveRs: {
       reduce: "Choose reusable containers over single-use cans where possible.",
@@ -226,7 +226,7 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
       support: "Buy products in recyclable metal packaging. Support scrap metal recycling facilities."
     }
   },
-  other: { // For 'trash'
+  other: { 
     title: "Trash / Other Non-Recyclables",
     icon: Trash2,
     definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
@@ -238,11 +238,11 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general' | 'recyclable' | 
       support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies."
     }
   },
-  organic: {
-    title: "Organic Waste",
-    icon: Apple,
-    definition: "Primarily food scraps and plant matter that can decompose naturally. Often interchangeable with Bio-Waste.",
-    fiveRs: { // Same as biowaste for consistency, can be tailored if needed
+  organic: { 
+    title: "Organic Waste", 
+    icon: Apple, 
+    definition: "Primarily food scraps and plant matter that can decompose naturally.",
+    fiveRs: { 
       reduce: "Smart shopping, proper food storage, and using leftovers creatively can significantly reduce organic waste.",
       reuse: "Many vegetable scraps can be used to make broth. Coffee grounds can be great for your garden.",
       recycle: "Compost at home using a bin, pile, or worm farm. Utilize municipal green bin collection services if available.",
@@ -452,43 +452,73 @@ export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { toast } = useToast();
 
+  // Debug: Log userData whenever it changes
+  useEffect(() => {
+    console.log("[Debug] userData state changed:", JSON.stringify(userData, null, 2));
+  }, [userData]);
+
   useEffect(() => {
     const checkLoginStatus = () => {
       const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
       setIsLoggedIn(loggedIn);
+      console.log("[Effect] checkLoginStatus: isLoggedIn:", loggedIn);
 
       let storedUserData = getFromLocalStorage<UserProfile>(USER_DATA_KEY, defaultUserProfile);
+      console.log("[Effect] checkLoginStatus: Initial storedUserData from localStorage:", JSON.stringify(storedUserData, null, 2));
+
 
       if (loggedIn) {
         const userEmail = localStorage.getItem('userEmail');
         const userName = localStorage.getItem('userName');
-        if (userEmail && storedUserData.email !== userEmail) {
-           const displayName = userName || userEmail.split('@')[0];
+        // If user is logged in but local data is guest, or email mismatch, re-initialize.
+        if (storedUserData.id === 'localUser' || (userEmail && storedUserData.email !== userEmail) || (userName && storedUserData.displayName !== userName) ) {
+           const displayName = userName || (userEmail ? userEmail.split('@')[0] : 'User');
+           console.log("[Effect] checkLoginStatus: User logged in, but local data needs sync. Re-initializing profile for:", userEmail || "unknown email");
            storedUserData = {
-            ...defaultUserProfile,
-            id: userEmail,
+            ...defaultUserProfile, // Start from default to clear old specific counts if any
+            id: userEmail || 'firebaseUser', // Use email or a generic ID if email is somehow null
             displayName: displayName,
-            email: userEmail,
+            email: userEmail || '',
             avatar: `https://placehold.co/100x100.png?text=${displayName.substring(0,2).toUpperCase()}`,
+            // Keep existing score and other progress if ONLY displayName/avatar changed
+            score: (userEmail && storedUserData.email === userEmail) ? storedUserData.score : 0,
+            co2Managed: (userEmail && storedUserData.email === userEmail) ? storedUserData.co2Managed : 0,
+            itemsClassified: (userEmail && storedUserData.email === userEmail) ? storedUserData.itemsClassified : 0,
+            // Reset specific counts if it's a "new" login recognition for this email
+            totalCardboard: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalCardboard : 0,
+            totalPaper: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalPaper : 0,
+            totalGlass: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalGlass : 0,
+            totalPlastic: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalPlastic : 0,
+            totalOther: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalOther : 0,
+            totalEwaste: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalEwaste : 0,
+            totalBiowaste: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalBiowaste : 0,
+            totalMetal: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalMetal : 0,
+            totalOrganic: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalOrganic : 0,
+            totalPlasticOther: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalPlasticOther : 0,
+            totalPlasticPete: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalPlasticPete : 0,
+            totalPlasticHdpe: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalPlasticHdpe : 0,
+            totalPlasticPp: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalPlasticPp : 0,
+            totalPlasticPs: (userEmail && storedUserData.email === userEmail) ? storedUserData.totalPlasticPs : 0,
+            challengesCompleted: (userEmail && storedUserData.email === userEmail) ? storedUserData.challengesCompleted : 0,
+            badges: (userEmail && storedUserData.email === userEmail) ? storedUserData.badges : [],
            };
-        } else if (!userEmail && storedUserData.email) {
-            // Logged out, but local storage had an old user
-            storedUserData = defaultUserProfile;
-        } else if (userEmail && userName && storedUserData.displayName !== userName) {
-            // Username updated elsewhere (e.g. profile page, not implemented yet)
-            storedUserData.displayName = userName;
-            storedUserData.avatar = `https://placehold.co/100x100.png?text=${userName.substring(0,2).toUpperCase()}`;
         }
       } else {
-        // Not logged in, ensure guest profile
-        if (storedUserData.id !== 'localUser' || storedUserData.email) {
+        // Not logged in, ensure guest profile if current data is not already guest
+        if (storedUserData.id !== 'localUser') {
+            console.log("[Effect] checkLoginStatus: User not logged in, resetting to default guest profile.");
             storedUserData = defaultUserProfile;
         }
       }
-
+      
+      console.log("[Effect] checkLoginStatus: Setting userData state to:", JSON.stringify(storedUserData, null, 2));
       setUserData(storedUserData);
+      
       // Only save back to local storage if there was a meaningful change triggered by login state
-      if (JSON.stringify(getFromLocalStorage<UserProfile>(USER_DATA_KEY, {})) !== JSON.stringify(storedUserData)) {
+      // or if current localStorage is out of sync with what checkLoginStatus determined.
+      const currentLocalStorageData = getFromLocalStorage<UserProfile>(USER_DATA_KEY, {});
+      if (JSON.stringify(currentLocalStorageData) !== JSON.stringify(storedUserData)) {
+          console.log("[Effect] checkLoginStatus: Saving updated/corrected userData to localStorage.", storedUserData);
           saveToLocalStorage(USER_DATA_KEY, storedUserData);
       }
 
@@ -526,13 +556,11 @@ export default function HomePage() {
     setIsClassifying(true);
     setClassificationError(null);
 
-    // Capture the category selected by the user before the AI call
-    const specificCategoryToUpdate = currentUploadCategory;
-    console.log("User selected specific category for potential quantity update:", specificCategoryToUpdate);
+    const specificCategoryInitiatedByUser = currentUploadCategory; // Capture before AI call
+    console.log("[Classify] Process started. User initiated with category:", specificCategoryInitiatedByUser);
 
 
     try {
-      // The AI will classify into 'recyclable', 'compostable', or 'non-recyclable'
       const result = await classifyWaste({ photoDataUri: imageDataUri });
       if (!result || !result.category) {
         setClassificationError("Could not classify the image. The AI returned no result or an invalid category.");
@@ -545,10 +573,9 @@ export default function HomePage() {
         return null;
       }
 
-      const classificationResultCategory = result.category as AIWasteCategory; // This is the AI's broad category
+      const classificationResultCategory = result.category as AIWasteCategory; 
       const classificationConfidence = result.confidence;
-
-      const pointsEarned = WASTE_POINTS[classificationResultCategory] || 10; // Points based on AI's broad category
+      const pointsEarned = WASTE_POINTS[classificationResultCategory] || 10;
 
       const newRecord: ClassificationRecord = {
         id: Date.now().toString(),
@@ -560,58 +587,49 @@ export default function HomePage() {
       };
 
       const currentHistory = getFromLocalStorage<ClassificationRecord[]>(HISTORY_STORAGE_KEY, []);
-      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); // Keep last 50
+      const updatedHistory = [newRecord, ...currentHistory].slice(0, 50); 
       saveToLocalStorage(HISTORY_STORAGE_KEY, updatedHistory);
-
       setRecentClassifications(updatedHistory.slice(0, MAX_HISTORY_DISPLAY_ITEMS));
 
       setUserData(prevData => {
-        const newScore = prevData.score + pointsEarned;
-        const newCo2Managed = prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT);
-
-        const newUserData: UserProfile = {
+        console.log("[Classify] setUserData callback. prevData:", JSON.stringify(prevData, null, 2));
+        // Start with a fresh copy for the new state
+        const newUserDataState: UserProfile = {
           ...prevData,
-          score: newScore,
-          co2Managed: parseFloat(newCo2Managed.toFixed(1)),
-          itemsClassified: prevData.itemsClassified + 1, // Increment general item count
+          score: prevData.score + pointsEarned,
+          co2Managed: parseFloat((prevData.co2Managed + (pointsEarned * CO2_SAVED_PER_POINT)).toFixed(1)),
+          itemsClassified: prevData.itemsClassified + 1,
         };
         
-        console.log("Attempting to update specific quantity. Category:", specificCategoryToUpdate);
+        console.log("[Classify] User initiated with category for quantity update:", specificCategoryInitiatedByUser);
 
-        // If the user initiated by clicking a specific category (e.g., "Cardboard"),
-        // update that specific category's quantity count.
-        // The AI still provides the broad category for points and history.
-        if (specificCategoryToUpdate && specificCategoryToUpdate !== 'general' && specificCategoryToUpdate !== 'recyclable' && specificCategoryToUpdate !== 'compostable' && specificCategoryToUpdate !== 'non-recyclable') {
-          const categoryToUpdateDetails = verticalLogCategories.find(cat => cat.id === specificCategoryToUpdate);
+        // If user clicked a specific category to initiate, update that specific quantity
+        if (specificCategoryInitiatedByUser && specificCategoryInitiatedByUser !== 'general' && specificCategoryInitiatedByUser !== 'recyclable' && specificCategoryInitiatedByUser !== 'compostable' && specificCategoryInitiatedByUser !== 'non-recyclable') {
+          const categoryToUpdateDetails = verticalLogCategories.find(cat => cat.id === specificCategoryInitiatedByUser);
           if (categoryToUpdateDetails && categoryToUpdateDetails.quantityKey) {
             const keyToUpdate = categoryToUpdateDetails.quantityKey;
-            console.log("Key to update for specific quantity:", keyToUpdate, "Current value in prevData:", prevData[keyToUpdate]);
-            // Ensure the key exists on UserProfile type (though Pick<> should guarantee this if types are aligned)
-            if (keyToUpdate in newUserData) {
-                newUserData[keyToUpdate] = ((prevData[keyToUpdate] as number) || 0) + 1; // Increment by 1 item
-                console.log("Updated specific quantity for", keyToUpdate, "to:", newUserData[keyToUpdate]);
-            } else {
-                // This case should ideally not be hit if types are correct.
-                console.warn(`UserProfile key ${keyToUpdate} not found for category ${specificCategoryToUpdate}. Quantity not updated.`);
-            }
+            console.log("[Classify] Found quantityKey to update:", keyToUpdate, "Current value in prevData:", prevData[keyToUpdate]);
+            
+            // Ensure we are updating the newUserDataState object being built
+            newUserDataState[keyToUpdate] = ((prevData[keyToUpdate] as number) || 0) + 1;
+            console.log("[Classify] Updated specific quantity for", keyToUpdate, "in newUserDataState to:", newUserDataState[keyToUpdate]);
           } else {
-             console.warn("Could not find category details or quantityKey for user-selected category:", specificCategoryToUpdate);
+             console.warn("[Classify] Could not find category details or quantityKey for user-selected category:", specificCategoryInitiatedByUser);
           }
+        } else {
+            console.log("[Classify] No specific user-selected category to update quantity for, or it was a general/AI category.");
         }
 
-
-        saveToLocalStorage(USER_DATA_KEY, newUserData);
-        return newUserData;
+        saveToLocalStorage(USER_DATA_KEY, newUserDataState);
+        console.log("[Classify] FINAL newUserDataState for setUserData:", JSON.stringify(newUserDataState, null, 2));
+        return newUserDataState; // This triggers the re-render
       });
 
       toast({
         title: "Classification Successful!",
         description: `Item classified as ${classificationResultCategory}. You earned ${pointsEarned} points!`,
       });
-      setIsUploadModalOpen(false);
-      // Reset currentUploadCategory after everything, including async state update
-      setCurrentUploadCategory(undefined);
-      setCurrentUploadCategoryFriendlyName(undefined);
+      setIsUploadModalOpen(false); 
       return { category: classificationResultCategory, confidence: classificationConfidence };
 
     } catch (error) {
@@ -626,6 +644,13 @@ export default function HomePage() {
       return null;
     } finally {
       setIsClassifying(false);
+       // Reset currentUploadCategory only after all processing, including async state updates, have likely settled.
+       // This might still be too early if setUserData is batched.
+       // Consider resetting it inside the onOpenChange of the dialog when `open` becomes `false` and `!isClassifying`.
+       // For now, we keep it here as the finally block executes after try/catch.
+      setCurrentUploadCategory(undefined);
+      setCurrentUploadCategoryFriendlyName(undefined);
+      console.log("[Classify] Process finished. Reset currentUploadCategory.");
     }
   };
 
@@ -639,10 +664,11 @@ export default function HomePage() {
   };
 
   const openUploadModalForCategory = (categoryId: WasteCategory | 'general' | undefined, categoryName: string) => {
-    setClassificationError(null); // Clear previous errors
+    setClassificationError(null); 
     setCurrentUploadCategory(categoryId);
     setCurrentUploadCategoryFriendlyName(categoryName);
     setIsUploadModalOpen(true);
+    console.log("[ModalOpen] Dialog opened for category:", categoryId, "Name:", categoryName);
   };
 
   const currentLevel = useMemo(() => getCurrentLevel(userData.score), [userData.score]);
@@ -659,7 +685,7 @@ export default function HomePage() {
       scorePercentage = userData.score >= currentLevel.minScore ? 100 : 0;
     }
   } else {
-    scorePercentage = 100; // Max level reached
+    scorePercentage = 100; 
     pointsForNextLevelDisplay = "Max";
   }
 
@@ -672,7 +698,7 @@ export default function HomePage() {
   
   const selectedCategoryTips = useMemo(() => {
       return wasteCategoryFiveRTips[dialogTipsCategoryKey] || wasteCategoryFiveRTips.general;
-  }, [dialogTipsCategoryKey]); // Removed wasteCategoryFiveRTips as it's constant
+  }, [dialogTipsCategoryKey]);
 
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
 
@@ -680,10 +706,11 @@ export default function HomePage() {
     if (!selectedCategoryTips || !selectedCategoryTips.fiveRs) return [];
     return (Object.keys(selectedCategoryTips.fiveRs) as Array<keyof TipInfo['fiveRs']>)
       .map(key => ({ key, tip: selectedCategoryTips.fiveRs[key] }))
-      .filter(item => item.tip); // Ensure tip is not empty
+      .filter(item => item.tip); 
   }, [selectedCategoryTips]);
 
-  // console.log("Rendering HomePage. UserData:", userData); // General log for page render
+  console.log("[Render] HomePage rendering with userData for list:", JSON.stringify(userData, null, 2));
+
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 pb-24">
@@ -720,12 +747,10 @@ export default function HomePage() {
               <Dialog key={`top-${category.id}`} open={isUploadModalOpen && currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name} onOpenChange={ open => {
                 if(open) { openUploadModalForCategory(category.id, category.name); }
                 else {
-                  // Only reset if this specific dialog instance is being closed
                   if(currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name && !isClassifying) {
                     setCurrentUploadCategory(undefined);
                     setCurrentUploadCategoryFriendlyName(undefined);
                   }
-                  // Always update the modal open state based on the event
                   if (!open) setIsUploadModalOpen(false); 
                 }
               }}>
@@ -824,14 +849,13 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-full")}> {/* Container for progress bar */}
+            <div className={cn("mt-2 sm:mt-4 w-[80%] mx-auto")}>
                  <Progress
                     value={scorePercentage}
                     className={cn(
                         currentLevel.progressBarTrackColor,
                         `[&>div]:${currentLevel.progressBarIndicatorColor}`,
-                        "h-3 sm:h-4", // Height of the progress bar
-                        "w-[80%]" // Width of the progress bar (80% of its container)
+                        "h-3 sm:h-4"
                     )}
                     aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
                 />
@@ -850,16 +874,14 @@ export default function HomePage() {
           </div>
             <div className="flex overflow-x-auto space-x-3 pb-3 no-scrollbar">
               {recentClassifications.map(item => {
-                // Determine specific quantity if applicable, else general item count (or 1 for AI classified items)
-                let displayQuantity = 1; // Default for new AI classifications
-                if (item.category) { // item.category here is the broad AI category
-                    const specificCategoryDetails = verticalLogCategories.find(vc => vc.id === item.category); // This check won't usually match for broad AI categories
-                    if (specificCategoryDetails && userData && typeof userData[specificCategoryDetails.quantityKey] === 'number') {
-                        // This branch is less likely to be hit correctly with current AI output
-                        displayQuantity = (userData[specificCategoryDetails.quantityKey] as number) || 0;
-                    }
-                }
-
+                let displayQuantity = 1; 
+                // The AI gives broad categories. If we want to show a specific quantity for a recent item
+                // based on how the user *intended* to log it (e.g. they clicked "Cardboard" then AI said "recyclable"),
+                // that intention isn't directly in 'item.category' which is the AI's output.
+                // For "Recent Items", it's usually simpler to just show it as "1 item classified as [AI Category]".
+                // Or, if you want to show total quantity of *that AI category*, you'd need to sum them up or store them differently.
+                // For now, keeping it simple as 1 for each classified item, as specific detailed counts aren't on UserProfile for broad AI categories.
+                // If you *did* want to show total of, say, "recyclable", you'd need UserProfile.totalRecyclable etc.
 
                 return (
                   <Card key={item.id} className="p-3 flex items-center gap-3 min-w-[280px] sm:min-w-[320px] flex-shrink-0 shadow-sm hover:shadow-md transition-shadow">
@@ -876,9 +898,6 @@ export default function HomePage() {
                       <p className="font-medium capitalize text-sm sm:text-base truncate">{item.category}</p>
                       <p className="text-xs sm:text-sm text-muted-foreground">
                         {item.points || 0} pts
-                         {/* If you want to show "x 1" for each classified item, remove the quantity logic here */}
-                         {/* Or, if you want a specific meaning for quantity here, adjust logic */}
-                         {/* For now, let's assume each card represents 1 classified item in this view */}
                       </p>
                     </div>
                   </Card>
@@ -956,10 +975,11 @@ export default function HomePage() {
 
       <Dialog open={isUploadModalOpen} onOpenChange={open => {
           if(!open) {
-            setClassificationError(null); // Clear error when dialog closes
-            if (!isClassifying) { // Only reset if not in the middle of classifying
+            setClassificationError(null); 
+            if (!isClassifying) { 
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
+                console.log("[ModalClose] Dialog closed, not classifying. Reset currentUploadCategory.");
             }
           }
           setIsUploadModalOpen(open);
