@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   web:
     build:
@@ -17,6 +15,8 @@ services:
       # Ensures Next.js recompiles on file changes in the mounted volumes
       - WATCHPACK_POLLING=true 
     # Load environment variables from a .env file in the project root
+    # .env.local will override .env if present and docker-compose supports it (v2.1+)
+    # For older versions, ensure .env has all necessary dev vars.
     env_file:
       - .env
     # Ensure the dev server can be accessed
