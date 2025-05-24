@@ -5,7 +5,7 @@ EcoSnap is a Next.js application designed to help users classify waste, track th
 
 ## Core Features
 
--   **AI-Powered Waste Categorization**: Upload photos to classify waste (e.g., plastic, e-waste, biowaste, specific plastic types) using Genkit and Google AI (Gemini). Includes a fallback mechanism for missing images using placeholders.
+-   **AI-Powered Waste Categorization**: Upload photos to classify waste into specific categories (e.g., cardboard, paper, plasticPete, ewaste, biowaste, metal, other) using Genkit and Google AI (Gemini).
 -   **Waste Tracking Dashboard**: 
     *   Visualizes general waste trends by type, quantity, and time with interactive charts (Recharts) using live data from Firebase Firestore.
     *   Includes filters for date range and waste type, and summary statistics (total waste, recycled ratio).
@@ -89,7 +89,7 @@ EcoSnap is a Next.js application designed to help users classify waste, track th
     NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id # Optional, for Analytics
 
     # Genkit (Google AI - Gemini)
-    # REQUIRED for AI features (waste classification, AI assistant).
+    # REQUIRED for AI features (waste classification, AI assistant). Store in .env.local
     GEMINI_API_KEY=your_actual_gemini_api_key 
 
     # Google Maps API Key (Optional for basic map embeds)
@@ -107,7 +107,10 @@ This project is configured to run in a Docker container for a consistent develop
 
 ### Using Docker for Development (Recommended)
 
-1.  **Build and run the development container**:
+1.  **Ensure `.env` or `.env.local` is Populated**:
+    Make sure your `.env` file (or preferably `.env.local` for secrets) has all the necessary API keys (especially `GEMINI_API_KEY`) and Firebase configuration as listed above. The `docker-compose.yml` file is configured to load these.
+
+2.  **Build and run the development container**:
     From the project root directory, execute:
     ```bash
     docker-compose up --build
@@ -120,10 +123,10 @@ This project is configured to run in a Docker container for a consistent develop
     -   Use environment variables from the `.env` file (Docker Compose automatically loads it). `.env.local` will override `.env`.
     -   The `WATCHPACK_POLLING=true` environment variable is set in `docker-compose.yml` to help ensure file changes are detected reliably in Docker.
 
-2.  **Access the application**:
+3.  **Access the application**:
     Open your browser and navigate to `http://localhost:9002`.
 
-3.  **Live Reloading**:
+4.  **Live Reloading**:
     When you save changes to files in the `src` directory, the Next.js development server inside the Docker container should automatically rebuild and refresh your browser.
 
 ### Without Docker (Local Node.js)
@@ -188,35 +191,80 @@ If you prefer to run directly on your host machine (ensure Node.js and npm/yarn 
 -   **Gemini API Key (`GEMINI_API_KEY`)**:
     *   **Required** for the Genkit AI features (waste classification, AI assistant).
     *   Obtain this from [Google AI Studio](https://makersuite.google.com/app/apikey).
-    *   Store it in your `.env` or `.env.local` file. Genkit uses this server-side, so it does *not* need the `NEXT_PUBLIC_` prefix.
+    *   Store it in your `.env` or `.env.local` file. Genkit uses this server-side, so it does *not* need the `NEXT_PUBLIC_` prefix. This key also needs to be passed as a build argument when building the production Docker image.
 -   **Google Maps API Key (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`)**:
     *   The app uses the Google Maps Embed API, which may work for basic searches without a key.
-    *   For advanced map features or higher usage limits, a key is recommended. Store it with the `NEXT_PUBLIC_` prefix if used.
+    *   For advanced map features or higher usage limits, a key is recommended. Store it with the `NEXT_PUBLIC_` prefix if used. This also needs to be passed as a build argument for production Docker images.
 
 ## Deployment
 
 ### Production Docker Image
 
 The `Dockerfile` in the project root is configured for building an optimized production image of the Next.js application.
-1.  **Build the image**:
-    ```bash
-    docker build -t ecosnap-app .
+
+1.  **Build the image with build arguments**:
+    The `Dockerfile` expects certain environment variables to be available during the build process (e.g., for pre-rendering pages that might use them). Pass these as `--build-arg`.
+    For **PowerShell**:
+    ```powershell
+    docker build `
+      --build-arg NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_FIREBASE_API_KEY" `
+      --build-arg NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_FIREBASE_AUTH_DOMAIN" `
+      --build-arg NEXT_PUBLIC_FIREBASE_DATABASE_URL="YOUR_FIREBASE_DATABASE_URL" `
+      --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_FIREBASE_PROJECT_ID" `
+      --build-arg NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_FIREBASE_STORAGE_BUCKET" `
+      --build-arg NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_FIREBASE_MESSAGING_SENDER_ID" `
+      --build-arg NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_FIREBASE_APP_ID" `
+      --build-arg NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="YOUR_FIREBASE_MEASUREMENT_ID" `
+      --build-arg GEMINI_API_KEY="YOUR_GEMINI_API_KEY" `
+      -t ecosnap-app .
     ```
-2.  **Run the container**:
-    When running, ensure all necessary environment variables (those used server-side like `GEMINI_API_KEY`, and those used client-side like `NEXT_PUBLIC_FIREBASE_PROJECT_ID`) are passed to the container.
+    For **Bash (Linux/macOS)**:
     ```bash
-    docker run -p 3000:3000 \
-      -e NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key \
-      -e NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain \
-      -e NEXT_PUBLIC_FIREBASE_DATABASE_URL=your_firebase_database_url \
-      -e NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id \
-      -e NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket \
-      -e NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id \
-      -e NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id \
-      -e NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id \
-      -e GEMINI_API_KEY=your_gemini_api_key \
+    docker build \
+      --build-arg NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_FIREBASE_API_KEY" \
+      --build-arg NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_FIREBASE_AUTH_DOMAIN" \
+      --build-arg NEXT_PUBLIC_FIREBASE_DATABASE_URL="YOUR_FIREBASE_DATABASE_URL" \
+      --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_FIREBASE_PROJECT_ID" \
+      --build-arg NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_FIREBASE_STORAGE_BUCKET" \
+      --build-arg NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_FIREBASE_MESSAGING_SENDER_ID" \
+      --build-arg NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_FIREBASE_APP_ID" \
+      --build-arg NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="YOUR_FIREBASE_MEASUREMENT_ID" \
+      --build-arg GEMINI_API_KEY="YOUR_GEMINI_API_KEY" \
+      -t ecosnap-app .
+    ```
+    *(Replace `"YOUR_..."` placeholders with your actual values)*
+
+2.  **Run the container**:
+    When running, pass the same environment variables using the `-e` flag. These are needed at runtime.
+    For **PowerShell**:
+    ```powershell
+    docker run -p 3000:3000 `
+      -e NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_FIREBASE_API_KEY" `
+      -e NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_FIREBASE_AUTH_DOMAIN" `
+      -e NEXT_PUBLIC_FIREBASE_DATABASE_URL="YOUR_FIREBASE_DATABASE_URL" `
+      -e NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_FIREBASE_PROJECT_ID" `
+      -e NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_FIREBASE_STORAGE_BUCKET" `
+      -e NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_FIREBASE_MESSAGING_SENDER_ID" `
+      -e NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_FIREBASE_APP_ID" `
+      -e NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="YOUR_FIREBASE_MEASUREMENT_ID" `
+      -e GEMINI_API_KEY="YOUR_GEMINI_API_KEY" `
       ecosnap-app
     ```
+    For **Bash (Linux/macOS)**:
+    ```bash
+    docker run -p 3000:3000 \
+      -e NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_FIREBASE_API_KEY" \
+      -e NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_FIREBASE_AUTH_DOMAIN" \
+      -e NEXT_PUBLIC_FIREBASE_DATABASE_URL="YOUR_FIREBASE_DATABASE_URL" \
+      -e NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_FIREBASE_PROJECT_ID" \
+      -e NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_FIREBASE_STORAGE_BUCKET" \
+      -e NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_FIREBASE_MESSAGING_SENDER_ID" \
+      -e NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_FIREBASE_APP_ID" \
+      -e NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="YOUR_FIREBASE_MEASUREMENT_ID" \
+      -e GEMINI_API_KEY="YOUR_GEMINI_API_KEY" \
+      ecosnap-app
+    ```
+    Access the application at `http://localhost:3000`.
 
 ### Firebase Cloud Functions (for IoT Smart Bin)
 
