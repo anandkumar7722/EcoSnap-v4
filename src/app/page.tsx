@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
-import { classifyWaste, type ClassifyWasteOutput, type AIWasteCategory as SpecificAIWasteCategory } from '@/ai/flows/classify-waste'; // Updated import
+import { classifyWaste, type ClassifyWasteOutput, type AIWasteCategory as SpecificAIWasteCategory } from '@/ai/flows/classify-waste';
 import { saveToLocalStorage, getFromLocalStorage } from '@/lib/storage';
 import type { ClassificationRecord, UserProfile, WasteCategory, TipInfo } from '@/lib/types';
 import { ImageUpload } from '@/components/image-upload';
@@ -26,26 +26,19 @@ const HISTORY_STORAGE_KEY = 'ecoSnapHistory';
 const USER_DATA_KEY = 'ecoSnapUserData';
 const MAX_HISTORY_DISPLAY_ITEMS = 5;
 
-// Points should align with the specific categories the AI will now output
-const WASTE_POINTS: Record<WasteCategory, number> = { // Ensured WasteCategory covers all AI outputs
+const WASTE_POINTS: Record<SpecificAIWasteCategory, number> = {
   ewaste: 100,
-  plastic: 50, // General, might not be used if AI is specific
+  plasticPete: 55,
+  plasticHdpe: 55,
+  plasticPp: 45,
+  plasticPs: 15,
+  plasticOther: 20,
   biowaste: 60,
   cardboard: 80,
   paper: 70,
   glass: 30,
   metal: 40,
-  organic: 60, // Often synonymous with biowaste
   other: 10, // For "Trash"
-  plasticOther: 20,
-  plasticPete: 55,
-  plasticHdpe: 55,
-  plasticPp: 45,
-  plasticPs: 15,
-  // Broad categories might not be directly output by AI anymore, but points can remain for manual logging or future use
-  recyclable: 50, 
-  compostable: 60,
-  'non-recyclable': 10,
 };
 
 const CO2_SAVED_PER_POINT = 0.1;
@@ -69,11 +62,10 @@ const LEVELS: LevelInfo[] = [
   { name: 'Diamond', minScore: 3000, targetForNext: Infinity, cardColor: 'bg-purple-600', textColor: 'text-white', badgeIconContainerColor: 'bg-transparent', badgeImageUrl: '/assets/images/diamond-badge.png', progressBarIndicatorColor: 'bg-sky-400', progressBarTrackColor: 'bg-purple-700' },
 ];
 
-const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
+// This structure will be used for displaying tips in the dialog
+const wasteCategoryFiveRTips: Record<WasteCategory, TipInfo> = {
   general: {
-    title: "General Waste Item",
-    icon: HelpCircle,
-    definition: "Items that don't fit into specific recycling or compost streams, often destined for landfill.",
+    title: "General Waste Item", icon: HelpCircle, definition: "Items that don't fit into specific recycling or compost streams, often destined for landfill.",
     fiveRs: { reduce: "Minimize purchases of single-use or non-recyclable items. Opt for products with less packaging.", reuse: "Before discarding, think if the item can be repurposed for another use.", recycle: "Check local guidelines carefully. Some 'other' items might have special drop-off locations.", educate: "Understand what makes items non-recyclable in your area and share this knowledge.", support: "Choose products designed for durability and recyclability. Support businesses with take-back programs for hard-to-recycle items." }
   },
   cardboard: {
@@ -84,8 +76,8 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
     title: "Paper", icon: BookOpen, definition: "Items like newspapers, magazines, office paper, and mail (not contaminated with food or wax).",
     fiveRs: { reduce: "Go paperless with bills and statements. Print double-sided. Use digital notebooks.", reuse: "Use scrap paper for notes or drafts. Use the back of printed sheets for non-official printing.", recycle: "Keep paper clean and dry. Most paper types are recyclable. Check local guidelines for specifics (e.g., shredded paper).", educate: "Promote paperless options at work or school. Explain the benefits of recycling paper.", support: "Purchase recycled paper products. Support businesses that use sustainable paper sourcing." }
   },
-  plastic: { 
-    title: "Plastic (General)", icon: Recycle, definition: "A wide range of synthetic or semi-synthetic materials, often found in packaging, bottles, and containers. AI will attempt to identify specific type.",
+  plastic: { // This general 'plastic' entry can serve as a fallback or for general plastic tips if specific type isn't clicked
+    title: "Plastic (General)", icon: Recycle, definition: "A wide range of synthetic or semi-synthetic materials. The AI will attempt to identify specific types.",
     fiveRs: { reduce: "Avoid single-use plastics (bags, straws, cutlery, bottles). Choose items with less plastic packaging.", reuse: "Use reusable water bottles, coffee cups, and shopping bags. Repurpose plastic containers for storage.", recycle: "Check local recycling guidelines for accepted plastic types (resin codes #1-#7). Rinse containers. Remove lids if required locally.", educate: "Share information about plastic pollution and local recycling programs. Lead by example.", support: "Choose products made from recycled plastic. Support businesses with plastic reduction initiatives or take-back programs." }
   },
   plasticPete: {
@@ -128,27 +120,30 @@ const wasteCategoryFiveRTips: Record<WasteCategory | 'general', TipInfo> = {
     title: "Trash / Other Non-Recyclables", icon: Trash2, definition: "Items that cannot be recycled or composted in your local programs, destined for landfill or incineration.",
     fiveRs: { reduce: "The most important 'R' for trash! Choose products with less packaging, opt for reusables, and repair items instead of discarding.", reuse: "Before trashing, double-check if any part can be repurposed or if there's a specialized, albeit less common, recycling stream (e.g., Terracycle for specific items).", recycle: "Ensure you're not accidentally trashing items that ARE recyclable or compostable in your area. When in doubt, check local guidelines.", educate: "Understand what truly belongs in the trash in your municipality and why. Share this knowledge to reduce contamination in recycling/compost bins.", support: "Support businesses that design products for longevity and with end-of-life in mind. Advocate for better waste management infrastructure and policies." }
   },
-  organic: { 
-    title: "Organic Waste",  icon: Apple,  definition: "Primarily food scraps and plant matter that can decompose naturally.",
+  // These are broader categories, AI might output these from classify-waste.ts
+  // But the specific material tips above will be shown if user clicks a specific item from verticalLogCategories.
+  recyclable: { 
+    title: "Recyclable Item (General)", icon: Recycle, definition: "This item has been identified by the AI as generally recyclable. Check local guidelines for specific material acceptance.",
+    fiveRs: { reduce: "Choose items with less packaging overall. Opt for durable, reusable alternatives to single-use items.", reuse: "Before recycling, see if the item can be repurposed. Jars for storage, paper for scrap, etc.", recycle: "Key: Check local guidelines! Not all 'recyclable' materials are accepted everywhere. Clean and dry items are best. Empty containers.", educate: "Learn your local recycling rules thoroughly and share them. Explain common contaminants.", support: "Buy products made from recycled materials. Support companies with clear recycling information." }
+  },
+  compostable: { 
+    title: "Compostable Item (General)", icon: Leaf, definition: "This item has been identified by the AI as generally compostable. Verify if it's suitable for home composting or requires industrial facilities.",
+    fiveRs: { reduce: "Minimize food waste by planning meals, storing food correctly, and using leftovers.", reuse: "Use vegetable scraps to make broth. Regrow certain vegetables.", recycle: "Compost at home (backyard bin, worm farm) or use municipal green bin/organics collection if available. Check what's accepted.", educate: "Promote composting benefits. Share tips on what can and cannot be composted locally.", support: "Support community composting programs or local farms that use compost." }
+  },
+  'non-recyclable': { 
+    title: "Non-Recyclable Item (General)", icon: Trash2, definition: "This item has been identified by the AI as generally non-recyclable and likely destined for landfill.",
+    fiveRs: { reduce: "This is the most crucial 'R' here! Avoid items known to be non-recyclable. Choose products with minimal or recyclable/compostable packaging.", reuse: "Before discarding, think if the item (or parts of it) can be repurposed for a completely different use.", recycle: "Double-check if there's a special drop-off or mail-in program for the specific item (e.g., Terracycle).", educate: "Understand why certain items are non-recyclable. Share this to help others make informed choices.", support: "Support businesses that design for durability and use easily recyclable/compostable materials." }
+  },
+  // Ensure 'organic' is also covered if it's a distinct WasteCategory value
+  organic: {
+    title: "Organic Waste", icon: Apple, definition: "Primarily food scraps and plant matter that can decompose naturally.",
     fiveRs: { reduce: "Smart shopping, proper food storage, and using leftovers creatively can significantly reduce organic waste.", reuse: "Many vegetable scraps can be used to make broth. Coffee grounds can be great for your garden.", recycle: "Compost at home using a bin, pile, or worm farm. Utilize municipal green bin collection services if available.", educate: "Share the benefits of composting and how-to guides. Raise awareness about the impact of food waste.", support: "Support local farms that use compost, community gardens, or businesses with organic waste diversion programs." }
-  },
-  recyclable: { // This tip set might still be useful if a user directly asks about "recyclable" in general.
-    title: "Recyclable Item (General)", icon: Recycle, definition: "Items that can be processed and materials recovered for reuse. Specific material type (e.g., paper, specific plastic) determines actual recyclability in your area.",
-    fiveRs: { reduce: "Choose items with less packaging overall. Opt for durable, reusable alternatives to single-use items.", reuse: "Before recycling, see if the item can be repurposed. Jars for storage, paper for scrap, etc.", recycle: "Key: Check local guidelines! Not all 'recyclable' materials are accepted everywhere. Clean and dry items are best. Empty containers. For plastics, know which numbers (#1-7) your facility takes.", educate: "Learn your local recycling rules thoroughly and share them. Explain common contaminants (like food in containers, plastic bags in paper recycling).", support: "Buy products made from recycled materials. Support companies with clear recycling information and sustainable packaging." }
-  },
-  compostable: { // Similarly for "compostable".
-    title: "Compostable Item (General)", icon: Leaf, definition: "Organic matter that can naturally decompose into nutrient-rich compost. Primarily food scraps and yard waste.",
-    fiveRs: { reduce: "Minimize food waste by planning meals, storing food correctly, and using leftovers. Avoid over-purchasing perishable goods.", reuse: "Use vegetable scraps to make broth. Regrow certain vegetables (like green onions) from scraps.", recycle: "Compost at home (backyard bin, worm farm) or use municipal green bin/organics collection if available. Check what's accepted (e.g., meat, dairy, certified compostable plastics often have specific rules).", educate: "Promote composting benefits for soil health and waste reduction. Share tips on what can and cannot be composted locally.", support: "Support community composting programs or local farms that use compost. If buying 'compostable' products, verify they are accepted by your local composting facility." }
-  },
-  'non-recyclable': { // And for "non-recyclable".
-    title: "Non-Recyclable Item (General)", icon: Trash2, definition: "Items that currently cannot be recycled or composted through standard municipal programs and are typically sent to landfill.",
-    fiveRs: { reduce: "This is the most crucial 'R' here! Avoid items known to be non-recyclable (e.g., Styrofoam, many flexible plastics). Choose products with minimal or recyclable/compostable packaging. Repair items instead of replacing.", reuse: "Before discarding, think if the item (or parts of it) can be repurposed for a completely different use. This might be for crafts, organization, etc.", recycle: "Double-check if there's a special drop-off or mail-in program for the specific item (e.g., some stores take plastic bags, Terracycle for hard-to-recycle waste). However, most items in this category won't have standard recycling options.", educate: "Understand why certain items are non-recyclable (e.g., mixed materials, contamination, lack of market). Share this to help others make informed choices.", support: "Support businesses that design for durability and use easily recyclable/compostable materials. Advocate for policies that reduce non-recyclable waste and improve waste management infrastructure." }
   }
 };
 
 
 const topHorizontalCategories: Array<{
-  id: WasteCategory | 'general'; // Updated to include 'general' for AI context
+  id: WasteCategory | 'general';
   name: string;
   imageUrl?: string;
   icon?: React.ElementType;
@@ -156,7 +151,7 @@ const topHorizontalCategories: Array<{
 }> = [
   { id: 'cardboard', name: 'Cardboard', imageUrl: '/assets/images/cardboard.png', dataAiHint: 'cardboard box' },
   { id: 'paper', name: 'Paper', imageUrl: '/assets/images/paper.png', dataAiHint: 'stack paper' },
-  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', dataAiHint: 'plastic bottle general', icon: Recycle }, // Added icon for consistency
+  { id: 'plastic', name: 'Plastic', imageUrl: '/assets/images/plastic.png', dataAiHint: 'plastic bottle general', icon: Recycle },
   { id: 'glass', name: 'Glass', imageUrl: '/assets/images/glass.png', dataAiHint: 'glass jar' },
   { id: 'ewaste', name: 'E-Waste', imageUrl: '/assets/images/ewaste.png', dataAiHint: 'electronic waste' },
   { id: 'biowaste', name: 'Bio-Waste', imageUrl: '/assets/images/bio-waste.png', dataAiHint: 'food waste' },
@@ -165,7 +160,7 @@ const topHorizontalCategories: Array<{
 ];
 
 const verticalLogCategories: Array<{
-  id: WasteCategory; // Should map to AI output categories
+  id: SpecificAIWasteCategory;
   name: string;
   imageUrl?: string;
   icon?: React.ElementType;
@@ -196,14 +191,14 @@ const defaultUserProfile: UserProfile = {
   score: 0,
   co2Managed: 0,
   totalEwaste: 0,
-  totalPlastic: 0, // This general plastic might become less relevant if AI is always specific
+  totalPlastic: 0, 
   totalBiowaste: 0,
   totalCardboard: 0,
   totalPaper: 0,
   totalGlass: 0,
   totalMetal: 0,
-  totalOrganic: 0, // Keep for now, might be same as biowaste
-  totalOther: 0, // For "Trash"
+  totalOrganic: 0,
+  totalOther: 0, 
   totalPlasticOther: 0,
   totalPlasticPete: 0,
   totalPlasticHdpe: 0,
@@ -214,7 +209,6 @@ const defaultUserProfile: UserProfile = {
   badges: [],
 };
 
-// Helper component for rendering images with fallback
 const ImageWithFallback = ({
   src: initialSrcProp,
   alt,
@@ -273,7 +267,7 @@ const ImageWithFallback = ({
       </div>
     );
   }
-
+  
   const finalSrc = (!currentSrc || isError)
     ? (placeholderText ? `${placeholderBaseUrl}/${placeholderSize}.png?text=${encodeURIComponent(placeholderText)}` : `${placeholderBaseUrl}/${placeholderSize}.png`)
     : currentSrc;
@@ -305,9 +299,7 @@ export default function HomePage() {
   const [isClassifying, setIsClassifying] = useState(false);
   const [classificationError, setClassificationError] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  // currentUploadCategory stores the category ID (e.g., 'cardboard', 'plasticPete')
-  const [currentUploadCategory, setCurrentUploadCategory] = useState<WasteCategory | 'general' | undefined>(undefined);
-  // currentUploadCategoryFriendlyName stores the display name (e.g., "Cardboard", "Plastic - PETE")
+  const [currentUploadCategory, setCurrentUploadCategory] = useState<WasteCategory | undefined>(undefined);
   const [currentUploadCategoryFriendlyName, setCurrentUploadCategoryFriendlyName] = useState<string | undefined>(undefined);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { toast } = useToast();
@@ -327,7 +319,6 @@ export default function HomePage() {
       let storedUserData = getFromLocalStorage<UserProfile>(USER_DATA_KEY, defaultUserProfile);
       console.log(">>> [DEBUG] checkLoginStatus - Initial storedUserData from localStorage:", JSON.stringify(storedUserData, null, 2));
 
-
       if (loggedIn) {
         const userEmail = localStorage.getItem('userEmail');
         const userName = localStorage.getItem('userName');
@@ -335,12 +326,11 @@ export default function HomePage() {
            const displayName = userName || (userEmail ? userEmail.split('@')[0] : 'User');
            console.log(">>> [DEBUG] checkLoginStatus - User logged in, but local data needs sync. Re-initializing profile for:", userEmail || "unknown email");
            storedUserData = {
-            ...defaultUserProfile, // Start with defaults to ensure all keys are present
-            id: userEmail || 'firebaseUser', // Use a more specific ID if email exists
+            ...defaultUserProfile, 
+            id: userEmail || 'firebaseUser', 
             displayName: displayName,
             email: userEmail || '',
             avatar: `https://placehold.co/100x100.png?text=${displayName.substring(0,2).toUpperCase()}`,
-            // Attempt to preserve existing stats if the user was already known locally
             score: (userEmail && storedUserData.email === userEmail) ? storedUserData.score : 0,
             co2Managed: (userEmail && storedUserData.email === userEmail) ? storedUserData.co2Managed : 0,
             itemsClassified: (userEmail && storedUserData.email === userEmail) ? storedUserData.itemsClassified : 0,
@@ -363,7 +353,6 @@ export default function HomePage() {
            };
         }
       } else {
-        // User is not logged in, ensure we are using the default guest profile
         if (storedUserData.id !== 'localUser') {
             console.log(">>> [DEBUG] checkLoginStatus - User not logged in, resetting to default guest profile.");
             storedUserData = defaultUserProfile;
@@ -373,7 +362,6 @@ export default function HomePage() {
       console.log(">>> [DEBUG] checkLoginStatus - About to call setUserData with:", JSON.stringify(storedUserData, null, 2));
       setUserData(storedUserData);
       
-      // Ensure localStorage reflects the current state, especially if reset to default
       const currentLocalStorageData = getFromLocalStorage<UserProfile>(USER_DATA_KEY, {});
       if (JSON.stringify(currentLocalStorageData) !== JSON.stringify(storedUserData)) {
           console.log(">>> [DEBUG] checkLoginStatus - Saving updated/corrected userData to localStorage:", JSON.stringify(storedUserData, null, 2));
@@ -386,9 +374,8 @@ export default function HomePage() {
       setRecentClassifications(sortedHistory.slice(0, MAX_HISTORY_DISPLAY_ITEMS));
     };
 
-    checkLoginStatus(); // Initial check
+    checkLoginStatus();
     
-    // Listen for storage changes from other tabs/windows (optional but good practice)
     window.addEventListener('storage', (event) => {
         if (event.key === USER_DATA_KEY || event.key === 'isLoggedIn' || event.key === HISTORY_STORAGE_KEY) {
             console.log(">>> [DEBUG] Storage event detected for key:", event.key);
@@ -396,14 +383,13 @@ export default function HomePage() {
         }
     });
     
-    // Listen for custom authChange event (if you dispatch this elsewhere, e.g., after login/logout)
     window.addEventListener('authChange', checkLoginStatus);
     
     return () => {
         window.removeEventListener('storage', checkLoginStatus);
         window.removeEventListener('authChange', checkLoginStatus);
     };
-  }, []); // Empty dependency array to run once on mount and set up listeners
+  }, []);
 
 
   const handleClassify = async (imageDataUri: string, categoryUserInitiatedWith?: WasteCategory | 'general'): Promise<ClassifyWasteOutput | null> => {
@@ -440,10 +426,9 @@ export default function HomePage() {
         return null;
       }
 
-      // The AI now returns a specific category (e.g., 'cardboard', 'plasticPete', 'other')
-      const aiDeterminedSpecificCategory = aiResult.category as WasteCategory; // Cast as WasteCategory, ensure AIWasteCategory from flow aligns
+      const aiDeterminedSpecificCategory = aiResult.category; // This is now a SpecificAIWasteCategory
       const classificationConfidence = aiResult.confidence;
-      const pointsEarned = WASTE_POINTS[aiDeterminedSpecificCategory] || WASTE_POINTS.other; // Fallback to 'other' points if category unknown
+      const pointsEarned = WASTE_POINTS[aiDeterminedSpecificCategory] || WASTE_POINTS.other;
 
       const newRecord: ClassificationRecord = {
         id: Date.now().toString(),
@@ -461,8 +446,7 @@ export default function HomePage() {
 
       setUserData(prevData => {
         console.log(">>> [CLASSIFY LOG] setUserData callback. prevData:", JSON.stringify(prevData, null, 2));
-        console.log(">>> [CLASSIFY LOG] AI determined specific category for quantity update:", aiDeterminedSpecificCategory);
-
+        
         const newUserDataState: UserProfile = {
           ...prevData,
           score: prevData.score + pointsEarned,
@@ -470,19 +454,17 @@ export default function HomePage() {
           itemsClassified: prevData.itemsClassified + 1,
         };
         
-        // Find the corresponding entry in verticalLogCategories to get the quantityKey
-        const categoryDetails = verticalLogCategories.find(cat => cat.id === aiDeterminedSpecificCategory);
-        
-        if (categoryDetails && categoryDetails.quantityKey) {
-          const keyToUpdate = categoryDetails.quantityKey;
-          const currentSpecificQuantity = Number(newUserDataState[keyToUpdate] || 0); // Use newUserDataState to avoid stale closure over prevData
-          console.log(`>>> [CLASSIFY LOG] Found quantityKey for AI category '${aiDeterminedSpecificCategory}': ${keyToUpdate}`);
-          console.log(`>>> [CLASSIFY LOG] Current value for ${keyToUpdate} in newUserDataState (before increment): ${currentSpecificQuantity}`);
-          
+        // Update specific quantity based on AI's determination
+        const categoryDetailsForAI = verticalLogCategories.find(cat => cat.id === aiDeterminedSpecificCategory);
+        if (categoryDetailsForAI && categoryDetailsForAI.quantityKey) {
+          const keyToUpdate = categoryDetailsForAI.quantityKey;
+          const currentSpecificQuantity = Number(newUserDataState[keyToUpdate] || 0);
+          console.log(`>>> [CLASSIFY LOG] AI determined category '${aiDeterminedSpecificCategory}'. Updating quantityKey: ${keyToUpdate}`);
+          console.log(`>>> [CLASSIFY LOG] Current value for ${keyToUpdate}: ${currentSpecificQuantity}`);
           newUserDataState[keyToUpdate] = currentSpecificQuantity + 1;
-          console.log(`>>> [CLASSIFY LOG] Updated specific quantity for ${keyToUpdate} in newUserDataState to: ${newUserDataState[keyToUpdate]}`);
+          console.log(`>>> [CLASSIFY LOG] Updated specific quantity for ${keyToUpdate} to: ${newUserDataState[keyToUpdate]}`);
         } else {
-           console.warn(`>>> [CLASSIFY WARN] Could not find category details or quantityKey for AI-determined category: ${aiDeterminedSpecificCategory}. No specific quantity updated.`);
+           console.warn(`>>> [CLASSIFY WARN] Could not find quantityKey for AI-determined category: ${aiDeterminedSpecificCategory}. No specific quantity updated by AI directly.`);
         }
 
         saveToLocalStorage(USER_DATA_KEY, newUserDataState);
@@ -509,8 +491,6 @@ export default function HomePage() {
       return null;
     } finally {
       setIsClassifying(false);
-      // setCurrentUploadCategory(undefined); // Keep this if dialog needs to remember, or clear if it should reset
-      // setCurrentUploadCategoryFriendlyName(undefined);
       console.log(">>> [CLASSIFY LOG] Process finished.");
     }
   };
@@ -524,12 +504,12 @@ export default function HomePage() {
     return LEVELS[0];
   };
 
-  const openUploadModalForCategory = (categoryId: WasteCategory | 'general' | undefined, categoryName: string) => {
+  const openUploadModalForCategory = (categoryId: WasteCategory | undefined, categoryName: string) => {
     setClassificationError(null); 
-    setCurrentUploadCategory(categoryId); // Set the specific category ID
+    setCurrentUploadCategory(categoryId);
     setCurrentUploadCategoryFriendlyName(categoryName);
     setIsUploadModalOpen(true);
-    console.log(">>> [MODAL_OPEN] Dialog opened for category:", categoryId, "Name:", categoryName);
+    console.log(">>> [MODAL_OPEN] Dialog opened for category ID:", categoryId, "Name:", categoryName);
   };
 
   const currentLevel = useMemo(() => getCurrentLevel(userData.score), [userData.score]);
@@ -550,14 +530,14 @@ export default function HomePage() {
     pointsForNextLevelDisplay = "Max";
   }
 
-  // This useMemo hook determines which set of tips to show in the dialog.
-  // It uses currentUploadCategory, which is set when a user clicks a category item.
   const selectedCategoryTips = useMemo(() => {
       console.log(">>> [DEBUG] selectedCategoryTips useMemo. currentUploadCategory:", currentUploadCategory);
-      const tipKey = currentUploadCategory && currentUploadCategory !== 'general' && wasteCategoryFiveRTips[currentUploadCategory] 
+      // Prioritize the specific category clicked by the user for tips.
+      // If 'general' or undefined, fallback to 'general'.
+      const tipKey = currentUploadCategory && wasteCategoryFiveRTips[currentUploadCategory] 
                      ? currentUploadCategory 
                      : 'general';
-      return wasteCategoryFiveRTips[tipKey];
+      return wasteCategoryFiveRTips[tipKey as WasteCategory]; // Cast as WasteCategory as 'general' is a valid key
   }, [currentUploadCategory]);
   
   const SelectedCategoryIcon = useMemo(() => selectedCategoryTips?.icon || HelpCircle, [selectedCategoryTips]);
@@ -603,29 +583,27 @@ export default function HomePage() {
           {topHorizontalCategories.map(category => {
             const CategoryIconComponent = category.icon;
             return (
-              // Dialog for top horizontal categories
               <Dialog key={`top-${category.id}`} open={isUploadModalOpen && currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name} onOpenChange={ open => {
-                if(open) { openUploadModalForCategory(category.id, category.name); }
+                if(open) { openUploadModalForCategory(category.id as WasteCategory, category.name); } // Cast category.id
                 else {
-                  // Only reset if this specific dialog is being closed and not during classification
                   if(currentUploadCategory === category.id && currentUploadCategoryFriendlyName === category.name && !isClassifying) {
                     setCurrentUploadCategory(undefined);
                     setCurrentUploadCategoryFriendlyName(undefined);
                   }
-                  if (!open) setIsUploadModalOpen(false); // General close for any dialog
+                  if (!open) setIsUploadModalOpen(false);
                 }
               }}>
                 <DialogTrigger asChild>
                   <Card
-                    onClick={() => openUploadModalForCategory(category.id, category.name)}
-                    className="p-3 flex flex-col items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm w-[90px] sm:w-[100px] flex-shrink-0"
+                    onClick={() => openUploadModalForCategory(category.id as WasteCategory, category.name)} // Cast category.id
+                    className="p-2 sm:p-3 flex flex-col items-center gap-1.5 sm:gap-2 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm w-[90px] sm:w-[100px] flex-shrink-0"
                   >
                      <ImageWithFallback
                         src={category.imageUrl}
                         alt={category.name}
                         dataAiHint={category.dataAiHint}
                         placeholderSize="48x48"
-                        sizes="48px"
+                        sizes="(max-width: 639px) 40px, 48px"
                         wrapperClassName="relative w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center"
                         className="rounded-md object-contain"
                         icon={CategoryIconComponent ? CategoryIconComponent : undefined} 
@@ -643,20 +621,17 @@ export default function HomePage() {
       <section className="space-y-2 sm:space-y-3">
         <h2 className="text-base sm:text-xl font-semibold mb-2 text-foreground">Log Items by Category</h2>
         {verticalLogCategories.map(item => {
-          // Ensure userData is valid and item.quantityKey is a valid key of userData
           const quantity = (userData && typeof userData[item.quantityKey] === 'number') ? userData[item.quantityKey] as number : 0;
           const ItemIconComponent = item.icon;
           return (
-            // Dialog for vertical log categories
             <Dialog key={item.id} open={isUploadModalOpen && currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name} onOpenChange={ open => {
               if(open) { openUploadModalForCategory(item.id, item.name); }
               else {
-                 // Only reset if this specific dialog is being closed and not during classification
                  if(currentUploadCategory === item.id && currentUploadCategoryFriendlyName === item.name && !isClassifying) {
                     setCurrentUploadCategory(undefined);
                     setCurrentUploadCategoryFriendlyName(undefined);
                  }
-                  if (!open) setIsUploadModalOpen(false); // General close for any dialog
+                  if (!open) setIsUploadModalOpen(false);
               }
             }}>
               <DialogTrigger asChild>
@@ -713,13 +688,13 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className={cn("mt-2 sm:mt-4 w-[80%] mx-auto")}> 
+            <div className={cn("mt-2 sm:mt-4 w-full")}> {/* Wrapper for progress bar */}
                  <Progress
                     value={scorePercentage}
                     className={cn(
                         currentLevel.progressBarTrackColor,
                         `[&>div]:${currentLevel.progressBarIndicatorColor}`,
-                        "h-3 sm:h-4" 
+                        "h-3 sm:h-4 w-[80%]" // Added w-[80%] for left alignment of 80% width
                     )}
                     aria-label={`${currentLevel.name} level progress ${scorePercentage.toFixed(0)}%`}
                 />
@@ -739,10 +714,9 @@ export default function HomePage() {
             <div className="flex overflow-x-auto space-x-3 pb-3 no-scrollbar">
               {recentClassifications.map(item => {
                 const categoryDetails = verticalLogCategories.find(cat => cat.id === item.category);
-                // The quantity displayed here should be for the specific category AI identified.
                 const quantity = categoryDetails && userData && typeof userData[categoryDetails.quantityKey] === 'number'
                    ? userData[categoryDetails.quantityKey] as number
-                   : 0; // Fallback if no specific quantity or details found
+                   : (userData.itemsClassified || 0);
 
                 return (
                   <Card key={item.id} className="p-3 flex items-center gap-3 min-w-[280px] sm:min-w-[320px] flex-shrink-0 shadow-sm hover:shadow-md transition-shadow">
@@ -751,7 +725,7 @@ export default function HomePage() {
                         alt={item.category}
                         dataAiHint={`${item.category} item`}
                         placeholderSize="64x64"
-                        sizes="(max-width: 639px) 48px, 64px" // Adjusted sizes
+                        sizes="(max-width: 639px) 48px, 64px" 
                         wrapperClassName="relative w-12 h-12 sm:w-16 sm:h-16 rounded-md overflow-hidden bg-muted flex-shrink-0"
                         className="rounded-md object-cover"
                     />
@@ -837,12 +811,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Shared Dialog for all classification triggers */}
       <Dialog open={isUploadModalOpen} onOpenChange={open => {
           if(!open) {
             setClassificationError(null); 
-            // Reset currentUploadCategory only if the dialog is closed by user interaction
-            // AND not while a classification is in progress.
             if (!isClassifying) { 
                 setCurrentUploadCategory(undefined);
                 setCurrentUploadCategoryFriendlyName(undefined);
@@ -851,11 +822,9 @@ export default function HomePage() {
           }
           setIsUploadModalOpen(open);
       }}>
-        {/* This DialogTrigger is only here to ensure Dialog can exist without an explicit trigger in the main flow,
-            as other elements (cards) act as triggers. It's not meant to be visible or primary. */}
         <DialogTrigger asChild>
            <Button
-             onClick={() => openUploadModalForCategory('general', 'General Waste Item')}
+             onClick={() => openUploadModalForCategory('general' as WasteCategory, 'General Waste Item')} // Cast 'general'
              className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-14 w-14 rounded-full shadow-2xl p-0 z-50"
              aria-label="Upload image for general classification"
            >
@@ -903,7 +872,7 @@ export default function HomePage() {
           )} />
 
           <ImageUpload
-            onClassify={(imageDataUri) => handleClassify(imageDataUri, currentUploadCategory)} // Pass currentUploadCategory here
+            onClassify={(imageDataUri) => handleClassify(imageDataUri, currentUploadCategory)}
             isClassifying={isClassifying}
             classificationError={classificationError}
             initialPromptText={currentUploadCategoryFriendlyName && currentUploadCategoryFriendlyName !== 'General Waste Item' ? `Image of ${currentUploadCategoryFriendlyName.toLowerCase()}` : undefined}
